@@ -91,7 +91,7 @@ router.put('/users/:id/ban', async (req, res) => {
   try {
     const { isBanned, banReason } = req.body;
     
-    if (req.params.id === req.user.id) {
+    if (req.params.id === req.user.id.toString()) {
       return res.status(400).json({ message: 'You cannot ban yourself.' });
     }
 
