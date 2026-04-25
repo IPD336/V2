@@ -54,7 +54,7 @@ router.put('/:id/accept', auth, async (req, res) => {
   try {
     const swap = await Swap.findById(req.params.id);
     if (!swap) return res.status(404).json({ message: 'Swap not found' });
-    if (swap.receiver.toString() !== req.user.id)
+    if (swap.receiver.toString() !== req.user.id.toString())
       return res.status(403).json({ message: 'Not authorised' });
     if (swap.status !== 'pending')
       return res.status(400).json({ message: 'Swap is not pending' });
@@ -71,7 +71,7 @@ router.put('/:id/decline', auth, async (req, res) => {
   try {
     const swap = await Swap.findById(req.params.id);
     if (!swap) return res.status(404).json({ message: 'Swap not found' });
-    if (swap.receiver.toString() !== req.user.id)
+    if (swap.receiver.toString() !== req.user.id.toString())
       return res.status(403).json({ message: 'Not authorised' });
     swap.status = 'declined';
     await swap.save();
@@ -86,7 +86,7 @@ router.put('/:id/complete', auth, async (req, res) => {
   try {
     const swap = await Swap.findById(req.params.id);
     if (!swap) return res.status(404).json({ message: 'Swap not found' });
-    const isParty = [swap.sender.toString(), swap.receiver.toString()].includes(req.user.id);
+    const isParty = [swap.sender.toString(), swap.receiver.toString()].includes(req.user.id.toString());
     if (!isParty) return res.status(403).json({ message: 'Not authorised' });
     if (swap.status !== 'active')
       return res.status(400).json({ message: 'Swap must be active to complete' });
@@ -104,7 +104,7 @@ router.delete('/:id', auth, async (req, res) => {
   try {
     const swap = await Swap.findById(req.params.id);
     if (!swap) return res.status(404).json({ message: 'Swap not found' });
-    if (swap.sender.toString() !== req.user.id)
+    if (swap.sender.toString() !== req.user.id.toString())
       return res.status(403).json({ message: 'Only the sender can delete a pending request' });
     if (swap.status !== 'pending')
       return res.status(400).json({ message: 'Can only delete pending swaps' });

@@ -19,20 +19,20 @@ router.post('/', auth, async (req, res) => {
     if (swap.status !== 'completed')
       return res.status(400).json({ message: 'Swap must be completed first' });
 
-    const isParty = [swap.sender.toString(), swap.receiver.toString()].includes(req.user.id);
+    const isParty = [swap.sender.toString(), swap.receiver.toString()].includes(req.user.id.toString());
     if (!isParty) return res.status(403).json({ message: 'Not authorised' });
 
     // Determine reviewee
     const revieweeId =
-      swap.sender.toString() === req.user.id ? swap.receiver : swap.sender;
+      swap.sender.toString() === req.user.id.toString() ? swap.receiver : swap.sender;
 
     // Prevent duplicate review
-    const exists = await Review.findOne({ swap: swapId, reviewer: req.user.id });
+    const exists = await Review.findOne({ swap: swapId, reviewer: req.user.id.toString() });
     if (exists) return res.status(409).json({ message: 'Already reviewed this swap' });
 
     const review = await Review.create({
       swap: swapId,
-      reviewer: req.user.id,
+      reviewer: req.user.id.toString(),
       reviewee: revieweeId,
       rating, learned, feedback,
     });

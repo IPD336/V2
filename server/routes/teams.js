@@ -14,8 +14,8 @@ router.get('/', auth, async (req, res) => {
     if (mine === 'true') {
       query = {
         $or: [
-          { creator: req.user.id },
-          { 'members.user': req.user.id },
+          { creator: req.user.id.toString() },
+          { 'members.user': req.user.id.toString() },
         ],
       };
     } else {
@@ -45,9 +45,9 @@ router.post('/', auth, async (req, res) => {
     const team = await Team.create({
       name, description, purpose,
       maxSize: Number(maxSize),
-      creator: req.user.id,
+      creator: req.user.id.toString(),
       // Creator is automatically an accepted member
-      members: [{ user: req.user.id, status: 'accepted', joinedAt: new Date() }],
+      members: [{ user: req.user.id.toString(), status: 'accepted', joinedAt: new Date() }],
     });
 
     await team.populate('creator', 'name avatarColor');
@@ -76,7 +76,7 @@ router.post('/:id/invite', auth, async (req, res) => {
   try {
     const team = await Team.findById(req.params.id);
     if (!team) return res.status(404).json({ message: 'Team not found' });
-    if (team.creator.toString() !== req.user.id)
+    if (team.creator.toString() !== req.user.id.toString())
       return res.status(403).json({ message: 'Only the creator can invite members' });
     if (team.status === 'closed')
       return res.status(400).json({ message: 'Team is full and closed' });
@@ -110,7 +110,7 @@ router.put('/:id/respond', auth, async (req, res) => {
     if (!team) return res.status(404).json({ message: 'Team not found' });
 
     const memberEntry = team.members.find(
-      (m) => m.user.toString() === req.user.id && m.status === 'invited'
+      (m) => m.user.toString() === req.user.id.toString() && m.status === 'invited'
     );
     if (!memberEntry)
       return res.status(404).json({ message: 'No pending invite found for you' });
@@ -120,7 +120,7 @@ router.put('/:id/respond', auth, async (req, res) => {
       memberEntry.joinedAt = new Date();
     } else {
       // Remove from members list
-      team.members = team.members.filter((m) => m.user.toString() !== req.user.id);
+      team.members = team.members.filter((m) => m.user.toString() !== req.user.id.toString());
     }
 
     await team.save(); // pre-save hook auto-closes if full
@@ -137,7 +137,7 @@ router.delete('/:id', auth, async (req, res) => {
   try {
     const team = await Team.findById(req.params.id);
     if (!team) return res.status(404).json({ message: 'Team not found' });
-    if (team.creator.toString() !== req.user.id)
+    if (team.creator.toString() !== req.user.id.toString())
       return res.status(403).json({ message: 'Only the creator can delete the team' });
     await team.deleteOne();
     res.json({ message: 'Team deleted' });

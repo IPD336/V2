@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import api from '../api/axios';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
+import { useNavigate } from 'react-router-dom';
 
 function timeAgo(date) {
   const diff = Date.now() - new Date(date);
@@ -68,6 +69,7 @@ function ReviewModal({ swap, me, onClose, onDone }) {
 export default function Swaps() {
   const { user: me } = useAuth();
   const { showToast } = useToast();
+  const navigate = useNavigate();
   const [data, setData] = useState({ incoming: [], outgoing: [], active: [], completed: [] });
   const [tab, setTab] = useState('incoming');
   const [loading, setLoading] = useState(true);
@@ -169,7 +171,7 @@ export default function Swaps() {
                       </div>
                       <div className="swap-time">{timeAgo(s.createdAt)}</div>
                       <div className="swap-actions">
-                        <button className="btn-ghost" style={{ padding: '7px 14px', fontSize: 11 }} onClick={() => window.location.href = `/profile/${other?._id}`}>Profile</button>
+                        <button className="btn-ghost" style={{ padding: '7px 14px', fontSize: 11 }} onClick={() => navigate(`/profile/${other?._id}`)}>Profile</button>
                         <button className="btn-accept" onClick={() => accept(s._id)}>Accept</button>
                         <button className="btn-decline" onClick={() => decline(s._id)}>Decline</button>
                       </div>
@@ -192,7 +194,7 @@ export default function Swaps() {
                       </div>
                       <div className="swap-time"><span className="status-badge status-pending">Pending</span></div>
                       <div className="swap-actions">
-                        <button className="btn-ghost" style={{ padding: '7px 14px', fontSize: 11 }} onClick={() => window.location.href = `/profile/${other?._id}`}>Profile</button>
+                        <button className="btn-ghost" style={{ padding: '7px 14px', fontSize: 11 }} onClick={() => navigate(`/profile/${other?._id}`)}>Profile</button>
                         <button className="btn-delete" onClick={() => del(s._id)}>Delete</button>
                       </div>
                     </div>
@@ -214,7 +216,7 @@ export default function Swaps() {
                       </div>
                       <div className="swap-time"><span className="status-badge status-active">Active</span></div>
                       <div className="swap-actions">
-                        <button className="btn-ghost" style={{ padding: '7px 14px', fontSize: 11 }} onClick={() => window.location.href = `/profile/${other?._id}`}>Profile</button>
+                        <button className="btn-ghost" style={{ padding: '7px 14px', fontSize: 11 }} onClick={() => navigate(`/profile/${other?._id}`)}>Profile</button>
                         <button className="btn-review" onClick={() => complete(s._id)}>Mark Done</button>
                       </div>
                     </div>
@@ -236,7 +238,7 @@ export default function Swaps() {
                       </div>
                       <div className="swap-time"><span className="status-badge status-done">Done</span></div>
                       <div className="swap-actions">
-                        <button className="btn-review" onClick={() => window.location.href = `/profile/${other?._id}`}>View Profile</button>
+                        <button className="btn-review" onClick={() => navigate(`/profile/${other?._id}`)}>View Profile</button>
                         <button className="btn-review" onClick={() => setReviewSwap(s)}>Review</button>
                       </div>
                     </div>
