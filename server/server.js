@@ -14,13 +14,8 @@ const leaderboardRoutes = require('./routes/leaderboard');
 const app = express();
 
 // ── Middleware ──
-const allowedOrigins = [
-  'http://localhost:5173',
-  process.env.FRONTEND_URL
-].filter(Boolean);
-
 app.use(cors({ 
-  origin: allowedOrigins.length > 0 ? allowedOrigins : '*',
+  origin: (origin, callback) => callback(null, true),
   credentials: true 
 }));
 app.use(express.json());
