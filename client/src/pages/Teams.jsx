@@ -63,7 +63,7 @@ function CreateTeamModal({ onClose, onCreated }) {
   );
 }
 
-function TeamCard({ team, onClick }) {
+function TeamCard({ team, onClick, me }) {
   const accepted = team.members.filter((m) => m.status === 'accepted');
   const slots = Array.from({ length: team.maxSize });
 
@@ -76,9 +76,14 @@ function TeamCard({ team, onClick }) {
             by {team.creator?.name}
           </div>
         </div>
-        <span className={`team-badge ${team.status === 'open' ? 'team-open' : 'team-closed'}`}>
-          {team.status === 'open' ? '● Open' : '✓ Full'}
-        </span>
+        <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
+          {me && team.members.some((m) => m.user?._id === me._id && m.status === 'invited') && (
+            <span className="status-badge status-pending" style={{ fontSize: 10, padding: '2px 8px' }}>Pending Invite</span>
+          )}
+          <span className={`team-badge ${team.status === 'open' ? 'team-open' : 'team-closed'}`}>
+            {team.status === 'open' ? '● Open' : '✓ Full'}
+          </span>
+        </div>
       </div>
       <div className="team-purpose">{team.purpose || team.description || 'No description yet.'}</div>
       <div className="team-members-row">
@@ -173,7 +178,7 @@ export default function Teams() {
                   <p>Be the first to create one!</p>
                 </div>
               ) : openTeams.map((t) => (
-                <TeamCard key={t._id} team={t} onClick={() => navigate(`/teams/${t._id}`)} />
+                <TeamCard key={t._id} team={t} me={me} onClick={() => navigate(`/teams/${t._id}`)} />
               ))
             )}
             {tab === 'mine' && (
@@ -185,7 +190,7 @@ export default function Teams() {
                   <button className="btn-accent" onClick={() => setShowCreate(true)}>Create Team</button>
                 </div>
               ) : myTeams.map((t) => (
-                <TeamCard key={t._id} team={t} onClick={() => navigate(`/teams/${t._id}`)} />
+                <TeamCard key={t._id} team={t} me={me} onClick={() => navigate(`/teams/${t._id}`)} />
               ))
             )}
           </div>
