@@ -33,9 +33,12 @@ export function SocketProvider({ children }) {
     if (!token) return;
 
     // Connect to Socket.io server
-    const apiUrl = import.meta.env.DEV ? 'http://localhost:5000' : (import.meta.env.VITE_API_URL || 'http://localhost:5000');
+    let apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+    if (apiUrl.endsWith('/api')) apiUrl = apiUrl.replace(/\/api$/, '');
+    
     const newSocket = io(apiUrl, {
-      auth: { token }
+      auth: { token },
+      transports: ['websocket', 'polling'] // Try websocket first
     });
 
     newSocket.on('connect', () => {
