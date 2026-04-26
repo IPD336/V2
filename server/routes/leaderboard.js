@@ -10,7 +10,7 @@ router.get('/', auth, async (req, res) => {
   try {
     await updateAllLeagues(); // Ensure leagues are up to date
     const allUsers = await User.find({ isPublic: { $ne: false }, role: { $ne: 'admin' }, isBanned: false })
-      .select('name avatarColor rating reviewCount skillsOffered league _id');
+      .select('name avatarColor avatarUrl rating reviewCount skillsOffered league _id');
 
     // Calculate score
     const scoredUsers = allUsers.map(u => {

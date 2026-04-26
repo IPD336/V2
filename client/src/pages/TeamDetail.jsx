@@ -111,8 +111,8 @@ export default function TeamDetail() {
           <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
             {accepted.map((m) => (
               <div key={m.user?._id} style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
-                <div style={{ width: 42, height: 42, borderRadius: 10, background: m.user?.avatarColor || '#C84B31', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800, fontSize: 14, color: 'white' }}>
-                  {initials(m.user?.name)}
+                <div style={{ width: 42, height: 42, borderRadius: 10, background: m.user?.avatarUrl ? `url(${m.user.avatarUrl}) center/cover` : (m.user?.avatarColor || '#C84B31'), display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800, fontSize: 14, color: 'white' }}>
+                  {!m.user?.avatarUrl && initials(m.user?.name)}
                 </div>
                 <div>
                   <div style={{ fontWeight: 700, fontSize: 14, color: 'var(--ink)' }}>{m.user?.name} {m.user?._id === team.creator?._id && <span style={{ fontSize: 11, color: 'var(--muted)', fontWeight: 400 }}>· Creator</span>}</div>
@@ -136,8 +136,8 @@ export default function TeamDetail() {
             <div style={{ fontFamily: 'PT Mono, monospace', fontSize: 11, letterSpacing: 2, textTransform: 'uppercase', color: 'var(--muted)', marginBottom: 16 }}>Pending Invites</div>
             {invited.map((m) => (
               <div key={m.user?._id} style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 10 }}>
-                <div style={{ width: 36, height: 36, borderRadius: 9, background: m.user?.avatarColor || '#aaa', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800, fontSize: 11, color: 'white' }}>
-                  {initials(m.user?.name)}
+                <div style={{ width: 36, height: 36, borderRadius: 9, background: m.user?.avatarUrl ? `url(${m.user.avatarUrl}) center/cover` : (m.user?.avatarColor || '#aaa'), display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800, fontSize: 11, color: 'white' }}>
+                  {!m.user?.avatarUrl && initials(m.user?.name)}
                 </div>
                 <span style={{ fontWeight: 600, fontSize: 13, color: 'var(--ink)' }}>{m.user?.name}</span>
                 <span className="status-badge status-pending" style={{ marginLeft: 'auto' }}>Awaiting</span>
@@ -167,8 +167,8 @@ export default function TeamDetail() {
                   const alreadyInvited = team.members.some((m) => m.user?._id === u._id);
                   return (
                     <div key={u._id} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '10px 14px', background: 'var(--cream)', borderRadius: 10 }}>
-                      <div style={{ width: 36, height: 36, borderRadius: 9, background: u.avatarColor, display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800, fontSize: 11, color: 'white' }}>
-                        {initials(u.name)}
+                      <div style={{ width: 36, height: 36, borderRadius: 9, background: u.avatarUrl ? `url(${u.avatarUrl}) center/cover` : u.avatarColor, display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800, fontSize: 11, color: 'white' }}>
+                        {!u.avatarUrl && initials(u.name)}
                       </div>
                       <div style={{ flex: 1 }}>
                         <div style={{ fontWeight: 700, fontSize: 13, color: 'var(--ink)' }}>{u.name}</div>

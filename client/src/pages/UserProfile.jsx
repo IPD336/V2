@@ -64,8 +64,8 @@ export default function UserProfile() {
 
         {/* Profile Header */}
         <div style={{ background: 'var(--card-bg)', borderRadius: 20, padding: 40, border: '1px solid var(--border)', marginBottom: 24, display: 'flex', gap: 32, alignItems: 'flex-start', flexWrap: 'wrap' }}>
-          <div style={{ width: 100, height: 100, borderRadius: 24, background: user.avatarColor || '#C84B31', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800, fontSize: 32, color: 'white', flexShrink: 0 }}>
-            {initials(user.name)}
+          <div style={{ width: 100, height: 100, borderRadius: 24, background: user.avatarUrl ? `url(${user.avatarUrl}) center/cover` : (user.avatarColor || '#C84B31'), display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800, fontSize: 32, color: 'white', flexShrink: 0 }}>
+            {!user.avatarUrl && initials(user.name)}
           </div>
           <div style={{ flex: 1, minWidth: '280px' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: 16 }}>

@@ -39,13 +39,13 @@ function PodiumStep({ user, pos }) {
       >
         <div style={{
           width: pos === 1 ? 80 : 64, height: pos === 1 ? 80 : 64,
-          borderRadius: 20, background: user.avatarColor,
+          borderRadius: 20, background: user.avatarUrl ? `url(${user.avatarUrl}) center/cover` : user.avatarColor,
           display: 'flex', alignItems: 'center', justifyContent: 'center',
           fontSize: pos === 1 ? 24 : 18, fontWeight: 800, color: 'white',
           border: `3px solid ${colors[pos]}`, margin: '0 auto 12px',
           boxShadow: `0 8px 24px ${colors[pos]}40`
         }}>
-          {initials(user.name)}
+          {!user.avatarUrl && initials(user.name)}
         </div>
         <div style={{ fontWeight: 700, fontSize: 15, marginBottom: 4 }}>{user.name}</div>
         <div style={{ fontSize: 12, color: 'var(--muted)' }}>Score: {user.score.toFixed(1)}</div>
@@ -144,8 +144,8 @@ export default function Leaderboard() {
               onClick={() => navigate(`/profile/${u._id}`)}
             >
               <div style={{ width: 40, fontSize: 16, fontWeight: 700, color: 'var(--muted)' }}>#{u.rank}</div>
-              <div style={{ width: 48, height: 48, borderRadius: 14, background: u.avatarColor, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 14, fontWeight: 800, color: 'white', marginRight: 16 }}>
-                {initials(u.name)}
+              <div style={{ width: 48, height: 48, borderRadius: 14, background: u.avatarUrl ? `url(${u.avatarUrl}) center/cover` : u.avatarColor, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 14, fontWeight: 800, color: 'white', marginRight: 16 }}>
+                {!u.avatarUrl && initials(u.name)}
               </div>
               <div style={{ flex: 1, minWidth: '150px' }}>
                 <div style={{ fontWeight: 600, fontSize: 15, marginBottom: 4, color: 'var(--ink)' }}>{u.name}</div>

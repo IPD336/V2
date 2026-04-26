@@ -1,6 +1,7 @@
 const express = require('express');
 const User = require('../models/User');
 const auth = require('../middleware/auth');
+const { upload } = require('../utils/cloudinary');
 
 const router = express.Router();
 
@@ -176,6 +177,30 @@ router.delete('/:id', auth, async (req, res) => {
     }
     await User.findByIdAndDelete(req.params.id);
     res.json({ message: 'Account deleted successfully' });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
+// POST /api/users/:id/avatar — upload profile picture
+router.post('/:id/avatar', auth, upload.single('avatar'), async (req, res) => {
+  try {
+    if (req.user.id.toString() !== req.params.id) {
+      return res.status(403).json({ message: 'Not authorised' });
+    }
+    
+    if (!req.file) {
+      return res.status(400).json({ message: 'No file uploaded' });
+    }
+
+    // req.file.path contains the URL from Cloudinary
+    const user = await User.findByIdAndUpdate(
+      req.params.id,
+      { avatarUrl: req.file.path },
+      { new: true }
+    ).select('-passwordHash');
+
+    res.json({ message: 'Avatar updated', user, avatarUrl: req.file.path });
   } catch (err) {
     res.status(500).json({ message: err.message });
   }

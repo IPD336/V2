@@ -85,8 +85,8 @@ function TeamCard({ team, onClick }) {
         {slots.map((_, i) => {
           const m = accepted[i];
           return m ? (
-            <div key={i} className="member-avatar" style={{ background: m.user?.avatarColor || '#C84B31' }}>
-              {initials(m.user?.name)}
+            <div key={i} className="member-avatar" style={{ background: m.user?.avatarUrl ? `url(${m.user.avatarUrl}) center/cover` : (m.user?.avatarColor || '#C84B31') }}>
+              {!m.user?.avatarUrl && initials(m.user?.name)}
             </div>
           ) : (
             <div key={i} className="member-slot">+</div>

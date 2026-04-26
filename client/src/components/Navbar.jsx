@@ -49,8 +49,8 @@ export default function Navbar() {
                   </>
                 )}
               </div>
-              <div className="nav-avatar" style={{ background: user.avatarColor, cursor: 'default' }} title={user.name}>
-                {initials(user.name)}
+              <div className="nav-avatar" style={{ background: user.avatarUrl ? `url(${user.avatarUrl}) center/cover` : user.avatarColor, cursor: 'default' }} title={user.name}>
+                {!user.avatarUrl && initials(user.name)}
               </div>
               <button className="btn-ghost" onClick={handleLogout} title="Logout" style={{ padding: '6px 12px', fontSize: 13, display: 'flex', alignItems: 'center', gap: 6 }}>
                 <span className="hide-mobile">Logout</span>

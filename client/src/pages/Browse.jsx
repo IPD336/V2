@@ -25,7 +25,9 @@ function ProfileCard({ user, onSwap, onSave, saved }) {
       <div className="card-banner" style={{ background: `linear-gradient(135deg, ${color}, ${color}aa)` }} />
       <div className="card-body">
         <div className="card-avatar-wrap">
-          <div className="card-avatar" style={{ background: color }}>{initials(user.name)}</div>
+          <div className="card-avatar" style={{ background: user.avatarUrl ? `url(${user.avatarUrl}) center/cover` : color }}>
+            {!user.avatarUrl && initials(user.name)}
+          </div>
           {user.mutualMatch
             ? <span className="card-badge badge-mutual">⇄ Mutual Match</span>
             : <span className="card-badge badge-public">● Public</span>}

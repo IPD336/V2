@@ -160,7 +160,9 @@ export default function Swaps() {
                   const other = s.sender;
                   return (
                     <div key={s._id} className="swap-card" style={{ background: 'var(--card-bg)' }}>
-                      <div className="swap-ava" style={{ background: other?.avatarColor || '#C84B31' }}>{initials(other?.name)}</div>
+                      <div className="swap-ava" style={{ background: other?.avatarUrl ? `url(${other.avatarUrl}) center/cover` : (other?.avatarColor || '#C84B31') }}>
+                        {!other?.avatarUrl && initials(other?.name)}
+                      </div>
                       <div className="swap-meta">
                         <div className="swap-name" style={{ color: 'var(--ink)' }}>{other?.name}</div>
                         <div className="swap-skill-row">
@@ -184,7 +186,9 @@ export default function Swaps() {
                   const other = s.receiver;
                   return (
                     <div key={s._id} className="swap-card" style={{ background: 'var(--card-bg)' }}>
-                      <div className="swap-ava" style={{ background: other?.avatarColor || '#3A6351' }}>{initials(other?.name)}</div>
+                      <div className="swap-ava" style={{ background: other?.avatarUrl ? `url(${other.avatarUrl}) center/cover` : (other?.avatarColor || '#3A6351') }}>
+                        {!other?.avatarUrl && initials(other?.name)}
+                      </div>
                       <div className="swap-meta">
                         <div className="swap-name" style={{ color: 'var(--ink)' }}>{other?.name}</div>
                         <div className="swap-skill-row">
@@ -207,7 +211,9 @@ export default function Swaps() {
                   const other = getOther(s);
                   return (
                     <div key={s._id} className="swap-card" style={{ background: 'var(--card-bg)' }}>
-                      <div className="swap-ava" style={{ background: other?.avatarColor || '#3B4F8C' }}>{initials(other?.name)}</div>
+                      <div className="swap-ava" style={{ background: other?.avatarUrl ? `url(${other.avatarUrl}) center/cover` : (other?.avatarColor || '#3B4F8C') }}>
+                        {!other?.avatarUrl && initials(other?.name)}
+                      </div>
                       <div className="swap-meta">
                         <div className="swap-name" style={{ color: 'var(--ink)' }}>{other?.name}</div>
                         <div className="swap-skill-row">
@@ -229,7 +235,9 @@ export default function Swaps() {
                   const other = getOther(s);
                   return (
                     <div key={s._id} className="swap-card" style={{ background: 'var(--card-bg)' }}>
-                      <div className="swap-ava" style={{ background: other?.avatarColor || '#B8902A' }}>{initials(other?.name)}</div>
+                      <div className="swap-ava" style={{ background: other?.avatarUrl ? `url(${other.avatarUrl}) center/cover` : (other?.avatarColor || '#B8902A') }}>
+                        {!other?.avatarUrl && initials(other?.name)}
+                      </div>
                       <div className="swap-meta">
                         <div className="swap-name" style={{ color: 'var(--ink)' }}>{other?.name}</div>
                         <div className="swap-skill-row">
