@@ -23,6 +23,7 @@ export default function Navbar() {
   const handleNotifClick = (n) => {
     markAsRead(n._id);
     setNotifOpen(false);
+    setMobileMenuOpen(false);
     if (n.type === 'swap_request') navigate('/swaps');
     else if (n.type === 'team_invite') navigate('/teams');
     else navigate('/profile');

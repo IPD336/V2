@@ -272,6 +272,19 @@ nav { position: fixed; top: 0; left: 0; right: 0; z-index: 100; display: flex; a
     left: 20px;
     width: auto;
     max-width: none;
+    height: calc(100vh - 100px);
+    display: flex;
+    flex-direction: column;
+  }
+
+  .swaps-layout {
+    grid-template-columns: 1fr !important;
+    gap: 32px !important;
+  }
+  .swaps-sidebar {
+    position: relative !important;
+    top: 0 !important;
+    margin-bottom: 40px;
   }
 
   /* Mobile nav backdrop */

@@ -63,9 +63,30 @@ export function SocketProvider({ children }) {
 
   const markAsRead = async (id) => {
     try {
-      await api.put(`/notifications/${id}/read`);
-      setNotifications(prev => prev.map(n => n._id === id ? { ...n, read: true } : n));
-      setUnreadCount(prev => Math.max(0, prev - 1));
+      const n = notifications.find(notif => notif._id === id);
+      if (n && !n.read) {
+        await api.put(`/notifications/${id}/read`);
+        setNotifications(prev => prev.map(notif => notif._id === id ? { ...notif, read: true } : notif));
+        setUnreadCount(prev => Math.max(0, prev - 1));
+      }
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const markTypeAsRead = async (type) => {
+    try {
+      const unreadOfType = notifications.filter(n => n.type === type && !n.read);
+      if (unreadOfType.length === 0) return;
+
+      // For simplicity, we'll just mark them locally and call a bulk read if we had one,
+      // but here we can just loop or wait for a better API.
+      // Let's just do it locally for now to clear the UI immediately.
+      for (const n of unreadOfType) {
+        await api.put(`/notifications/${n._id}/read`);
+      }
+      setNotifications(prev => prev.map(n => n.type === type ? { ...n, read: true } : n));
+      setUnreadCount(prev => Math.max(0, prev - unreadOfType.length));
     } catch (err) {
       console.error(err);
     }
@@ -82,7 +103,7 @@ export function SocketProvider({ children }) {
   };
 
   return (
-    <SocketContext.Provider value={{ socket, notifications, unreadCount, markAsRead, markAllAsRead }}>
+    <SocketContext.Provider value={{ socket, notifications, unreadCount, markAsRead, markAllAsRead, markTypeAsRead }}>
       {children}
     </SocketContext.Provider>
   );

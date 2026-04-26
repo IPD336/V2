@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import api from '../api/axios';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
+import { useSocket } from '../context/SocketContext';
 
 function initials(name = '') {
   return name.split(' ').map((w) => w[0]).join('').toUpperCase().slice(0, 2);
@@ -108,6 +109,7 @@ function TeamCard({ team, onClick, me }) {
 export default function Teams() {
   const { user: me } = useAuth();
   const { showToast } = useToast();
+  const { markTypeAsRead } = useSocket();
   const navigate = useNavigate();
   const [tab, setTab] = useState('browse');
   const [openTeams, setOpenTeams] = useState([]);
@@ -127,6 +129,7 @@ export default function Teams() {
   useEffect(() => {
     setLoading(true);
     Promise.all([loadOpen(), loadMine()]).finally(() => setLoading(false));
+    markTypeAsRead('team_invite');
   }, []);
 
   const pendingInvites = myTeams.filter((t) =>

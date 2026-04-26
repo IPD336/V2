@@ -3,6 +3,7 @@ import api from '../api/axios';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
 import { useNavigate } from 'react-router-dom';
+import { useSocket } from '../context/SocketContext';
 
 function timeAgo(date) {
   const diff = Date.now() - new Date(date);
@@ -69,6 +70,7 @@ function ReviewModal({ swap, me, onClose, onDone }) {
 export default function Swaps() {
   const { user: me } = useAuth();
   const { showToast } = useToast();
+  const { markTypeAsRead } = useSocket();
   const navigate = useNavigate();
   const [data, setData] = useState({ incoming: [], outgoing: [], active: [], completed: [] });
   const [tab, setTab] = useState('incoming');
@@ -84,7 +86,10 @@ export default function Swaps() {
     finally { setLoading(false); }
   };
 
-  useEffect(() => { load(); }, []);
+  useEffect(() => { 
+    load(); 
+    markTypeAsRead('swap_request');
+  }, []);
 
   const accept = async (id) => {
     await api.put(`/swaps/${id}/accept`);
