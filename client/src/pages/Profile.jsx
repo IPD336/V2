@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import api from '../api/axios';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
@@ -33,6 +34,7 @@ function ChipInput({ chips, onChange, colorClass = '' }) {
 export default function Profile() {
   const { user: me, refreshUser, logout } = useAuth();
   const { showToast } = useToast();
+  const navigate = useNavigate();
   const [form, setForm] = useState(null);
   const [loading, setLoading] = useState(false);
 
