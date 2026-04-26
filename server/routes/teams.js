@@ -23,8 +23,8 @@ router.get('/', auth, async (req, res) => {
     }
 
     const teams = await Team.find(query)
-      .populate('creator', 'name avatarColor')
-      .populate('members.user', 'name avatarColor')
+      .populate('creator', 'name avatarColor avatarUrl')
+      .populate('members.user', 'name avatarColor avatarUrl')
       .sort({ createdAt: -1 });
 
     res.json(teams);
@@ -50,8 +50,8 @@ router.post('/', auth, async (req, res) => {
       members: [{ user: req.user.id.toString(), status: 'accepted', joinedAt: new Date() }],
     });
 
-    await team.populate('creator', 'name avatarColor');
-    await team.populate('members.user', 'name avatarColor');
+    await team.populate('creator', 'name avatarColor avatarUrl');
+    await team.populate('members.user', 'name avatarColor avatarUrl');
     res.status(201).json(team);
   } catch (err) {
     res.status(500).json({ message: err.message });
@@ -62,8 +62,8 @@ router.post('/', auth, async (req, res) => {
 router.get('/:id', auth, async (req, res) => {
   try {
     const team = await Team.findById(req.params.id)
-      .populate('creator', 'name avatarColor location')
-      .populate('members.user', 'name avatarColor location skillsOffered');
+      .populate('creator', 'name avatarColor avatarUrl location')
+      .populate('members.user', 'name avatarColor avatarUrl location skillsOffered');
     if (!team) return res.status(404).json({ message: 'Team not found' });
     res.json(team);
   } catch (err) {
@@ -92,7 +92,7 @@ router.post('/:id/invite', auth, async (req, res) => {
 
     team.members.push({ user: userId, status: 'invited' });
     await team.save();
-    await team.populate('members.user', 'name avatarColor');
+    await team.populate('members.user', 'name avatarColor avatarUrl');
     res.json(team);
   } catch (err) {
     res.status(500).json({ message: err.message });
@@ -124,8 +124,8 @@ router.put('/:id/respond', auth, async (req, res) => {
     }
 
     await team.save(); // pre-save hook auto-closes if full
-    await team.populate('creator', 'name avatarColor');
-    await team.populate('members.user', 'name avatarColor');
+    await team.populate('creator', 'name avatarColor avatarUrl');
+    await team.populate('members.user', 'name avatarColor avatarUrl');
     res.json(team);
   } catch (err) {
     res.status(500).json({ message: err.message });

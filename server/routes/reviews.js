@@ -58,7 +58,7 @@ router.post('/', auth, async (req, res) => {
 router.get('/user/:id', async (req, res) => {
   try {
     const reviews = await Review.find({ reviewee: req.params.id })
-      .populate('reviewer', 'name avatarColor')
+      .populate('reviewer', 'name avatarColor avatarUrl')
       .sort({ createdAt: -1 });
     res.json(reviews);
   } catch (err) {

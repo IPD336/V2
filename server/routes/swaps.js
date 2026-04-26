@@ -11,14 +11,14 @@ router.get('/', auth, async (req, res) => {
   try {
     const uid = req.user.id;
     const [incoming, outgoing, active, completed] = await Promise.all([
-      Swap.find({ receiver: uid, status: 'pending' }).populate('sender', 'name avatarColor location'),
-      Swap.find({ sender: uid, status: 'pending' }).populate('receiver', 'name avatarColor location'),
+      Swap.find({ receiver: uid, status: 'pending' }).populate('sender', 'name avatarColor avatarUrl location'),
+      Swap.find({ sender: uid, status: 'pending' }).populate('receiver', 'name avatarColor avatarUrl location'),
       Swap.find({ $or: [{ sender: uid }, { receiver: uid }], status: 'active' })
-        .populate('sender', 'name avatarColor')
-        .populate('receiver', 'name avatarColor'),
+        .populate('sender', 'name avatarColor avatarUrl')
+        .populate('receiver', 'name avatarColor avatarUrl'),
       Swap.find({ $or: [{ sender: uid }, { receiver: uid }], status: 'completed' })
-        .populate('sender', 'name avatarColor')
-        .populate('receiver', 'name avatarColor'),
+        .populate('sender', 'name avatarColor avatarUrl')
+        .populate('receiver', 'name avatarColor avatarUrl'),
     ]);
     res.json({ incoming, outgoing, active, completed });
   } catch (err) {

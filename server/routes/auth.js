@@ -46,6 +46,10 @@ router.post('/login', async (req, res) => {
     const ok = await bcrypt.compare(password, user.passwordHash);
     if (!ok) return res.status(401).json({ message: 'Invalid credentials' });
 
+    if (user.isBanned) {
+      return res.status(403).json({ message: `Your account has been banned. Reason: ${user.banReason || 'No reason provided.'}` });
+    }
+
     const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: '7d' });
     res.json({ token, user: sanitize(user) });
   } catch (err) {
@@ -58,6 +62,9 @@ router.get('/me', auth, async (req, res) => {
   try {
     const user = await User.findById(req.user.id).select('-passwordHash');
     if (!user) return res.status(404).json({ message: 'User not found' });
+    if (user.isBanned) {
+      return res.status(403).json({ message: `Your account has been banned. Reason: ${user.banReason || 'No reason provided.'}` });
+    }
     res.json(user);
   } catch (err) {
     res.status(500).json({ message: err.message });
