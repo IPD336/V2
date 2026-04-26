@@ -74,7 +74,7 @@ export default function Navbar() {
                   )}
                 </button>
                 {notifOpen && (
-                  <div className="dropdown" style={{ position: 'absolute', top: 50, right: -10, background: 'var(--card-bg)', border: '1px solid var(--border)', borderRadius: 12, width: 320, maxWidth: 'calc(100vw - 40px)', zIndex: 9999, boxShadow: '0 10px 40px rgba(0,0,0,0.15)', overflow: 'hidden' }}>
+                  <div className="notif-dropdown">
                     <div style={{ padding: '12px 16px', borderBottom: '1px solid var(--border)', fontWeight: 600, color: 'var(--ink)' }}>Notifications</div>
                     <div style={{ maxHeight: 300, overflowY: 'auto' }}>
                       {notifications.length === 0 ? (

@@ -90,6 +90,19 @@ nav { position: fixed; top: 0; left: 0; right: 0; z-index: 100; display: flex; a
 .nav-actions { display: flex; gap: 10px; align-items: center; }
 .nav-avatar { width: 34px; height: 34px; border-radius: 9px; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 11px; color: white; cursor: pointer; border: none; }
 
+.notif-dropdown {
+  position: absolute;
+  top: 50px;
+  right: -10px;
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  width: 320px;
+  z-index: 9999;
+  box-shadow: 0 10px 40px rgba(0,0,0,0.15);
+  overflow: hidden;
+}
+
 /* ── PAGE LAYOUT ── */
 .page { padding-top: 68px; min-height: 100vh; }
 .container { max-width: 1200px; margin: 0 auto; padding: 0 56px; }
@@ -249,6 +262,15 @@ nav { position: fixed; top: 0; left: 0; right: 0; z-index: 100; display: flex; a
   
   .mobile-menu-btn { display: flex !important; }
   
+  .notif-dropdown {
+    position: fixed;
+    top: 68px;
+    right: 20px;
+    left: 20px;
+    width: auto;
+    max-width: none;
+  }
+
   /* Mobile nav backdrop */
   .nav-backdrop {
     display: none;
