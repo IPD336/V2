@@ -255,12 +255,15 @@ nav { position: fixed; top: 0; left: 0; right: 0; z-index: 100; display: flex; a
 @keyframes spin { to { transform: rotate(360deg); } }
 
 /* ── RESPONSIVE ── */
+.mobile-only-flex { display: none !important; }
+
 @media (max-width: 900px) {
   nav { padding: 0 20px; }
   .nav-links { display: none; }
   .container { padding: 0 20px; }
   
   .mobile-menu-btn { display: flex !important; }
+  .mobile-only-flex { display: flex !important; }
   
   .notif-dropdown {
     position: fixed;

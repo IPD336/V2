@@ -57,10 +57,13 @@ export default function Navbar() {
                     <NavLink to="/teams" className={({ isActive }) => isActive ? 'active' : ''} onClick={closeMobileMenu}>Teams</NavLink>
                     <NavLink to="/leaderboard" className={({ isActive }) => isActive ? 'active' : ''} onClick={closeMobileMenu}>Leaderboard</NavLink>
                     <NavLink to="/profile" className={({ isActive }) => isActive ? 'active' : ''} onClick={closeMobileMenu}>Profile</NavLink>
+                    <button className="mobile-only-flex" onClick={() => setNotifOpen(!notifOpen)} style={{ background: 'none', border: 'none', textAlign: 'left', fontSize: 16, fontWeight: 600, padding: '14px 0', borderBottom: '1px solid var(--border)', cursor: 'pointer', alignItems: 'center', gap: 8, color: 'var(--ink)' }}>
+                      Notifications {unreadCount > 0 && <span style={{ background: 'red', color: 'white', borderRadius: 10, padding: '2px 8px', fontSize: 11 }}>{unreadCount} new</span>}
+                    </button>
                   </>
                 )}
               </div>
-              <div style={{ position: 'relative' }}>
+              <div style={{ position: 'relative' }} className="hide-mobile">
                 <button 
                   className="btn-ghost" 
                   style={{ fontSize: 20, padding: '4px 8px', position: 'relative' }} 
