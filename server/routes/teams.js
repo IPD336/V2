@@ -2,6 +2,7 @@ const express = require('express');
 const Team = require('../models/Team');
 const User = require('../models/User');
 const auth = require('../middleware/auth');
+const socket = require('../socket');
 
 const router = express.Router();
 
@@ -92,6 +93,21 @@ router.post('/:id/invite', auth, async (req, res) => {
 
     team.members.push({ user: userId, status: 'invited' });
     await team.save();
+
+    const creatorUser = await User.findById(req.user.id).select('name');
+    
+    if (invitee) {
+      const notif = {
+        type: 'team_invite',
+        message: `${creatorUser.name} invited you to join ${team.name}`,
+        relatedId: team._id,
+        createdAt: new Date()
+      };
+      invitee.notifications.push(notif);
+      await invitee.save();
+      
+      socket.sendNotification(userId, invitee.notifications[invitee.notifications.length - 1]);
+    }
     await team.populate('members.user', 'name avatarColor avatarUrl');
     res.json(team);
   } catch (err) {
@@ -124,6 +140,18 @@ router.put('/:id/respond', auth, async (req, res) => {
     }
 
     await team.save(); // pre-save hook auto-closes if full
+    
+    if (team.status === 'closed') {
+      const acceptedMembers = team.members.filter(m => m.status === 'accepted');
+      for (const m of acceptedMembers) {
+        const u = await User.findById(m.user);
+        if (u && !u.badges.includes('Team Player')) {
+          u.badges.push('Team Player');
+          await u.save();
+        }
+      }
+    }
+
     await team.populate('creator', 'name avatarColor avatarUrl');
     await team.populate('members.user', 'name avatarColor avatarUrl');
     res.json(team);

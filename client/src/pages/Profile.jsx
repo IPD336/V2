@@ -131,12 +131,12 @@ export default function Profile() {
             <div>
               <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 4, flexWrap: 'wrap' }}>
                 <h1 style={{ fontFamily: 'PT Serif, serif', fontSize: 28, fontWeight: 600, letterSpacing: -0.5, margin: 0, color: 'var(--ink)' }}>{me.name}</h1>
-                {me.league && me.league.name !== 'Bronze' && (
+                {me.league && (
                   <span style={{ 
-                    background: me.league.color + '20', color: me.league.name === 'Diamond' ? '#00E5FF' : me.league.name === 'Platinum' ? '#8e9eab' : me.league.color,
-                    padding: '2px 10px', borderRadius: 20, fontSize: 12, fontWeight: 800, border: `1.5px solid ${me.league.color}`
+                    background: me.league.color + '15', color: me.league.name === 'Diamond' ? '#00E5FF' : me.league.name === 'Platinum' ? '#8e9eab' : me.league.color,
+                    padding: '4px 12px', borderRadius: 20, fontSize: 13, fontWeight: 800, border: `1.5px solid ${me.league.color}`, display: 'flex', alignItems: 'center', gap: 6, boxShadow: `0 0 10px ${me.league.color}20`
                   }}>
-                    {me.league.name} Mentor
+                    {me.league.name === 'Diamond' ? '💎' : me.league.name === 'Platinum' ? '✨' : me.league.name === 'Gold' ? '🏆' : me.league.name === 'Silver' ? '🥈' : '🥉'} {me.league.name} Mentor
                   </span>
                 )}
               </div>
@@ -148,6 +148,31 @@ export default function Profile() {
           </div>
           <button className="btn-ghost" onClick={() => navigate(`/profile/${me._id}`)}>View Public Profile ↗</button>
         </div>
+
+        {/* Achievements Section */}
+        {me.badges && me.badges.length > 0 && (
+          <div style={{ background: 'var(--card-bg)', borderRadius: 20, padding: 32, marginBottom: 24, border: '1px solid var(--border)' }}>
+            <h2 style={{ fontSize: 18, marginBottom: 24, display: 'flex', alignItems: 'center', gap: 8 }}>🏅 Achievements</h2>
+            <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap' }}>
+              {me.badges.map((badge, idx) => {
+                let icon = '⭐️';
+                let desc = '';
+                if (badge === 'Early Bird') { icon = '🐣'; desc = 'Completed first swap'; }
+                if (badge === 'Super Mentor') { icon = '🌟'; desc = '10+ five-star reviews'; }
+                if (badge === 'Team Player') { icon = '🤝'; desc = 'Completed a team project'; }
+                return (
+                  <div key={idx} style={{ background: 'var(--gold-light)', border: '1px solid var(--gold)', padding: '12px 16px', borderRadius: 12, display: 'flex', alignItems: 'center', gap: 12 }}>
+                    <div style={{ fontSize: 24 }}>{icon}</div>
+                    <div>
+                      <div style={{ fontWeight: 700, color: 'var(--ink)', fontSize: 14 }}>{badge}</div>
+                      <div style={{ fontSize: 11, color: 'var(--muted)' }}>{desc}</div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
 
         <form onSubmit={submit}>
           <div style={{ background: 'var(--card-bg)', borderRadius: 20, padding: 32, border: '1px solid var(--border)', marginBottom: 16 }}>

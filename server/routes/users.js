@@ -123,7 +123,7 @@ router.get('/recommendations', auth, async (req, res) => {
 // GET /api/users/:id
 router.get('/:id', async (req, res) => {
   try {
-    const user = await User.findById(req.params.id).select('-passwordHash');
+    const user = await User.findById(req.params.id).select('-passwordHash -notifications');
     if (!user) return res.status(404).json({ message: 'User not found' });
     res.json(user);
   } catch (err) {

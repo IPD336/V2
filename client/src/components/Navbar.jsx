@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
+import { useSocket } from '../context/SocketContext';
 
 function initials(name = '') {
   return name.split(' ').map((w) => w[0]).join('').toUpperCase().slice(0, 2);
@@ -10,12 +11,22 @@ function initials(name = '') {
 export default function Navbar() {
   const { user, logout } = useAuth();
   const { theme, toggleTheme } = useTheme();
+  const { notifications, unreadCount, markAsRead } = useSocket() || { notifications: [], unreadCount: 0, markAsRead: () => {} };
   const navigate = useNavigate();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [notifOpen, setNotifOpen] = useState(false);
 
   const handleLogout = () => { logout(); navigate('/'); setMobileMenuOpen(false); };
   const toggleMobileMenu = () => setMobileMenuOpen(!mobileMenuOpen);
-  const closeMobileMenu = () => setMobileMenuOpen(false);
+  const closeMobileMenu = () => { setMobileMenuOpen(false); setNotifOpen(false); };
+
+  const handleNotifClick = (n) => {
+    markAsRead(n._id);
+    setNotifOpen(false);
+    if (n.type === 'swap_request') navigate('/swaps');
+    else if (n.type === 'team_invite') navigate('/teams');
+    else navigate('/profile');
+  };
 
   return (
     <>
@@ -47,6 +58,40 @@ export default function Navbar() {
                     <NavLink to="/leaderboard" className={({ isActive }) => isActive ? 'active' : ''} onClick={closeMobileMenu}>Leaderboard</NavLink>
                     <NavLink to="/profile" className={({ isActive }) => isActive ? 'active' : ''} onClick={closeMobileMenu}>Profile</NavLink>
                   </>
+                )}
+              </div>
+              <div style={{ position: 'relative' }}>
+                <button 
+                  className="btn-ghost" 
+                  style={{ fontSize: 20, padding: '4px 8px', position: 'relative' }} 
+                  onClick={() => setNotifOpen(!notifOpen)}
+                >
+                  🔔
+                  {unreadCount > 0 && (
+                    <div style={{ position: 'absolute', top: 2, right: 2, background: 'red', color: 'white', borderRadius: '50%', width: 16, height: 16, fontSize: 10, display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold' }}>
+                      {unreadCount}
+                    </div>
+                  )}
+                </button>
+                {notifOpen && (
+                  <div className="dropdown" style={{ position: 'absolute', top: 50, right: -10, background: 'var(--card-bg)', border: '1px solid var(--border)', borderRadius: 12, width: 320, maxWidth: 'calc(100vw - 40px)', zIndex: 9999, boxShadow: '0 10px 40px rgba(0,0,0,0.15)', overflow: 'hidden' }}>
+                    <div style={{ padding: '12px 16px', borderBottom: '1px solid var(--border)', fontWeight: 600, color: 'var(--ink)' }}>Notifications</div>
+                    <div style={{ maxHeight: 300, overflowY: 'auto' }}>
+                      {notifications.length === 0 ? (
+                        <div style={{ padding: 24, textAlign: 'center', color: 'var(--muted)', fontSize: 13 }}>No notifications yet.</div>
+                      ) : (
+                        notifications.map(n => (
+                          <div key={n._id} onClick={() => handleNotifClick(n)} style={{ padding: '12px 16px', borderBottom: '1px solid var(--border)', cursor: 'pointer', background: n.read ? 'transparent' : 'var(--gold-light)', display: 'flex', gap: 12, alignItems: 'flex-start' }}>
+                            <div style={{ fontSize: 18 }}>{n.type === 'swap_request' ? '🔄' : n.type === 'team_invite' ? '🤝' : '🏆'}</div>
+                            <div>
+                              <div style={{ fontSize: 13, color: 'var(--ink)', lineHeight: 1.4 }}>{n.message}</div>
+                              <div style={{ fontSize: 11, color: 'var(--muted)', marginTop: 4 }}>{new Date(n.createdAt).toLocaleDateString()}</div>
+                            </div>
+                          </div>
+                        ))
+                      )}
+                    </div>
+                  </div>
                 )}
               </div>
               <div className="nav-avatar" style={{ background: user.avatarUrl ? `url(${user.avatarUrl}) center/cover` : user.avatarColor, cursor: 'default' }} title={user.name}>

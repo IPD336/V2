@@ -3,6 +3,7 @@ const Swap = require('../models/Swap');
 const Review = require('../models/Review');
 const User = require('../models/User');
 const auth = require('../middleware/auth');
+const socket = require('../socket');
 
 const router = express.Router();
 
@@ -43,6 +44,23 @@ router.post('/', auth, async (req, res) => {
       sender: req.user.id, receiver: receiverId,
       skillOffered, skillWanted, message, schedule, format,
     });
+
+    const senderUser = await User.findById(req.user.id).select('name');
+    const receiverUser = await User.findById(receiverId);
+    
+    if (receiverUser) {
+      const notif = {
+        type: 'swap_request',
+        message: `${senderUser.name} requested to swap ${skillWanted} for ${skillOffered}`,
+        relatedId: swap._id,
+        createdAt: new Date()
+      };
+      receiverUser.notifications.push(notif);
+      await receiverUser.save();
+      
+      socket.sendNotification(receiverId, receiverUser.notifications[receiverUser.notifications.length - 1]);
+    }
+
     res.status(201).json(swap);
   } catch (err) {
     res.status(500).json({ message: err.message });
@@ -93,6 +111,22 @@ router.put('/:id/complete', auth, async (req, res) => {
     swap.status = 'completed';
     swap.completedAt = new Date();
     await swap.save();
+
+    // Check for Early Bird Badge
+    const u1 = await User.findById(swap.sender);
+    const u2 = await User.findById(swap.receiver);
+    const senderCompleted = await Swap.countDocuments({ $or: [{sender: u1._id}, {receiver: u1._id}], status: 'completed' });
+    const receiverCompleted = await Swap.countDocuments({ $or: [{sender: u2._id}, {receiver: u2._id}], status: 'completed' });
+    
+    if (senderCompleted === 1 && !u1.badges.includes('Early Bird')) {
+      u1.badges.push('Early Bird');
+      await u1.save();
+    }
+    if (receiverCompleted === 1 && !u2.badges.includes('Early Bird')) {
+      u2.badges.push('Early Bird');
+      await u2.save();
+    }
+
     res.json(swap);
   } catch (err) {
     res.status(500).json({ message: err.message });

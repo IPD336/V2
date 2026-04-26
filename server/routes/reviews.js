@@ -40,10 +40,27 @@ router.post('/', auth, async (req, res) => {
     // Update reviewee's aggregate rating
     const allReviews = await Review.find({ reviewee: revieweeId });
     const avg = allReviews.reduce((s, r) => s + r.rating, 0) / allReviews.length;
-    await User.findByIdAndUpdate(revieweeId, {
-      rating: Math.round(avg * 10) / 10,
-      reviewCount: allReviews.length,
-    });
+    const newRating = Math.round(avg * 10) / 10;
+    
+    const u = await User.findById(revieweeId);
+    u.rating = newRating;
+    u.reviewCount = allReviews.length;
+    
+    // Check for Super Mentor Badge
+    if (u.reviewCount >= 10 && u.rating >= 4.5 && !u.badges.includes('Super Mentor')) {
+      u.badges.push('Super Mentor');
+      
+      const socket = require('../socket');
+      const notif = {
+        type: 'badge_earned',
+        message: `Congratulations! You've earned the Super Mentor badge! 🌟`,
+        createdAt: new Date()
+      };
+      u.notifications.push(notif);
+      socket.sendNotification(revieweeId, notif);
+    }
+    
+    await u.save();
 
     // Update leagues dynamically after review
     await updateAllLeagues();

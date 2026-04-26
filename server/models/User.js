@@ -38,7 +38,15 @@ const userSchema = new mongoose.Schema(
     league: {
       name: { type: String, default: 'Bronze' },
       color: { type: String, default: '#CD7F32' }
-    }
+    },
+    badges: [{ type: String }],
+    notifications: [{
+      type: { type: String, enum: ['swap_request', 'team_invite', 'badge_earned', 'system'] },
+      message: { type: String, required: true },
+      read: { type: Boolean, default: false },
+      relatedId: { type: mongoose.Schema.Types.ObjectId },
+      createdAt: { type: Date, default: Date.now }
+    }]
   },
   { timestamps: true }
 );

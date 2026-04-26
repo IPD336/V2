@@ -60,7 +60,7 @@ router.post('/login', async (req, res) => {
 // GET /api/auth/me
 router.get('/me', auth, async (req, res) => {
   try {
-    const user = await User.findById(req.user.id).select('-passwordHash');
+    const user = await User.findById(req.user.id).select('-passwordHash -notifications');
     if (!user) return res.status(404).json({ message: 'User not found' });
     if (user.isBanned) {
       return res.status(403).json({ message: `Your account has been banned. Reason: ${user.banReason || 'No reason provided.'}` });

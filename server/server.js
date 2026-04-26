@@ -3,6 +3,9 @@ const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
 
+const http = require('http');
+const socket = require('./socket');
+
 const authRoutes = require('./routes/auth');
 const userRoutes = require('./routes/users');
 const swapRoutes = require('./routes/swaps');
@@ -10,8 +13,11 @@ const reviewRoutes = require('./routes/reviews');
 const teamRoutes = require('./routes/teams');
 const adminRoutes = require('./routes/admin');
 const leaderboardRoutes = require('./routes/leaderboard');
+const notificationRoutes = require('./routes/notifications');
 
 const app = express();
+const server = http.createServer(app);
+socket.init(server);
 
 // ── Middleware ──
 app.use(cors({ 
@@ -28,6 +34,7 @@ app.use('/api/reviews', reviewRoutes);
 app.use('/api/teams', teamRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/leaderboard', leaderboardRoutes);
+app.use('/api/notifications', notificationRoutes);
 
 // ── Health check ──
 app.get('/api/health', (_, res) => res.json({ status: 'ok', time: new Date().toISOString() }));
@@ -52,7 +59,7 @@ mongoose
   .connect(MONGO_URI)
   .then(() => {
     console.log('✅  MongoDB connected');
-    app.listen(PORT, () => console.log(`🚀  Server running on http://localhost:${PORT}`));
+    server.listen(PORT, () => console.log(`🚀  Server running on http://localhost:${PORT}`));
   })
   .catch((err) => {
     console.error('❌  MongoDB connection failed!');
