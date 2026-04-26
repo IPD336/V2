@@ -137,7 +137,7 @@ export default function Browse() {
           <div style={{ marginBottom: 48 }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 20 }}>
               <span style={{ fontFamily: 'PT Mono, monospace', fontSize: 11, letterSpacing: 2, textTransform: 'uppercase', color: 'var(--muted)' }}>✦ For You</span>
-              <span style={{ fontSize: 12, color: 'var(--muted)' }}>Matched to your skill goals</span>
+              <span className="hide-mobile" style={{ fontSize: 12, color: 'var(--muted)' }}>Matched to your skill goals</span>
             </div>
             <div className="cards-grid">
               {recommendations.map((u) => (
@@ -153,7 +153,7 @@ export default function Browse() {
             <span style={{ position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)', color: 'var(--muted)', fontSize: 18 }}>⌕</span>
             <input
               className="form-input"
-              style={{ paddingLeft: 44 }}
+              style={{ paddingLeft: 44, background: 'var(--card-bg)' }}
               placeholder="Search by skill — e.g. React, Python, Docker…"
               value={search}
               onChange={(e) => { setSearch(e.target.value); setPage(1); }}
@@ -165,7 +165,6 @@ export default function Browse() {
                 key={c}
                 className={`filter-pill ${category === c ? 'active' : ''}`}
                 onClick={() => { setCategory(c); setPage(1); }}
-                style={{ padding: '8px 18px', borderRadius: 6, border: '1.5px solid var(--border)', background: category === c ? 'var(--ink)' : 'white', color: category === c ? 'white' : 'var(--ink)', cursor: 'pointer', fontSize: 12, fontWeight: 600, fontFamily: 'PT Sans, sans-serif', transition: 'all .2s' }}
               >{c}</button>
             ))}
           </div>

@@ -118,11 +118,11 @@ export default function Swaps() {
   const getOther = (swap) => swap.sender?._id === me?._id ? swap.receiver : swap.sender;
 
   return (
-    <div className="page" style={{ background: 'var(--warm)' }}>
+    <div className="page" style={{ background: 'var(--cream)' }}>
       <div className="container">
-        <div style={{ display: 'grid', gridTemplateColumns: '280px 1fr', gap: 64, paddingTop: 48, paddingBottom: 80, alignItems: 'start' }}>
+        <div className="swaps-layout" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 64, paddingTop: 48, paddingBottom: 80, alignItems: 'start' }}>
           {/* Left */}
-          <div style={{ position: 'sticky', top: 90 }}>
+          <div className="swaps-sidebar" style={{ position: 'sticky', top: 90 }}>
             <div className="section-label">Dashboard</div>
             <div className="section-title">Manage Your <em>Swaps</em></div>
             <p style={{ fontSize: 15, lineHeight: 1.7, color: 'var(--muted)', marginBottom: 28 }}>
@@ -137,8 +137,8 @@ export default function Swaps() {
           </div>
 
           {/* Right */}
-          <div>
-            <div className="tab-bar">
+          <div className="swaps-content">
+            <div className="tab-bar" style={{ flexWrap: 'wrap' }}>
               {tabs.map((t) => (
                 <button key={t.key} className={`tab-btn ${tab === t.key ? 'active' : ''}`} onClick={() => setTab(t.key)}>
                   {t.label} {t.badge > 0 && <span className="tab-badge">{t.badge}</span>}
@@ -159,19 +159,20 @@ export default function Swaps() {
                 {tab === 'incoming' && data.incoming.map((s) => {
                   const other = s.sender;
                   return (
-                    <div key={s._id} className="swap-card">
+                    <div key={s._id} className="swap-card" style={{ background: 'var(--card-bg)' }}>
                       <div className="swap-ava" style={{ background: other?.avatarColor || '#C84B31' }}>{initials(other?.name)}</div>
                       <div className="swap-meta">
-                        <div className="swap-name">{other?.name}</div>
+                        <div className="swap-name" style={{ color: 'var(--ink)' }}>{other?.name}</div>
                         <div className="swap-skill-row">
                           <span className="swap-skill-tag">{s.skillOffered}</span>
-                          <span>→ you offer →</span>
+                          <span className="hide-mobile">→ you offer →</span>
+                          <span className="hide-desktop">→</span>
                           <span className="swap-skill-tag green">{s.skillWanted}</span>
                         </div>
                       </div>
-                      <div className="swap-time">{timeAgo(s.createdAt)}</div>
+                      <div className="swap-time hide-mobile">{timeAgo(s.createdAt)}</div>
                       <div className="swap-actions">
-                        <button className="btn-ghost" style={{ padding: '7px 14px', fontSize: 11 }} onClick={() => navigate(`/profile/${other?._id}`)}>Profile</button>
+                        <button className="btn-ghost hide-mobile" style={{ padding: '7px 14px', fontSize: 11 }} onClick={() => navigate(`/profile/${other?._id}`)}>Profile</button>
                         <button className="btn-accept" onClick={() => accept(s._id)}>Accept</button>
                         <button className="btn-decline" onClick={() => decline(s._id)}>Decline</button>
                       </div>
@@ -182,19 +183,20 @@ export default function Swaps() {
                 {tab === 'outgoing' && data.outgoing.map((s) => {
                   const other = s.receiver;
                   return (
-                    <div key={s._id} className="swap-card">
+                    <div key={s._id} className="swap-card" style={{ background: 'var(--card-bg)' }}>
                       <div className="swap-ava" style={{ background: other?.avatarColor || '#3A6351' }}>{initials(other?.name)}</div>
                       <div className="swap-meta">
-                        <div className="swap-name">{other?.name}</div>
+                        <div className="swap-name" style={{ color: 'var(--ink)' }}>{other?.name}</div>
                         <div className="swap-skill-row">
                           <span className="swap-skill-tag green">{s.skillOffered}</span>
-                          <span>→ they offer →</span>
+                          <span className="hide-mobile">→ they offer →</span>
+                          <span className="hide-desktop">→</span>
                           <span className="swap-skill-tag">{s.skillWanted}</span>
                         </div>
                       </div>
-                      <div className="swap-time"><span className="status-badge status-pending">Pending</span></div>
+                      <div className="swap-time hide-mobile"><span className="status-badge status-pending">Pending</span></div>
                       <div className="swap-actions">
-                        <button className="btn-ghost" style={{ padding: '7px 14px', fontSize: 11 }} onClick={() => navigate(`/profile/${other?._id}`)}>Profile</button>
+                        <button className="btn-ghost hide-mobile" style={{ padding: '7px 14px', fontSize: 11 }} onClick={() => navigate(`/profile/${other?._id}`)}>Profile</button>
                         <button className="btn-delete" onClick={() => del(s._id)}>Delete</button>
                       </div>
                     </div>
@@ -204,19 +206,19 @@ export default function Swaps() {
                 {tab === 'active' && data.active.map((s) => {
                   const other = getOther(s);
                   return (
-                    <div key={s._id} className="swap-card">
+                    <div key={s._id} className="swap-card" style={{ background: 'var(--card-bg)' }}>
                       <div className="swap-ava" style={{ background: other?.avatarColor || '#3B4F8C' }}>{initials(other?.name)}</div>
                       <div className="swap-meta">
-                        <div className="swap-name">{other?.name}</div>
+                        <div className="swap-name" style={{ color: 'var(--ink)' }}>{other?.name}</div>
                         <div className="swap-skill-row">
                           <span className="swap-skill-tag">{s.skillOffered}</span>
                           <span>↔</span>
                           <span className="swap-skill-tag green">{s.skillWanted}</span>
                         </div>
                       </div>
-                      <div className="swap-time"><span className="status-badge status-active">Active</span></div>
+                      <div className="swap-time hide-mobile"><span className="status-badge status-active">Active</span></div>
                       <div className="swap-actions">
-                        <button className="btn-ghost" style={{ padding: '7px 14px', fontSize: 11 }} onClick={() => navigate(`/profile/${other?._id}`)}>Profile</button>
+                        <button className="btn-ghost hide-mobile" style={{ padding: '7px 14px', fontSize: 11 }} onClick={() => navigate(`/profile/${other?._id}`)}>Profile</button>
                         <button className="btn-review" onClick={() => complete(s._id)}>Mark Done</button>
                       </div>
                     </div>
@@ -226,19 +228,19 @@ export default function Swaps() {
                 {tab === 'completed' && data.completed.map((s) => {
                   const other = getOther(s);
                   return (
-                    <div key={s._id} className="swap-card">
+                    <div key={s._id} className="swap-card" style={{ background: 'var(--card-bg)' }}>
                       <div className="swap-ava" style={{ background: other?.avatarColor || '#B8902A' }}>{initials(other?.name)}</div>
                       <div className="swap-meta">
-                        <div className="swap-name">{other?.name}</div>
+                        <div className="swap-name" style={{ color: 'var(--ink)' }}>{other?.name}</div>
                         <div className="swap-skill-row">
                           <span className="swap-skill-tag">{s.skillOffered}</span>
                           <span>↔</span>
                           <span className="swap-skill-tag green">{s.skillWanted}</span>
                         </div>
                       </div>
-                      <div className="swap-time"><span className="status-badge status-done">Done</span></div>
+                      <div className="swap-time hide-mobile"><span className="status-badge status-done">Done</span></div>
                       <div className="swap-actions">
-                        <button className="btn-review" onClick={() => navigate(`/profile/${other?._id}`)}>View Profile</button>
+                        <button className="btn-review hide-mobile" onClick={() => navigate(`/profile/${other?._id}`)}>Profile</button>
                         <button className="btn-review" onClick={() => setReviewSwap(s)}>Review</button>
                       </div>
                     </div>

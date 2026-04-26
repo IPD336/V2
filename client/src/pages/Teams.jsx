@@ -131,7 +131,7 @@ export default function Teams() {
   return (
     <div className="page" style={{ background: 'var(--cream)' }}>
       <div className="container">
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', paddingTop: 48, marginBottom: 32 }}>
+        <div className="teams-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', paddingTop: 48, marginBottom: 32, flexWrap: 'wrap', gap: 24 }}>
           <div>
             <div className="section-label">Collaborate</div>
             <div className="section-title">Team <em>Mode</em></div>
@@ -148,13 +148,13 @@ export default function Teams() {
           <div style={{ background: 'var(--gold-light)', border: '1px solid var(--gold)', borderRadius: 12, padding: '16px 20px', marginBottom: 28, display: 'flex', alignItems: 'center', gap: 12 }}>
             <span style={{ fontSize: 20 }}>📨</span>
             <div>
-              <strong>You have {pendingInvites.length} pending team invite{pendingInvites.length > 1 ? 's' : ''}!</strong>
+              <strong style={{ color: 'var(--ink)' }}>You have {pendingInvites.length} pending team invite{pendingInvites.length > 1 ? 's' : ''}!</strong>
               <div style={{ fontSize: 12, color: 'var(--muted)', marginTop: 2 }}>Click "My Teams" tab to respond.</div>
             </div>
           </div>
         )}
 
-        <div className="tab-bar" style={{ marginBottom: 32 }}>
+        <div className="tab-bar" style={{ marginBottom: 32, flexWrap: 'wrap' }}>
           <button className={`tab-btn ${tab === 'browse' ? 'active' : ''}`} onClick={() => setTab('browse')}>
             Browse Open Teams
           </button>

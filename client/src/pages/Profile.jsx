@@ -91,12 +91,12 @@ export default function Profile() {
     <div className="page" style={{ background: 'var(--cream)' }}>
       <div className="container" style={{ maxWidth: 680, paddingTop: 48, paddingBottom: 80 }}>
         {/* Header card */}
-        <div style={{ background: 'white', borderRadius: 20, padding: 32, marginBottom: 24, border: '1px solid var(--border)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 24 }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 24 }}>
+        <div style={{ background: 'var(--card-bg)', borderRadius: 20, padding: 32, marginBottom: 24, border: '1px solid var(--border)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 24, flexWrap: 'wrap' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 24, flexWrap: 'wrap' }}>
             <div style={{ width: 72, height: 72, borderRadius: 18, background: me.avatarColor, display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800, fontSize: 24, color: 'white', flexShrink: 0 }}>{initials}</div>
             <div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 4 }}>
-                <h1 style={{ fontFamily: 'PT Serif, serif', fontSize: 28, fontWeight: 600, letterSpacing: -0.5, margin: 0 }}>{me.name}</h1>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 4, flexWrap: 'wrap' }}>
+                <h1 style={{ fontFamily: 'PT Serif, serif', fontSize: 28, fontWeight: 600, letterSpacing: -0.5, margin: 0, color: 'var(--ink)' }}>{me.name}</h1>
                 {me.league && me.league.name !== 'Bronze' && (
                   <span style={{ 
                     background: me.league.color + '20', color: me.league.name === 'Diamond' ? '#00E5FF' : me.league.name === 'Platinum' ? '#8e9eab' : me.league.color,
@@ -106,29 +106,29 @@ export default function Profile() {
                   </span>
                 )}
               </div>
-              <div style={{ fontSize: 13, color: 'var(--muted)', display: 'flex', gap: 16 }}>
+              <div style={{ fontSize: 13, color: 'var(--muted)', display: 'flex', gap: 16, flexWrap: 'wrap' }}>
                 {me.location && <span>📍 {me.location}</span>}
                 <span>⭐ {me.rating?.toFixed(1) || '—'} ({me.reviewCount || 0} reviews)</span>
               </div>
             </div>
           </div>
-          <button className="btn-ghost" onClick={() => window.location.href = `/profile/${me._id}`}>View Public Profile ↗</button>
+          <button className="btn-ghost" onClick={() => navigate(`/profile/${me._id}`)}>View Public Profile ↗</button>
         </div>
 
         <form onSubmit={submit}>
-          <div style={{ background: 'white', borderRadius: 20, padding: 32, border: '1px solid var(--border)', marginBottom: 16 }}>
+          <div style={{ background: 'var(--card-bg)', borderRadius: 20, padding: 32, border: '1px solid var(--border)', marginBottom: 16 }}>
             <div style={{ fontFamily: 'PT Mono, monospace', fontSize: 11, letterSpacing: 2, textTransform: 'uppercase', color: 'var(--muted)', marginBottom: 20 }}>Basic Info</div>
-            <div className="form-group"><label className="form-label">Full Name</label><input className="form-input" name="name" value={form.name} onChange={h} required /></div>
-            <div className="form-group"><label className="form-label">Location</label><input className="form-input" name="location" value={form.location} onChange={h} placeholder="City, Country" /></div>
-            <div className="form-group"><label className="form-label">Bio</label><textarea className="form-textarea" name="bio" value={form.bio} onChange={h} placeholder="Tell people about yourself…" style={{ minHeight: 90 }} /></div>
+            <div className="form-group"><label className="form-label">Full Name</label><input className="form-input" style={{ background: 'var(--cream)', color: 'var(--ink)' }} name="name" value={form.name} onChange={h} required /></div>
+            <div className="form-group"><label className="form-label">Location</label><input className="form-input" style={{ background: 'var(--cream)', color: 'var(--ink)' }} name="location" value={form.location} onChange={h} placeholder="City, Country" /></div>
+            <div className="form-group"><label className="form-label">Bio</label><textarea className="form-textarea" style={{ background: 'var(--cream)', color: 'var(--ink)' }} name="bio" value={form.bio} onChange={h} placeholder="Tell people about yourself…" style={{ minHeight: 90 }} /></div>
             <div className="form-group">
               <label className="form-label">Availability</label>
-              <select className="form-select" name="availability" value={form.availability} onChange={h}>
+              <select className="form-select" style={{ background: 'var(--cream)', color: 'var(--ink)' }} name="availability" value={form.availability} onChange={h}>
                 {AVAIL_OPTIONS.map((o) => <option key={o}>{o}</option>)}
               </select>
             </div>
             <div className="toggle-row">
-              <div><div className="toggle-label">Public Profile</div><div className="toggle-note">Allow others to find you</div></div>
+              <div><div className="toggle-label" style={{ color: 'var(--ink)' }}>Public Profile</div><div className="toggle-note">Allow others to find you</div></div>
               <label className="toggle">
                 <input type="checkbox" checked={form.isPublic} onChange={(e) => setForm({ ...form, isPublic: e.target.checked })} />
                 <span className="toggle-slider" />
@@ -136,7 +136,7 @@ export default function Profile() {
             </div>
           </div>
 
-          <div style={{ background: 'white', borderRadius: 20, padding: 32, border: '1px solid var(--border)', marginBottom: 16 }}>
+          <div style={{ background: 'var(--card-bg)', borderRadius: 20, padding: 32, border: '1px solid var(--border)', marginBottom: 16 }}>
             <div style={{ fontFamily: 'PT Mono, monospace', fontSize: 11, letterSpacing: 2, textTransform: 'uppercase', color: 'var(--muted)', marginBottom: 20 }}>Skills</div>
             <div className="form-group">
               <label className="form-label">Skills You Offer</label>
@@ -152,14 +152,14 @@ export default function Profile() {
             </div>
           </div>
 
-          <div style={{ background: 'white', borderRadius: 20, padding: 32, border: '1px solid var(--border)', marginBottom: 24 }}>
+          <div style={{ background: 'var(--card-bg)', borderRadius: 20, padding: 32, border: '1px solid var(--border)', marginBottom: 24 }}>
             <div style={{ fontFamily: 'PT Mono, monospace', fontSize: 11, letterSpacing: 2, textTransform: 'uppercase', color: 'var(--muted)', marginBottom: 20 }}>Social Links</div>
-            <div className="form-group"><label className="form-label">LinkedIn</label><input className="form-input" name="linkedin" value={form.socialLinks.linkedin} onChange={(e) => setForm({ ...form, socialLinks: { ...form.socialLinks, linkedin: e.target.value } })} placeholder="https://linkedin.com/in/…" /></div>
-            <div className="form-group"><label className="form-label">GitHub</label><input className="form-input" name="github" value={form.socialLinks.github} onChange={(e) => setForm({ ...form, socialLinks: { ...form.socialLinks, github: e.target.value } })} placeholder="https://github.com/…" /></div>
-            <div className="form-group"><label className="form-label">Portfolio</label><input className="form-input" name="portfolio" value={form.socialLinks.portfolio} onChange={(e) => setForm({ ...form, socialLinks: { ...form.socialLinks, portfolio: e.target.value } })} placeholder="https://yoursite.com" /></div>
+            <div className="form-group"><label className="form-label">LinkedIn</label><input className="form-input" style={{ background: 'var(--cream)', color: 'var(--ink)' }} name="linkedin" value={form.socialLinks.linkedin} onChange={(e) => setForm({ ...form, socialLinks: { ...form.socialLinks, linkedin: e.target.value } })} placeholder="https://linkedin.com/in/…" /></div>
+            <div className="form-group"><label className="form-label">GitHub</label><input className="form-input" style={{ background: 'var(--cream)', color: 'var(--ink)' }} name="github" value={form.socialLinks.github} onChange={(e) => setForm({ ...form, socialLinks: { ...form.socialLinks, github: e.target.value } })} placeholder="https://github.com/…" /></div>
+            <div className="form-group"><label className="form-label">Portfolio</label><input className="form-input" style={{ background: 'var(--cream)', color: 'var(--ink)' }} name="portfolio" value={form.socialLinks.portfolio} onChange={(e) => setForm({ ...form, socialLinks: { ...form.socialLinks, portfolio: e.target.value } })} placeholder="https://yoursite.com" /></div>
           </div>
 
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 20 }}>
             <button className="btn-modal-primary" type="submit" disabled={loading} style={{ width: 'auto', padding: '0 32px' }}>
               {loading ? 'Saving…' : 'Save Changes'}
             </button>

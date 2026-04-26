@@ -73,7 +73,7 @@ export default function AdminDashboard() {
         <div className="section-label">Administration</div>
         <div className="section-title">Admin <em>Dashboard</em></div>
         
-        <div className="tab-bar" style={{ marginBottom: 32 }}>
+        <div className="tab-bar" style={{ marginBottom: 32, flexWrap: 'wrap' }}>
           <button className={`tab-btn ${tab === 'analytics' ? 'active' : ''}`} onClick={() => setTab('analytics')}>
             Platform Analytics
           </button>
@@ -87,7 +87,7 @@ export default function AdminDashboard() {
 
         {tab === 'analytics' && (
           <div>
-            <div className="stats-mini" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', marginTop: 0, marginBottom: 40 }}>
+            <div className="stats-mini" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', marginTop: 0, marginBottom: 40 }}>
               <div className="stat-mini-card">
                 <div className="stat-mini-num">{stats.totalUsers}</div>
                 <div className="stat-mini-label">Total Users</div>
@@ -110,15 +110,15 @@ export default function AdminDashboard() {
               </div>
             </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 24 }}>
-              <div style={{ background: 'white', borderRadius: 16, padding: 24, border: '1px solid var(--border)' }}>
-                <h3 style={{ fontFamily: 'PT Serif, serif', fontSize: 20, marginBottom: 16 }}>Most Popular Skills</h3>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: 24 }}>
+              <div style={{ background: 'var(--card-bg)', borderRadius: 16, padding: 24, border: '1px solid var(--border)' }}>
+                <h3 style={{ fontFamily: 'PT Serif, serif', fontSize: 20, marginBottom: 16, color: 'var(--ink)' }}>Most Popular Skills</h3>
                 {stats.popularSkills.length > 0 ? (() => {
                   const maxCount = Math.max(...stats.popularSkills.map(s => s.count));
                   return stats.popularSkills.map((skill, i) => (
                     <div key={i} style={{ marginBottom: 12 }}>
                       <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
-                        <span style={{ fontWeight: 600, fontSize: 13 }}>{skill.name}</span>
+                        <span style={{ fontWeight: 600, fontSize: 13, color: 'var(--ink)' }}>{skill.name}</span>
                         <span style={{ color: 'var(--muted)', fontSize: 12 }}>{skill.count}</span>
                       </div>
                       <div style={{ background: 'var(--cream)', height: 8, borderRadius: 4, overflow: 'hidden' }}>
@@ -129,12 +129,12 @@ export default function AdminDashboard() {
                 })() : <div style={{ color: 'var(--muted)', fontSize: 13 }}>No data yet</div>}
               </div>
 
-              <div style={{ background: 'white', borderRadius: 16, padding: 24, border: '1px solid var(--border)' }}>
-                <h3 style={{ fontFamily: 'PT Serif, serif', fontSize: 20, marginBottom: 16 }}>Top Mentors (Global Leaderboard)</h3>
+              <div style={{ background: 'var(--card-bg)', borderRadius: 16, padding: 24, border: '1px solid var(--border)' }}>
+                <h3 style={{ fontFamily: 'PT Serif, serif', fontSize: 20, marginBottom: 16, color: 'var(--ink)' }}>Top Mentors</h3>
                 {stats.topMentors && stats.topMentors.map((u, i) => (
                   <div key={i} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 0', borderBottom: i === stats.topMentors.length - 1 ? 'none' : '1px solid var(--border)' }}>
                     <div>
-                      <div style={{ fontWeight: 600, display: 'flex', gap: 8, alignItems: 'center' }}>
+                      <div style={{ fontWeight: 600, display: 'flex', gap: 8, alignItems: 'center', color: 'var(--ink)' }}>
                         <span style={{ fontSize: 11, fontWeight: 800, color: 'var(--muted)' }}>#{i + 1}</span>
                         {u.name}
                       </div>
@@ -150,8 +150,8 @@ export default function AdminDashboard() {
             </div>
 
             <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: 24, marginTop: 24 }}>
-              <div style={{ background: 'white', borderRadius: 16, padding: 24, border: '1px solid var(--border)' }}>
-                <h3 style={{ fontFamily: 'PT Serif, serif', fontSize: 20, marginBottom: 16 }}>League Distribution</h3>
+              <div style={{ background: 'var(--card-bg)', borderRadius: 16, padding: 24, border: '1px solid var(--border)' }}>
+                <h3 style={{ fontFamily: 'PT Serif, serif', fontSize: 20, marginBottom: 16, color: 'var(--ink)' }}>League Distribution</h3>
                 {stats.leagueDist ? (() => {
                   const maxCount = Math.max(...Object.values(stats.leagueDist), 1);
                   const colors = { Diamond: '#00E5FF', Platinum: '#B4C6DF', Gold: '#FFD700', Silver: '#C0C0C0', Bronze: '#CD7F32' };
@@ -176,8 +176,8 @@ export default function AdminDashboard() {
         )}
 
         {tab === 'users' && (
-          <div style={{ background: 'white', borderRadius: 16, border: '1px solid var(--border)', overflow: 'hidden' }}>
-            <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
+          <div style={{ background: 'var(--card-bg)', borderRadius: 16, border: '1px solid var(--border)', overflowX: 'auto' }}>
+            <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', minWidth: '600px' }}>
               <thead style={{ background: 'var(--cream)' }}>
                 <tr>
                   <th style={{ padding: '16px 20px', fontSize: 12, fontWeight: 700, color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: 1, borderBottom: '1px solid var(--border)' }}>User</th>
@@ -190,7 +190,7 @@ export default function AdminDashboard() {
                 {users.map(u => (
                   <tr key={u._id} style={{ borderBottom: '1px solid var(--border)', opacity: u.isBanned ? 0.6 : 1 }}>
                     <td style={{ padding: '16px 20px' }}>
-                      <div style={{ fontWeight: 600, display: 'flex', alignItems: 'center', gap: 8 }}>
+                      <div style={{ fontWeight: 600, display: 'flex', alignItems: 'center', gap: 8, color: 'var(--ink)' }}>
                         {u.name} 
                         {u.role === 'admin' && <span className="card-badge badge-mutual" style={{ padding: '2px 6px', fontSize: 9 }}>Admin</span>}
                         {u.isBanned && <span className="card-badge" style={{ background: '#FDE8E4', color: 'var(--accent)', padding: '2px 6px', fontSize: 9 }}>Banned</span>}
@@ -200,7 +200,7 @@ export default function AdminDashboard() {
                     <td style={{ padding: '16px 20px', fontSize: 13, color: 'var(--muted)' }}>
                       {new Date(u.createdAt).toLocaleDateString()}
                     </td>
-                    <td style={{ padding: '16px 20px', fontSize: 13 }}>
+                    <td style={{ padding: '16px 20px', fontSize: 13, color: 'var(--ink)' }}>
                       ⭐ {u.rating ? u.rating.toFixed(1) : '—'} <span style={{ color: 'var(--muted)', fontSize: 11 }}>({u.reviewCount})</span>
                     </td>
                     <td style={{ padding: '16px 20px', textAlign: 'right' }}>
@@ -219,8 +219,8 @@ export default function AdminDashboard() {
           </div>
         )}
         {tab === 'teams' && (
-          <div style={{ background: 'white', borderRadius: 16, border: '1px solid var(--border)', overflow: 'hidden' }}>
-            <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
+          <div style={{ background: 'var(--card-bg)', borderRadius: 16, border: '1px solid var(--border)', overflowX: 'auto' }}>
+            <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', minWidth: '800px' }}>
               <thead style={{ background: 'var(--cream)' }}>
                 <tr>
                   <th style={{ padding: '16px 20px', fontSize: 12, fontWeight: 700, color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: 1, borderBottom: '1px solid var(--border)' }}>Team Name</th>
@@ -236,11 +236,11 @@ export default function AdminDashboard() {
                   return (
                     <tr key={t._id} style={{ borderBottom: '1px solid var(--border)' }}>
                       <td style={{ padding: '16px 20px' }}>
-                        <div style={{ fontWeight: 600 }}>{t.name}</div>
+                        <div style={{ fontWeight: 600, color: 'var(--ink)' }}>{t.name}</div>
                         <div style={{ fontSize: 12, color: 'var(--muted)' }}>{t.purpose || t.description || 'No description'}</div>
                       </td>
                       <td style={{ padding: '16px 20px' }}>
-                        <div style={{ fontWeight: 600, fontSize: 13 }}>{t.creator?.name || 'Unknown'}</div>
+                        <div style={{ fontWeight: 600, fontSize: 13, color: 'var(--ink)' }}>{t.creator?.name || 'Unknown'}</div>
                         <div style={{ fontSize: 11, color: 'var(--muted)' }}>{t.creator?.email || ''}</div>
                       </td>
                       <td style={{ padding: '16px 20px', fontSize: 13, color: 'var(--muted)' }}>

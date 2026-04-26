@@ -102,7 +102,7 @@ export default function Leaderboard() {
         </div>
 
         {/* PODIUM */}
-        <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'center', gap: 16, marginBottom: 64, padding: '0 20px' }}>
+        <div className="podium-container" style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'center', gap: 16, marginBottom: 64, padding: '0 20px', flexWrap: 'wrap' }}>
           {podium.map((u, i) => (
             <PodiumStep key={u?._id || i} user={u} pos={[2, 1, 3][i]} />
           ))}
@@ -111,14 +111,15 @@ export default function Leaderboard() {
         {/* MY RANK BANNER (If not in top 3 and exists) */}
         {me && me.rank > 3 && (
           <div style={{
-            background: 'white', border: `1.5px solid ${me.league.color}`,
+            background: 'var(--card-bg)', border: `1.5px solid ${me.league.color}`,
             borderRadius: 16, padding: 24, marginBottom: 48,
             display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-            boxShadow: `0 4px 20px ${me.league.color}20`
+            boxShadow: `0 4px 20px ${me.league.color}20`,
+            flexWrap: 'wrap', gap: 20
           }}>
             <div>
               <div style={{ fontSize: 13, color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: 1, fontWeight: 700, marginBottom: 6 }}>Your Ranking</div>
-              <div style={{ fontSize: 20, fontWeight: 600 }}>
+              <div style={{ fontSize: 20, fontWeight: 600, color: 'var(--ink)' }}>
                 You are in the <strong style={{ color: 'var(--accent)' }}>Top {me.percentile.toFixed(1)}%</strong> of all mentors!
               </div>
             </div>
@@ -130,25 +131,24 @@ export default function Leaderboard() {
         )}
 
         {/* LIST 4-20 */}
-        <div style={{ background: 'white', borderRadius: 20, border: '1px solid var(--border)', overflow: 'hidden' }}>
+        <div style={{ background: 'var(--card-bg)', borderRadius: 20, border: '1px solid var(--border)', overflow: 'hidden' }}>
           {top20.slice(3).map((u, i) => (
             <div key={u._id} 
               style={{
                 display: 'flex', alignItems: 'center', padding: '20px 24px',
                 borderBottom: i === top20.slice(3).length - 1 ? 'none' : '1px solid var(--border)',
-                background: me?._id === u._id ? 'var(--cream)' : 'white',
-                cursor: 'pointer', transition: 'background 0.2s'
+                background: me?._id === u._id ? 'var(--cream)' : 'var(--card-bg)',
+                cursor: 'pointer', transition: 'background 0.2s',
+                flexWrap: 'wrap', gap: 12
               }}
               onClick={() => navigate(`/profile/${u._id}`)}
-              onMouseEnter={(e) => e.currentTarget.style.background = 'var(--cream)'}
-              onMouseLeave={(e) => e.currentTarget.style.background = me?._id === u._id ? 'var(--cream)' : 'white'}
             >
               <div style={{ width: 40, fontSize: 16, fontWeight: 700, color: 'var(--muted)' }}>#{u.rank}</div>
               <div style={{ width: 48, height: 48, borderRadius: 14, background: u.avatarColor, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 14, fontWeight: 800, color: 'white', marginRight: 16 }}>
                 {initials(u.name)}
               </div>
-              <div style={{ flex: 1 }}>
-                <div style={{ fontWeight: 600, fontSize: 15, marginBottom: 4 }}>{u.name}</div>
+              <div style={{ flex: 1, minWidth: '150px' }}>
+                <div style={{ fontWeight: 600, fontSize: 15, marginBottom: 4, color: 'var(--ink)' }}>{u.name}</div>
                 <div style={{ fontSize: 13, color: 'var(--muted)', display: 'flex', gap: 12 }}>
                   <span>⭐ {u.rating?.toFixed(1) || '—'}</span>
                   <span>🔄 {u.reviewCount} Swaps</span>

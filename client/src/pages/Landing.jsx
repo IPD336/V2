@@ -6,15 +6,15 @@ export default function Landing() {
   return (
     <div style={{ background: 'var(--cream)' }}>
       {/* HERO */}
-      <section style={{ minHeight: '100vh', padding: '136px 56px 0', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 40, alignItems: 'center', position: 'relative', overflow: 'hidden' }}>
+      <section className="hero-section">
         <div style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, background: 'radial-gradient(ellipse 60% 50% at 80% 40%, rgba(200,75,49,0.06) 0%, transparent 60%), radial-gradient(ellipse 40% 60% at 20% 70%, rgba(58,99,81,0.05) 0%, transparent 60%)', pointerEvents: 'none' }} />
         
-        <div style={{ position: 'relative', zIndex: 1 }}>
-          <div style={{ display: 'inline-flex', alignItems: 'center', gap: 10, background: 'white', border: '1px solid var(--border)', borderRadius: 6, padding: '7px 16px', fontSize: 12, fontWeight: 600, letterSpacing: 1.2, textTransform: 'uppercase', color: 'var(--muted)', marginBottom: 32 }}>
+        <div className="hero-text-wrap" style={{ position: 'relative', zIndex: 1 }}>
+          <div style={{ display: 'inline-flex', alignItems: 'center', gap: 10, background: 'var(--card-bg)', border: '1px solid var(--border)', borderRadius: 6, padding: '7px 16px', fontSize: 12, fontWeight: 600, letterSpacing: 1.2, textTransform: 'uppercase', color: 'var(--muted)', marginBottom: 32 }}>
             <span style={{ width: 6, height: 6, borderRadius: '50%', background: 'var(--sage)' }} />
             Free Skill Exchange Platform
           </div>
-          <h1 style={{ fontFamily: 'PT Serif, serif', fontSize: 'clamp(52px, 5.5vw, 84px)', fontWeight: 600, lineHeight: 1.02, letterSpacing: -2, marginBottom: 28 }}>
+          <h1 style={{ fontFamily: 'PT Serif, serif', fontSize: 'clamp(42px, 5.5vw, 84px)', fontWeight: 600, lineHeight: 1.02, letterSpacing: -2, marginBottom: 28, color: 'var(--ink)' }}>
             Trade What<br />
             You <span style={{ fontStyle: 'italic', color: 'var(--accent)' }}>Know.</span><br />
             Learn What<br />
@@ -23,7 +23,7 @@ export default function Landing() {
           <p style={{ fontFamily: 'PT Sans, sans-serif', fontSize: 15, lineHeight: 1.75, color: 'var(--muted)', maxWidth: 440, marginBottom: 40, fontWeight: 400 }}>
             Connect with people who have the skills you need, and share what you know best — no money, no subscriptions, just a genuine exchange of knowledge and expertise.
           </p>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 20, marginBottom: 52 }}>
+          <div className="hero-cta" style={{ display: 'flex', alignItems: 'center', gap: 20, marginBottom: 52 }}>
             <button className="btn-ink" onClick={() => navigate('/register')} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '15px 34px', fontSize: 14 }}>
               Start Swapping <span>→</span>
             </button>
@@ -39,20 +39,20 @@ export default function Landing() {
                 </div>
               ))}
             </div>
-            <div style={{ fontSize: 13, color: 'var(--muted)', fontWeight: 500, lineHeight: 1.5 }}>
+            <div style={{ fontSize: 13, color: 'var(--muted)', fontWeight: 500, lineHeight: 1.5, textAlign: 'left' }}>
               <strong style={{ color: 'var(--ink)', fontWeight: 700 }}>4,200+</strong> professionals swapping skills<br />
               across 38 cities worldwide
             </div>
           </div>
         </div>
 
-        <div style={{ position: 'relative', height: 580, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <div className="hero-visual">
           {/* Main Card Graphic */}
-          <div style={{ position: 'absolute', background: 'white', borderRadius: 20, border: '1px solid var(--border)', boxShadow: 'var(--shadow-lg)', overflow: 'hidden', width: 300, top: 80, left: 30 }}>
+          <div style={{ position: 'absolute', background: 'var(--card-bg)', borderRadius: 20, border: '1px solid var(--border)', boxShadow: 'var(--shadow-lg)', overflow: 'hidden', width: 300, top: 80, left: 30 }}>
             <div style={{ height: 72, background: 'linear-gradient(135deg, #C84B31 0%, #e07a5f 100%)' }} />
             <div style={{ padding: '0 20px 20px' }}>
-              <div style={{ width: 56, height: 56, borderRadius: 14, background: '#C84B31', border: '3px solid white', marginTop: -28, marginBottom: 12, display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800, fontSize: 18, color: 'white' }}>PM</div>
-              <div style={{ fontSize: 16, fontWeight: 700, marginBottom: 2 }}>Priya Mehta</div>
+              <div style={{ width: 56, height: 56, borderRadius: 14, background: '#C84B31', border: '3px solid var(--card-bg)', marginTop: -28, marginBottom: 12, display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800, fontSize: 18, color: 'white' }}>PM</div>
+              <div style={{ fontSize: 16, fontWeight: 700, marginBottom: 2, color: 'var(--ink)' }}>Priya Mehta</div>
               <div style={{ fontSize: 12, color: 'var(--muted)', marginBottom: 14 }}>📍 Mumbai, India</div>
               <div className="skill-section-label">Offering</div>
               <div className="tag-row">
@@ -68,24 +68,24 @@ export default function Landing() {
           </div>
           
           {/* Side Card 1 */}
-          <div style={{ position: 'absolute', background: 'white', borderRadius: 14, border: '1px solid var(--border)', boxShadow: 'var(--shadow)', padding: '16px 18px', width: 220, top: 30, right: -10 }}>
+          <div style={{ position: 'absolute', background: 'var(--card-bg)', borderRadius: 14, border: '1px solid var(--border)', boxShadow: 'var(--shadow)', padding: '16px 18px', width: 220, top: 30, right: -10 }}>
             <div className="skill-section-label" style={{ marginBottom: 10 }}>Top Matches</div>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '7px 0', borderBottom: '1px solid var(--border)', fontSize: 12 }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '7px 0', borderBottom: '1px solid var(--border)', fontSize: 12, color: 'var(--ink)' }}>
               <span style={{ fontWeight: 600 }}>Rahul — Python</span>
               <span style={{ fontWeight: 800, color: 'var(--accent)' }}>96%</span>
             </div>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '7px 0', fontSize: 12 }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '7px 0', fontSize: 12, color: 'var(--ink)' }}>
               <span style={{ fontWeight: 600 }}>Sara — TypeScript</span>
               <span style={{ fontWeight: 800, color: 'var(--accent)' }}>88%</span>
             </div>
           </div>
           
           {/* Side Card 2 */}
-          <div style={{ position: 'absolute', background: 'white', borderRadius: 14, border: '1px solid var(--border)', boxShadow: 'var(--shadow)', padding: '16px 18px', width: 220, bottom: 40, right: 20 }}>
+          <div style={{ position: 'absolute', background: 'var(--card-bg)', borderRadius: 14, border: '1px solid var(--border)', boxShadow: 'var(--shadow)', padding: '16px 18px', width: 220, bottom: 40, right: 20 }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
               <div style={{ width: 36, height: 36, borderRadius: 10, background: 'var(--sage)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, fontWeight: 800, color: 'white', flexShrink: 0 }}>SA</div>
               <div>
-                <div style={{ fontSize: 12, fontWeight: 700, marginBottom: 2 }}>Swap Completed 🎉</div>
+                <div style={{ fontSize: 12, fontWeight: 700, marginBottom: 2, color: 'var(--ink)' }}>Swap Completed 🎉</div>
                 <div style={{ fontSize: 11, color: 'var(--muted)' }}>Sara → Python · You → Go</div>
               </div>
             </div>
@@ -98,16 +98,21 @@ export default function Landing() {
       </section>
 
       {/* HOW IT WORKS */}
-      <section id="how" style={{ background: 'var(--ink)', padding: '100px 56px', position: 'relative', overflow: 'hidden' }}>
-        <div style={{ position: 'absolute', inset: 0, background: 'radial-gradient(ellipse 50% 80% at 80% 50%, rgba(200,75,49,0.12) 0%, transparent 60%)', pointerEvents: 'none' }} />
+      <section id="how" style={{ background: 'var(--section-dark)', padding: '100px 56px', position: 'relative', overflow: 'hidden' }} className="container">
+        <div style={{ position: 'absolute', inset: 0, background: 'radial-gradient(ellipse 50% 80% at 80% 50%, rgba(200,75,49,0.15) 0%, transparent 60%)', pointerEvents: 'none' }} />
         
-        <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', marginBottom: 64, gap: 40, position: 'relative', zIndex: 1 }}>
+        <div className="how-header" style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', marginBottom: 64, gap: 40, position: 'relative', zIndex: 1 }}>
           <div>
-            <div className="section-label" style={{ color: 'rgba(255,255,255,0.4)' }}>Process</div>
-            <div className="section-title" style={{ color: 'white' }}>How <em style={{ color: '#e07a5f' }}>SkillSwap</em><br/>Actually Works</div>
+            <div style={{ fontFamily: 'PT Mono, monospace', fontSize: 11, letterSpacing: 2, textTransform: 'uppercase', color: 'var(--section-text-muted)', marginBottom: 14, display: 'flex', alignItems: 'center', gap: 10 }}>
+              <span style={{ display: 'inline-block', width: 20, height: 1, background: 'var(--section-text-muted)' }} />
+              Process
+            </div>
+            <div style={{ fontFamily: 'PT Serif, serif', fontSize: 'clamp(32px, 4vw, 52px)', fontWeight: 600, lineHeight: 1.05, letterSpacing: -1.5, marginBottom: 16, color: 'var(--section-text)' }}>
+              How <em style={{ fontStyle: 'italic', color: 'var(--accent)' }}>SkillSwap</em><br />Actually Works
+            </div>
           </div>
           <div>
-            <p style={{ fontSize: 15, lineHeight: 1.7, color: 'rgba(255,255,255,0.55)', maxWidth: 380, fontWeight: 400 }}>
+            <p style={{ fontSize: 15, lineHeight: 1.7, color: 'var(--section-text-muted)', maxWidth: 380, fontWeight: 400 }}>
               No money. No subscriptions. Just genuine knowledge exchange between people who want to grow together.
             </p>
             <button className="btn-accent" style={{ marginTop: 20 }} onClick={() => navigate('/register')}>Create Profile →</button>
@@ -121,27 +126,31 @@ export default function Landing() {
             { num: '03', icon: '🤝', title: 'Send a Swap Request', desc: 'Choose what you\'re offering, what you want, write a personal message, and propose a schedule.' },
             { num: '04', icon: '⭐', title: 'Learn & Leave Feedback', desc: 'Complete your sessions. Rate your partner, describe what you learned, and help the community grow.' }
           ].map(s => (
-            <div key={s.num} style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.10)', borderRadius: 16, padding: '28px 24px' }}>
-              <div style={{ fontFamily: 'PT Serif, serif', fontSize: 56, fontWeight: 700, color: 'rgba(255,255,255,0.12)', lineHeight: 1, marginBottom: 16 }}>{s.num}</div>
-              <div style={{ width: 40, height: 40, borderRadius: 10, background: 'rgba(200,75,49,0.2)', color: '#e07a5f', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18, marginBottom: 14 }}>{s.icon}</div>
-              <div style={{ fontSize: 15, fontWeight: 700, color: 'white', marginBottom: 8 }}>{s.title}</div>
-              <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.5)', lineHeight: 1.6 }}>{s.desc}</div>
+            <div key={s.num} style={{ background: 'var(--section-card)', border: '1px solid var(--section-card-border)', borderRadius: 16, padding: '28px 24px' }}>
+              <div style={{ fontFamily: 'PT Serif, serif', fontSize: 56, fontWeight: 700, color: 'var(--section-text)', opacity: 0.12, lineHeight: 1, marginBottom: 16 }}>{s.num}</div>
+              <div style={{ width: 40, height: 40, borderRadius: 10, background: 'var(--accent)', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18, marginBottom: 14 }}>{s.icon}</div>
+              <div style={{ fontSize: 15, fontWeight: 700, color: 'var(--section-text)', marginBottom: 8 }}>{s.title}</div>
+              <div style={{ fontSize: 12, color: 'var(--section-text-muted)', lineHeight: 1.6 }}>{s.desc}</div>
             </div>
           ))}
         </div>
       </section>
 
       {/* FOOTER */}
-      <footer style={{ background: 'var(--ink)', padding: 56, display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 24, borderTop: '1px solid rgba(255,255,255,0.1)' }}>
-        <div className="logo" style={{ color: 'white' }}>
-          <div className="logo-mark">S²</div>
+      <footer style={{ background: 'var(--section-dark-secondary)', padding: '48px 56px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 24, borderTop: '1px solid var(--section-divider)' }}>
+        <div style={{ fontFamily: 'PT Serif, serif', fontSize: 24, fontWeight: 700, letterSpacing: -0.5, display: 'flex', alignItems: 'center', gap: 8, color: 'var(--section-text)' }}>
+          <div style={{ width: 32, height: 32, background: 'var(--accent)', borderRadius: 8, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 14, color: 'white', fontWeight: 700, fontFamily: 'PT Sans, sans-serif' }}>S²</div>
           SkillSwap
         </div>
         <div style={{ display: 'flex', gap: 28, flexWrap: 'wrap' }}>
-          <a href="#" style={{ color: 'rgba(255,255,255,0.4)', textDecoration: 'none', fontSize: 12, fontWeight: 600 }}>About</a>
-          <a href="#" style={{ color: 'rgba(255,255,255,0.4)', textDecoration: 'none', fontSize: 12, fontWeight: 600 }}>Privacy Policy</a>
+          <a href="#" style={{ color: 'var(--section-text-muted)', textDecoration: 'none', fontSize: 12, fontWeight: 600, transition: 'color .2s' }}
+            onMouseEnter={e => e.target.style.color = 'var(--section-text)'}
+            onMouseLeave={e => e.target.style.color = 'var(--section-text-muted)'}>About</a>
+          <a href="#" style={{ color: 'var(--section-text-muted)', textDecoration: 'none', fontSize: 12, fontWeight: 600, transition: 'color .2s' }}
+            onMouseEnter={e => e.target.style.color = 'var(--section-text)'}
+            onMouseLeave={e => e.target.style.color = 'var(--section-text-muted)'}>Privacy Policy</a>
         </div>
-        <div style={{ color: 'rgba(255,255,255,0.3)', fontSize: 12 }}>© 2026 SkillSwap. All rights reserved.</div>
+        <div style={{ color: 'var(--section-text-muted)', fontSize: 12 }}>© 2026 SkillSwap. All rights reserved.</div>
       </footer>
     </div>
   );

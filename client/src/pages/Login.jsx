@@ -34,13 +34,13 @@ export default function Login() {
         <div style={{ textAlign: 'center', marginBottom: 40 }}>
           <div style={{ display: 'inline-flex', alignItems: 'center', gap: 10, marginBottom: 8 }}>
             <div className="logo-mark">S²</div>
-            <span style={{ fontFamily: 'PT Serif, serif', fontSize: 24, fontWeight: 700 }}>SkillSwap</span>
+            <span style={{ fontFamily: 'PT Serif, serif', fontSize: 24, fontWeight: 700, color: 'var(--ink)' }}>SkillSwap</span>
           </div>
-          <h1 style={{ fontFamily: 'PT Serif, serif', fontSize: 32, fontWeight: 600, letterSpacing: -1 }}>Welcome Back</h1>
+          <h1 style={{ fontFamily: 'PT Serif, serif', fontSize: 32, fontWeight: 600, letterSpacing: -1, color: 'var(--ink)' }}>Welcome Back</h1>
           <p style={{ color: 'var(--muted)', fontSize: 14, marginTop: 8 }}>Sign in to manage your swaps and profile.</p>
         </div>
 
-        <form onSubmit={submit} style={{ background: 'white', borderRadius: 20, padding: 36, border: '1px solid var(--border)', boxShadow: 'var(--shadow)' }}>
+        <form onSubmit={submit} style={{ background: 'var(--card-bg)', borderRadius: 20, padding: 36, border: '1px solid var(--border)', boxShadow: 'var(--shadow)' }}>
           <div className="form-group">
             <label className="form-label">Email</label>
             <input className="form-input" type="email" name="email" placeholder="you@example.com" value={form.email} onChange={handle} required />

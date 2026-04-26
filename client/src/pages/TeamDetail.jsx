@@ -75,11 +75,11 @@ export default function TeamDetail() {
     <div className="page" style={{ background: 'var(--cream)' }}>
       <div className="container" style={{ paddingTop: 48, paddingBottom: 80, maxWidth: 760 }}>
         {/* Header */}
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 32 }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 32, flexWrap: 'wrap', gap: 24 }}>
           <div>
             <button className="btn-ghost" style={{ fontSize: 12, padding: '6px 14px', marginBottom: 16 }} onClick={() => navigate('/teams')}>← Back</button>
-            <div style={{ display: 'flex', gap: 12, alignItems: 'center', marginBottom: 8 }}>
-              <h1 style={{ fontFamily: 'PT Serif, serif', fontSize: 36, fontWeight: 600, letterSpacing: -1 }}>{team.name}</h1>
+            <div style={{ display: 'flex', gap: 12, alignItems: 'center', marginBottom: 8, flexWrap: 'wrap' }}>
+              <h1 style={{ fontFamily: 'PT Serif, serif', fontSize: 36, fontWeight: 600, letterSpacing: -1, color: 'var(--ink)' }}>{team.name}</h1>
               <span className={`team-badge ${team.status === 'open' ? 'team-open' : 'team-closed'}`}>
                 {team.status === 'open' ? '● Open' : '✓ Full'}
               </span>
@@ -94,7 +94,7 @@ export default function TeamDetail() {
         {/* Pending invite for me */}
         {myMembership?.status === 'invited' && (
           <div style={{ background: 'var(--gold-light)', border: '1px solid var(--gold)', borderRadius: 12, padding: '20px 24px', marginBottom: 28 }}>
-            <div style={{ fontWeight: 700, fontSize: 15, marginBottom: 6 }}>You've been invited to join this team!</div>
+            <div style={{ fontWeight: 700, fontSize: 15, marginBottom: 6, color: 'var(--ink)' }}>You've been invited to join this team!</div>
             <p style={{ fontSize: 13, color: 'var(--muted)', marginBottom: 16 }}>The creator wants you as part of <strong>{team.name}</strong>.</p>
             <div style={{ display: 'flex', gap: 10 }}>
               <button className="btn-accept" onClick={() => respond('accept')}>Accept Invite</button>
@@ -104,7 +104,7 @@ export default function TeamDetail() {
         )}
 
         {/* Members */}
-        <div style={{ background: 'white', borderRadius: 16, border: '1px solid var(--border)', padding: 28, marginBottom: 24 }}>
+        <div style={{ background: 'var(--card-bg)', borderRadius: 16, border: '1px solid var(--border)', padding: 28, marginBottom: 24 }}>
           <div style={{ fontFamily: 'PT Mono, monospace', fontSize: 11, letterSpacing: 2, textTransform: 'uppercase', color: 'var(--muted)', marginBottom: 20 }}>
             Members — {accepted.length}/{team.maxSize}
           </div>
@@ -115,7 +115,7 @@ export default function TeamDetail() {
                   {initials(m.user?.name)}
                 </div>
                 <div>
-                  <div style={{ fontWeight: 700, fontSize: 14 }}>{m.user?.name} {m.user?._id === team.creator?._id && <span style={{ fontSize: 11, color: 'var(--muted)', fontWeight: 400 }}>· Creator</span>}</div>
+                  <div style={{ fontWeight: 700, fontSize: 14, color: 'var(--ink)' }}>{m.user?.name} {m.user?._id === team.creator?._id && <span style={{ fontSize: 11, color: 'var(--muted)', fontWeight: 400 }}>· Creator</span>}</div>
                   {m.user?.location && <div style={{ fontSize: 12, color: 'var(--muted)' }}>📍 {m.user.location}</div>}
                 </div>
               </div>
@@ -132,14 +132,14 @@ export default function TeamDetail() {
 
         {/* Pending invites */}
         {invited.length > 0 && (
-          <div style={{ background: 'white', borderRadius: 16, border: '1px solid var(--border)', padding: 28, marginBottom: 24 }}>
+          <div style={{ background: 'var(--card-bg)', borderRadius: 16, border: '1px solid var(--border)', padding: 28, marginBottom: 24 }}>
             <div style={{ fontFamily: 'PT Mono, monospace', fontSize: 11, letterSpacing: 2, textTransform: 'uppercase', color: 'var(--muted)', marginBottom: 16 }}>Pending Invites</div>
             {invited.map((m) => (
               <div key={m.user?._id} style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 10 }}>
                 <div style={{ width: 36, height: 36, borderRadius: 9, background: m.user?.avatarColor || '#aaa', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800, fontSize: 11, color: 'white' }}>
                   {initials(m.user?.name)}
                 </div>
-                <span style={{ fontWeight: 600, fontSize: 13 }}>{m.user?.name}</span>
+                <span style={{ fontWeight: 600, fontSize: 13, color: 'var(--ink)' }}>{m.user?.name}</span>
                 <span className="status-badge status-pending" style={{ marginLeft: 'auto' }}>Awaiting</span>
               </div>
             ))}
@@ -148,16 +148,16 @@ export default function TeamDetail() {
 
         {/* Invite panel — creator only, team open */}
         {isCreator && team.status === 'open' && (
-          <div style={{ background: 'white', borderRadius: 16, border: '1px solid var(--border)', padding: 28 }}>
+          <div style={{ background: 'var(--card-bg)', borderRadius: 16, border: '1px solid var(--border)', padding: 28 }}>
             <div style={{ fontFamily: 'PT Mono, monospace', fontSize: 11, letterSpacing: 2, textTransform: 'uppercase', color: 'var(--muted)', marginBottom: 16 }}>Invite Members</div>
-            <div style={{ display: 'flex', gap: 10, marginBottom: 16 }}>
+            <div style={{ display: 'flex', gap: 10, marginBottom: 16, flexWrap: 'wrap' }}>
               <input
                 className="form-input"
                 placeholder="Search by name or skill…"
                 value={inviteSearch}
                 onChange={(e) => setInviteSearch(e.target.value)}
                 onKeyDown={(e) => e.key === 'Enter' && searchUsers()}
-                style={{ flex: 1 }}
+                style={{ flex: 1, minWidth: '200px', background: 'var(--cream)', color: 'var(--ink)' }}
               />
               <button className="btn-ink" style={{ padding: '11px 20px', flexShrink: 0 }} onClick={searchUsers}>Search</button>
             </div>
@@ -171,7 +171,7 @@ export default function TeamDetail() {
                         {initials(u.name)}
                       </div>
                       <div style={{ flex: 1 }}>
-                        <div style={{ fontWeight: 700, fontSize: 13 }}>{u.name}</div>
+                        <div style={{ fontWeight: 700, fontSize: 13, color: 'var(--ink)' }}>{u.name}</div>
                         <div style={{ fontSize: 11, color: 'var(--muted)' }}>{u.location}</div>
                       </div>
                       <button
