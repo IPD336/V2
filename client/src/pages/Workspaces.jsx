@@ -10,7 +10,7 @@ export default function Workspaces() {
   const { showToast } = useToast();
   const [activeSwaps, setActiveSwaps] = useState([]);
   const [activeTeams, setActiveTeams] = useState([]);
-  const [selected, setSelected] = useState(null); // { id, type, name, otherUser? }
+  const [selected, setSelected] = useState(null);
   const [messages, setMessages] = useState([]);
   const [newMessage, setNewMessage] = useState('');
   const [loading, setLoading] = useState(true);
@@ -19,10 +19,11 @@ export default function Workspaces() {
   const [completedSkill, setCompletedSkill] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('Frontend');
   const CATEGORIES = ['Frontend', 'Backend', 'DevOps', 'Data Science', 'Mobile', 'AI/ML', 'Programming Languages'];
+  
+  // REAL-TIME NOTIFICATIONS
   const [unreadRooms, setUnreadRooms] = useState(new Set());
   const [showGoalsMobile, setShowGoalsMobile] = useState(false);
 
-  // Load active swaps and teams
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -42,32 +43,34 @@ export default function Workspaces() {
     setSelected(null);
   }, []);
 
-  // Handle socket events
   useEffect(() => {
-    if (!socket || !selected) return;
+    if (!socket) return;
 
-    console.log('Joining room:', selected.id);
-    socket.emit('join_room', selected.id);
+    if (selected) {
+      console.log('Joining room:', selected.id);
+      socket.emit('join_room', selected.id);
+    }
 
     const handleNewMessage = (msg) => {
-      console.log('Incoming message:', msg);
-      if (String(msg.room) === String(selected.id)) {
+      if (selected && String(msg.room) === String(selected.id)) {
         setMessages(prev => {
           if (prev.find(m => m._id === msg._id)) return prev;
           return [...prev, msg];
         });
       } else {
-        setUnreadRooms(prev => new Set([...prev, msg.room]));
+        // ADD RED DOT
+        setUnreadRooms(prev => new Set([...prev, String(msg.room)]));
       }
     };
 
     const handleGoalUpdated = (goals) => {
-      console.log('Incoming goal update:', goals);
-      if (selected.type === 'swap') {
-        setActiveSwaps(prev => prev.map(s => String(s._id) === String(selected.id) ? { ...s, goals } : s));
-      } else {
-        setActiveTeams(prev => prev.map(t => String(t._id) === String(selected.id) ? { ...t, goals } : t));
+      if (selected && String(goals.room) === String(selected.id)) {
+        // Logic handled by activeSwaps/Teams update in parent if needed, 
+        // but here we just update the local state if it matches selected
       }
+      // Refresh data to show goal changes
+      api.get('/swaps').then(res => setActiveSwaps(res.data.active));
+      api.get('/teams?mine=true').then(res => setActiveTeams(res.data.filter(t => t.status === 'open' || t.status === 'closed')));
     };
 
     socket.on('new_message', handleNewMessage);
@@ -79,14 +82,12 @@ export default function Workspaces() {
     };
   }, [socket, selected]);
 
-  // Load message history when selection changes
   useEffect(() => {
     if (selected) {
       api.get(`/messages/${selected.id}`).then(res => setMessages(res.data)).catch(() => { });
     }
   }, [selected]);
 
-  // Scroll to bottom
   useEffect(() => {
     scrollRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
@@ -94,12 +95,7 @@ export default function Workspaces() {
   const sendMessage = (e) => {
     e.preventDefault();
     if (!newMessage.trim() || !socket || !selected) return;
-
-    socket.emit('send_message', {
-      room: selected.id,
-      content: newMessage.trim(),
-      type: 'text'
-    });
+    socket.emit('send_message', { room: selected.id, content: newMessage.trim(), type: 'text' });
     setNewMessage('');
   };
 
@@ -108,106 +104,71 @@ export default function Workspaces() {
     try {
       await api.put(`/swaps/${selected.id}/complete`);
       showToast('Completion request sent! 🏆');
-      
-      // Refresh list to show pending state
       const res = await api.get('/swaps');
       setActiveSwaps(res.data.active);
-    } catch (err) {
-      showToast('Failed to request completion', 'error');
-    }
+    } catch (err) { showToast('Failed to request completion', 'error'); }
   };
 
   const handleConfirmComplete = async () => {
     try {
       await api.put(`/swaps/${selected.id}/confirm-complete`);
-      showToast('Swap confirmed as completed! 🎉');
-      
+      showToast('Swap confirmed! 🎉');
       const swap = activeSwaps.find(s => String(s._id) === String(selected.id));
-      if (!swap) return;
-
-      const learnedSkill = (swap.sender._id || swap.sender) === user._id ? swap.skillWanted : swap.skillOffered;
-      setCompletedSkill(learnedSkill);
-      setShowCompletionModal(true);
-
+      if (swap) {
+        setCompletedSkill((swap.sender._id || swap.sender) === user._id ? swap.skillWanted : swap.skillOffered);
+        setShowCompletionModal(true);
+      }
       const res = await api.get('/swaps');
       setActiveSwaps(res.data.active);
-    } catch (err) {
-      showToast('Failed to confirm completion', 'error');
-    }
+    } catch (err) { showToast('Failed to confirm', 'error'); }
   };
 
   const handleDeclineComplete = async () => {
     try {
       await api.put(`/swaps/${selected.id}/decline-complete`);
-      showToast('Completion request declined');
-      
+      showToast('Completion declined');
       const res = await api.get('/swaps');
       setActiveSwaps(res.data.active);
-    } catch (err) {
-      showToast('Action failed', 'error');
-    }
+    } catch (err) { showToast('Action failed', 'error'); }
   };
 
   const handleAddSkill = async () => {
     try {
       const updatedSkills = [...(user.skillsOffered || []), { name: completedSkill, category: selectedCategory }];
       await api.put(`/users/${user._id}`, { skillsOffered: updatedSkills });
-      showToast(`${completedSkill} added to your offered skills! 🚀`);
+      showToast(`${completedSkill} added! 🚀`);
       setShowCompletionModal(false);
-    } catch (err) {
-      showToast('Failed to add skill', 'error');
-    }
+    } catch (err) { showToast('Failed to add skill', 'error'); }
   };
 
   const handleAddGoal = (e) => {
     if (e.key === 'Enter' && e.target.value.trim() && socket && selected) {
-      socket.emit('add_goal', {
-        room: selected.id,
-        type: selected.type,
-        text: e.target.value.trim()
-      });
+      socket.emit('add_goal', { room: selected.id, type: selected.type, text: e.target.value.trim() });
       e.target.value = '';
     }
   };
 
   const handleToggleGoal = (goalId) => {
     if (socket && selected) {
-      socket.emit('toggle_goal', {
-        room: selected.id,
-        type: selected.type,
-        goalId
-      });
+      socket.emit('toggle_goal', { room: selected.id, type: selected.type, goalId });
     }
   };
 
   const handleSelect = (item, type) => {
+    // CLEAR RED DOT
+    setUnreadRooms(prev => {
+      const next = new Set(prev);
+      next.delete(String(item._id));
+      return next;
+    });
+
     if (type === 'swap') {
       const otherUser = item.sender._id === user._id ? item.receiver : item.sender;
-      setSelected({
-        id: item._id,
-        type: 'swap',
-        name: `Swap with ${otherUser.name}`,
-        detail: `${item.skillOffered} ⇄ ${item.skillWanted}`,
-        otherUser
-      });
-      setUnreadRooms(prev => {
-        const next = new Set(prev);
-        next.delete(item._id);
-        return next;
-      });
+      setSelected({ id: item._id, type: 'swap', name: `Swap with ${otherUser.name}`, detail: `${item.skillOffered} ⇄ ${item.skillWanted}`, otherUser });
     } else {
-      setSelected({
-        id: item._id,
-        type: 'team',
-        name: item.name,
-        detail: item.purpose
-      });
-      setUnreadRooms(prev => {
-        const next = new Set(prev);
-        next.delete(item._id);
-        return next;
-      });
+      setSelected({ id: item._id, type: 'team', name: item.name, detail: item.purpose });
     }
+    setShowGoalsMobile(false);
   };
 
   const currentGoals = (selected && selected.id)
@@ -218,23 +179,18 @@ export default function Workspaces() {
 
   if (loading) return <div className="spinner" />;
 
+  const isMobile = window.innerWidth <= 900;
+
   return (
-    <div className="workspace-page" style={{
-      height: '100vh',
-      display: 'flex',
-      flexDirection: 'column',
-      overflow: 'hidden',
-      paddingTop: 68, // Match Navbar height
-      background: 'var(--cream)'
-    }}>
+    <div className="workspace-page" style={{ height: '100vh', display: 'flex', flexDirection: 'column', overflow: 'hidden', paddingTop: 68, background: 'var(--cream)' }}>
       <div style={{ display: 'flex', flex: 1, overflow: 'hidden' }}>
 
-        {/* Sidebar (Left) */}
+        {/* Sidebar */}
         <div className="workspace-sidebar" style={{
-          width: 320,
+          width: isMobile ? '100%' : 320,
           background: 'var(--card-bg)',
           borderRight: '1px solid var(--border)',
-          display: (selected && window.innerWidth <= 900) ? 'none' : 'flex',
+          display: (selected && isMobile) ? 'none' : 'flex',
           flexDirection: 'column',
           flexShrink: 0
         }}>
@@ -244,293 +200,145 @@ export default function Workspaces() {
           </div>
 
           <div style={{ flex: 1, overflowY: 'auto', padding: '12px 8px' }}>
-            {activeSwaps.length > 0 && (
-              <div style={{ marginBottom: 24 }}>
-                <div style={{ fontSize: 11, textTransform: 'uppercase', letterSpacing: 1, fontWeight: 700, color: 'var(--muted)', padding: '0 12px 8px' }}>Active Swaps</div>
-                {activeSwaps.map(s => (
-                  <div
-                    key={s._id}
-                    className={`workspace-item ${selected?.id === s._id ? 'active' : ''}`}
-                    onClick={() => handleSelect(s, 'swap')}
-                    style={{
-                      padding: '12px',
-                      borderRadius: 12,
-                      cursor: 'pointer',
-                      transition: 'all 0.2s',
-                      marginBottom: 4,
-                      background: selected?.id === s._id ? 'var(--accent-light)' : 'transparent',
-                      border: selected?.id === s._id ? '1px solid var(--border)' : '1px solid transparent'
-                    }}
-                  >
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                      <div style={{ fontWeight: 600, fontSize: 14, color: 'var(--ink)' }}>
-                        {s.sender._id === user._id ? s.receiver.name : s.sender.name}
-                      </div>
-                      {unreadRooms.has(s._id) && <div style={{ width: 8, height: 8, borderRadius: '50%', background: 'var(--accent)' }} />}
-                    </div>
-                    <div style={{ fontSize: 12, color: 'var(--muted)', marginTop: 2, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                      {s.skillOffered} ⇄ {s.skillWanted}
-                    </div>
-                  </div>
-                ))}
+            <div style={{ fontSize: 11, textTransform: 'uppercase', letterSpacing: 1, fontWeight: 700, color: 'var(--muted)', padding: '0 12px 8px', marginTop: 12 }}>Active Swaps</div>
+            {activeSwaps.map(s => (
+              <div key={s._id} onClick={() => handleSelect(s, 'swap')} className={`workspace-item ${selected?.id === s._id ? 'active' : ''}`} style={{
+                padding: '12px', borderRadius: 12, cursor: 'pointer', marginBottom: 4,
+                background: selected?.id === s._id ? 'var(--accent-light)' : 'transparent',
+                display: 'flex', justifyContent: 'space-between', alignItems: 'center'
+              }}>
+                <div style={{ minWidth: 0 }}>
+                  <div style={{ fontWeight: 600, fontSize: 14, color: 'var(--ink)' }}>{s.sender._id === user._id ? s.receiver.name : s.sender.name}</div>
+                  <div style={{ fontSize: 11, color: 'var(--muted)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{s.skillOffered} ⇄ {s.skillWanted}</div>
+                </div>
+                {unreadRooms.has(String(s._id)) && <div style={{ width: 10, height: 10, borderRadius: '50%', background: '#ff4d4d', boxShadow: '0 0 10px rgba(255,77,77,0.5)' }} />}
               </div>
-            )}
+            ))}
 
-            {activeTeams.length > 0 && (
-              <div>
-                <div style={{ fontSize: 11, textTransform: 'uppercase', letterSpacing: 1, fontWeight: 700, color: 'var(--muted)', padding: '0 12px 8px' }}>Teams</div>
-                {activeTeams.map(t => (
-                  <div
-                    key={t._id}
-                    className={`workspace-item ${selected?.id === t._id ? 'active' : ''}`}
-                    onClick={() => handleSelect(t, 'team')}
-                    style={{
-                      padding: '12px',
-                      borderRadius: 12,
-                      cursor: 'pointer',
-                      transition: 'all 0.2s',
-                      marginBottom: 4,
-                      background: selected?.id === t._id ? 'var(--accent-light)' : 'transparent',
-                      border: selected?.id === t._id ? '1px solid var(--border)' : '1px solid transparent'
-                    }}
-                  >
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                      <div style={{ fontWeight: 600, fontSize: 14, color: 'var(--ink)' }}>{t.name}</div>
-                      {unreadRooms.has(t._id) && <div style={{ width: 8, height: 8, borderRadius: '50%', background: 'var(--accent)' }} />}
-                    </div>
-                    <div style={{ fontSize: 12, color: 'var(--muted)', marginTop: 2, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                      {t.members.filter(m => m.status === 'accepted').length} members
-                    </div>
-                  </div>
-                ))}
+            <div style={{ fontSize: 11, textTransform: 'uppercase', letterSpacing: 1, fontWeight: 700, color: 'var(--muted)', padding: '0 12px 8px', marginTop: 24 }}>Teams</div>
+            {activeTeams.map(t => (
+              <div key={t._id} onClick={() => handleSelect(t, 'team')} className={`workspace-item ${selected?.id === t._id ? 'active' : ''}`} style={{
+                padding: '12px', borderRadius: 12, cursor: 'pointer', marginBottom: 4,
+                background: selected?.id === t._id ? 'var(--accent-light)' : 'transparent',
+                display: 'flex', justifyContent: 'space-between', alignItems: 'center'
+              }}>
+                <div style={{ minWidth: 0 }}>
+                  <div style={{ fontWeight: 600, fontSize: 14, color: 'var(--ink)' }}>{t.name}</div>
+                  <div style={{ fontSize: 11, color: 'var(--muted)' }}>{t.members.filter(m => m.status === 'accepted').length} members</div>
+                </div>
+                {unreadRooms.has(String(t._id)) && <div style={{ width: 10, height: 10, borderRadius: '50%', background: '#ff4d4d', boxShadow: '0 0 10px rgba(255,77,77,0.5)' }} />}
               </div>
-            )}
-
-            {activeSwaps.length === 0 && activeTeams.length === 0 && (
-              <div style={{ padding: 40, textAlign: 'center', color: 'var(--muted)' }}>
-                <div style={{ fontSize: 32, marginBottom: 12 }}>🌱</div>
-                <div style={{ fontSize: 14, fontWeight: 600 }}>No active workspaces</div>
-                <p style={{ fontSize: 12, marginTop: 8 }}>Accept a swap or join a team to start collaborating!</p>
-              </div>
-            )}
+            ))}
           </div>
         </div>
 
-        {/* Main Content (Chat) */}
+        {/* Chat */}
         <div style={{ 
           flex: 1, 
-          display: (selected || window.innerWidth > 900) ? 'flex' : 'none', 
+          display: (selected || !isMobile) ? 'flex' : 'none', 
           flexDirection: 'column', 
           background: 'var(--cream)', 
           minWidth: 0 
         }}>
           {selected ? (
             <>
-              {/* Header */}
               <div style={{ padding: '16px 24px', borderBottom: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'var(--card-bg)' }}>
-                <div style={{ minWidth: 0, display: 'flex', alignItems: 'center', gap: 12 }}>
-                  <button className="btn-accent hide-desktop" style={{ padding: '4px 10px', fontSize: 14, width: 32, height: 32, borderRadius: 8 }} onClick={() => setSelected(null)}>←</button>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 12, minWidth: 0 }}>
+                  {isMobile && <button className="btn-accent" style={{ padding: '4px 10px', fontSize: 14, borderRadius: 8 }} onClick={() => setSelected(null)}>←</button>}
                   <div style={{ minWidth: 0 }}>
-                    <div style={{ fontSize: 18, fontWeight: 700, color: 'var(--ink)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{selected.name}</div>
-                    <div style={{ fontSize: 12, color: 'var(--muted)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{selected.detail}</div>
+                    <div style={{ fontSize: 16, fontWeight: 700, color: 'var(--ink)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{selected.name}</div>
+                    <div style={{ fontSize: 11, color: 'var(--muted)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{selected.detail}</div>
                   </div>
                 </div>
                 <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-                  <button className="btn-outline-sm hide-desktop" style={{ fontSize: 16, padding: '6px 10px', width: 40, height: 40, borderRadius: 10, justifyContent: 'center' }} onClick={() => setShowGoalsMobile(!showGoalsMobile)}>🎯</button>
-                {selected.type === 'swap' && (() => {
-                  const s = activeSwaps.find(sw => String(sw._id) === String(selected.id));
-                  if (!s) return null;
-                  
-                  if (s.status === 'pending_completion') {
-                    const isRequester = s.completedBy.includes(user._id);
-                    return isRequester ? (
-                      <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--gold)', background: 'var(--gold-light)', padding: '6px 12px', borderRadius: 8 }}>
-                        Waiting for partner confirmation...
-                      </div>
-                    ) : (
-                      <div style={{ display: 'flex', gap: 8 }}>
-                        <button className="btn-modal-primary" style={{ fontSize: 12, width: 'auto', padding: '6px 12px', marginTop: 0 }} onClick={handleConfirmComplete}>
-                          Confirm Completion
-                        </button>
-                        <button className="btn-decline" style={{ fontSize: 12, padding: '6px 12px' }} onClick={handleDeclineComplete}>
-                          Not Yet
-                        </button>
-                      </div>
-                    );
-                  }
-
-                  return (
-                    <button className="btn-modal-primary" style={{ fontSize: 13, width: 'auto', padding: '8px 16px', marginTop: 0, flexShrink: 0 }} onClick={handleComplete}>
-                      Mark as Completed
-                    </button>
-                  );
-                })()}
+                  {isMobile && <button className="btn-outline-sm" style={{ padding: '8px', borderRadius: 8, width: 38, height: 38, justifyContent: 'center' }} onClick={() => setShowGoalsMobile(!showGoalsMobile)}>🎯</button>}
+                  {selected.type === 'swap' && (() => {
+                    const s = activeSwaps.find(sw => String(sw._id) === String(selected.id));
+                    if (s?.status === 'pending_completion') {
+                      return s.completedBy.includes(user._id) 
+                        ? <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--gold)', background: 'var(--gold-light)', padding: '6px 12px', borderRadius: 8 }}>Waiting...</div>
+                        : <div style={{ display: 'flex', gap: 6 }}>
+                            <button className="btn-accept" style={{ fontSize: 11, padding: '6px 12px' }} onClick={handleConfirmComplete}>Confirm</button>
+                            <button className="btn-decline" style={{ fontSize: 11, padding: '6px 12px' }} onClick={handleDeclineComplete}>Wait</button>
+                          </div>;
+                    }
+                    return <button className="btn-modal-primary" style={{ fontSize: 12, width: 'auto', padding: '8px 16px', marginTop: 0 }} onClick={handleComplete}>Complete</button>;
+                  })()}
+                </div>
               </div>
 
-              {/* Chat Area */}
-              <div style={{ flex: 1, overflowY: 'auto', padding: '24px', display: 'flex', flexDirection: 'column', gap: 16 }}>
-                {messages.length === 0 ? (
-                  <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', color: 'var(--muted)' }}>
-                    <div style={{ fontSize: 48, marginBottom: 16 }}>💬</div>
-                    <p>Start the conversation! Every great skill begins with a "Hello".</p>
-                  </div>
-                ) : (
-                  messages.map((m, i) => {
-                    const isMe = m.sender._id === user._id;
-                    return (
-                      <div key={m._id} style={{ alignSelf: isMe ? 'flex-end' : 'flex-start', maxWidth: '80%', display: 'flex', gap: 12, flexDirection: isMe ? 'row-reverse' : 'row' }}>
-                        <div style={{ width: 32, height: 32, borderRadius: 8, background: m.sender.avatarUrl ? `url(${m.sender.avatarUrl}) center/cover` : m.sender.avatarColor, display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontWeight: 700, fontSize: 12, flexShrink: 0 }}>
-                          {!m.sender.avatarUrl && m.sender.name[0]}
-                        </div>
-                        <div style={{ minWidth: 0 }}>
-                          {!isMe && <div style={{ fontSize: 11, color: 'var(--muted)', marginBottom: 4, marginLeft: 4 }}>{m.sender.name}</div>}
-                          <div style={{
-                            padding: '10px 16px',
-                            borderRadius: 16,
-                            borderBottomRightRadius: isMe ? 4 : 16,
-                            borderBottomLeftRadius: isMe ? 16 : 4,
-                            background: isMe ? 'var(--accent)' : 'var(--card-bg)',
-                            border: isMe ? 'none' : '1px solid var(--border)',
-                            color: isMe ? 'white' : 'var(--ink)',
-                            fontSize: 14,
-                            lineHeight: 1.5,
-                            boxShadow: '0 2px 4px rgba(0,0,0,0.05)',
-                            wordBreak: 'break-word'
-                          }}>
-                            {m.content}
-                          </div>
-                          <div style={{ fontSize: 10, color: 'var(--muted)', marginTop: 4, textAlign: isMe ? 'right' : 'left' }}>
-                            {new Date(m.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                          </div>
-                        </div>
+              <div style={{ flex: 1, overflowY: 'auto', padding: '20px', display: 'flex', flexDirection: 'column', gap: 16 }}>
+                {messages.map((m) => {
+                  const isMe = m.sender._id === user._id;
+                  return (
+                    <div key={m._id} style={{ alignSelf: isMe ? 'flex-end' : 'flex-start', maxWidth: '85%', display: 'flex', gap: 10, flexDirection: isMe ? 'row-reverse' : 'row' }}>
+                      <div style={{ width: 30, height: 30, borderRadius: 8, background: m.sender.avatarUrl ? `url(${m.sender.avatarUrl}) center/cover` : m.sender.avatarColor, display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontWeight: 700, fontSize: 11, flexShrink: 0 }}>
+                        {!m.sender.avatarUrl && m.sender.name[0]}
                       </div>
-                    );
-                  })
-                )}
+                      <div>
+                        <div style={{ padding: '10px 14px', borderRadius: 14, background: isMe ? 'var(--accent)' : 'var(--card-bg)', color: isMe ? 'white' : 'var(--ink)', fontSize: 14, boxShadow: '0 2px 4px rgba(0,0,0,0.05)' }}>{m.content}</div>
+                        <div style={{ fontSize: 10, color: 'var(--muted)', marginTop: 4, textAlign: isMe ? 'right' : 'left' }}>{new Date(m.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</div>
+                      </div>
+                    </div>
+                  );
+                })}
                 <div ref={scrollRef} />
               </div>
 
-              {/* Input Area */}
-              <div style={{ padding: '20px 24px', borderTop: '1px solid var(--border)', background: 'var(--card-bg)' }}>
-                <form onSubmit={sendMessage} style={{ display: 'flex', gap: 12 }}>
-                  <input
-                    className="form-input"
-                    placeholder="Type a message…"
-                    style={{ borderRadius: 24, paddingLeft: 20, background: 'var(--cream)' }}
-                    value={newMessage}
-                    onChange={(e) => setNewMessage(e.target.value)}
-                  />
-                  <button type="submit" className="btn-accent" style={{ width: 44, height: 44, borderRadius: '50%', padding: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                    ✈
-                  </button>
+              <div style={{ padding: '16px 20px', borderTop: '1px solid var(--border)', background: 'var(--card-bg)' }}>
+                <form onSubmit={sendMessage} style={{ display: 'flex', gap: 10 }}>
+                  <input className="form-input" placeholder="Message..." style={{ borderRadius: 20, background: 'var(--cream)' }} value={newMessage} onChange={(e) => setNewMessage(e.target.value)} />
+                  <button type="submit" className="btn-accent" style={{ width: 40, height: 40, borderRadius: '50%', padding: 0 }}>✈</button>
                 </form>
               </div>
             </>
           ) : (
-            <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', color: 'var(--muted)', background: 'var(--cream)' }}>
-              <div style={{ width: 120, height: 120, background: 'var(--card-bg)', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 48, marginBottom: 24, boxShadow: 'var(--shadow)' }}>
-                🚀
-              </div>
-              <h3 style={{ fontSize: 24, fontWeight: 700, color: 'var(--ink)', marginBottom: 8 }}>Select a Workspace</h3>
-              <p style={{ maxWidth: 320, textAlign: 'center' }}>Choose a swap or team from the sidebar to start sharing skills and collaborating!</p>
+            <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', color: 'var(--muted)' }}>
+              <div style={{ fontSize: 48, marginBottom: 16 }}>🚀</div>
+              <h3>Select a Workspace</h3>
             </div>
           )}
         </div>
 
-        {/* Right Panel (Goals) */}
+        {/* Goals Panel */}
         {selected && (
           <div style={{ 
-            width: 320, 
-            borderLeft: '1px solid var(--border)', 
+            width: isMobile ? '100%' : 300, 
+            borderLeft: isMobile ? 'none' : '1px solid var(--border)', 
             background: 'var(--card-bg)', 
             padding: 24, 
-            display: 'flex', 
-            flexDirection: 'column', 
-            flexShrink: 0,
-            position: window.innerWidth <= 900 ? 'fixed' : 'relative',
-            inset: window.innerWidth <= 900 ? '68px 0 0 0' : 'auto',
-            zIndex: window.innerWidth <= 900 ? 100 : 1,
-            display: (showGoalsMobile || window.innerWidth > 900) ? 'flex' : 'none'
+            display: (showGoalsMobile || !isMobile) ? 'flex' : 'none', 
+            flexDirection: 'column',
+            position: isMobile ? 'fixed' : 'relative',
+            inset: isMobile ? '68px 0 0 0' : 'auto',
+            zIndex: 100
           }}>
-            <div style={{ flex: 1, overflowY: 'auto' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
-                <h4 style={{ fontSize: 11, textTransform: 'uppercase', letterSpacing: 2, color: 'var(--muted)', margin: 0 }}>🎯 Collaborative Goals</h4>
-                <button className="hide-desktop" style={{ background: 'none', border: 'none', fontSize: 18, cursor: 'pointer' }} onClick={() => setShowGoalsMobile(false)}>✕</button>
-              </div>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginBottom: 20 }}>
-                {currentGoals.map(goal => (
-                  <div
-                    key={goal._id}
-                    style={{
-                      display: 'flex',
-                      alignItems: 'flex-start',
-                      gap: 10,
-                      fontSize: 13,
-                      color: goal.completed ? 'var(--muted)' : 'var(--ink)',
-                      textDecoration: goal.completed ? 'line-through' : 'none',
-                      cursor: 'pointer',
-                      padding: '4px 0'
-                    }}
-                    onClick={() => handleToggleGoal(goal._id)}
-                  >
-                    <div style={{
-                      width: 18,
-                      height: 18,
-                      borderRadius: 4,
-                      border: goal.completed ? 'none' : '1.5px solid var(--border)',
-                      background: goal.completed ? 'var(--sage)' : 'transparent',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      color: 'white',
-                      fontSize: 10,
-                      flexShrink: 0,
-                      marginTop: 1
-                    }}>
-                      {goal.completed && '✓'}
-                    </div>
-                    <span style={{ wordBreak: 'break-word' }}>{goal.text}</span>
-                  </div>
-                ))}
-              </div>
-              <input
-                className="form-input"
-                placeholder="+ Add a goal..."
-                onKeyDown={handleAddGoal}
-                style={{ fontSize: 12, padding: '8px 12px', background: 'var(--cream)', borderRadius: 8 }}
-              />
-              <p style={{ fontSize: 10, color: 'var(--muted)', marginTop: 8 }}>Press Enter to add. Synchronized in real-time!</p>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
+              <h4 style={{ fontSize: 11, textTransform: 'uppercase', letterSpacing: 1, color: 'var(--muted)', margin: 0 }}>🎯 Goals</h4>
+              {isMobile && <button style={{ background: 'none', border: 'none', fontSize: 18 }} onClick={() => setShowGoalsMobile(false)}>✕</button>}
+            </div>
+            <div style={{ flex: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: 12 }}>
+              {currentGoals.map(g => (
+                <div key={g._id} onClick={() => handleToggleGoal(g._id)} style={{ display: 'flex', gap: 10, fontSize: 13, cursor: 'pointer', color: g.completed ? 'var(--muted)' : 'var(--ink)', textDecoration: g.completed ? 'line-through' : 'none' }}>
+                  <div style={{ width: 18, height: 18, borderRadius: 4, border: '1.5px solid var(--border)', background: g.completed ? 'var(--sage)' : 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontSize: 10, flexShrink: 0 }}>{g.completed && '✓'}</div>
+                  {g.text}
+                </div>
+              ))}
+              <input className="form-input" placeholder="+ Add goal..." onKeyDown={handleAddGoal} style={{ fontSize: 12, padding: '8px', background: 'var(--cream)' }} />
             </div>
           </div>
         )}
       </div>
 
-      {/* Completion Modal */}
       {showCompletionModal && (
         <div className="modal-overlay active">
-          <div className="modal-content" style={{ maxWidth: 450, textAlign: 'center', padding: 40, background: 'var(--card-bg)', borderRadius: 20, boxShadow: 'var(--shadow-lg)', position: 'relative' }}>
-            <div style={{ fontSize: 64, marginBottom: 20 }}>🎉</div>
-            <h2 style={{ fontSize: 24, fontWeight: 700, marginBottom: 12, color: 'var(--ink)' }}>Congratulations!</h2>
-            <p style={{ color: 'var(--muted)', lineHeight: 1.6, marginBottom: 32 }}>
-              You've successfully completed your swap and learned <strong>{completedSkill}</strong>.
-              Would you like to add it to your offered skills so you can mentor others?
-            </p>
-
-            <div style={{ textAlign: 'left', marginBottom: 32 }}>
-              <label className="form-label">Select Category for {completedSkill}</label>
-              <select
-                className="form-select"
-                value={selectedCategory}
-                onChange={(e) => setSelectedCategory(e.target.value)}
-                style={{ background: 'var(--cream)' }}
-              >
-                {CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
-              </select>
-            </div>
-
-            <div style={{ display: 'flex', gap: 12 }}>
-              <button className="btn-modal-primary" style={{ marginTop: 0 }} onClick={handleAddSkill}>Yes, add it! 🚀</button>
-              <button className="btn-decline" style={{ padding: '12px 24px', fontSize: 14, borderRadius: 8 }} onClick={() => setShowCompletionModal(false)}>Not now</button>
+          <div className="modal" style={{ maxWidth: 400, textAlign: 'center' }}>
+            <div style={{ fontSize: 48, marginBottom: 16 }}>🎉</div>
+            <h3>Congratulations!</h3>
+            <p style={{ fontSize: 14, color: 'var(--muted)', marginBottom: 24 }}>You learned <strong>{completedSkill}</strong>!</p>
+            <div style={{ display: 'flex', gap: 10 }}>
+              <button className="btn-modal-primary" style={{ marginTop: 0 }} onClick={handleAddSkill}>Add to Profile</button>
+              <button className="btn-decline" style={{ fontSize: 13 }} onClick={() => setShowCompletionModal(false)}>Close</button>
             </div>
           </div>
         </div>
