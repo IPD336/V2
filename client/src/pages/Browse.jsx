@@ -34,12 +34,12 @@ function ProfileCard({ user, onSwap, onSave, saved }) {
         </div>
         <div className="card-name" style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
           {user.name}
-          {user.league && user.league.name !== 'Bronze' && (
+          {user.league && (
             <span style={{ 
               background: user.league.color + '20', color: user.league.name === 'Diamond' ? '#00E5FF' : user.league.name === 'Platinum' ? '#8e9eab' : user.league.color,
-              padding: '2px 8px', borderRadius: 12, fontSize: 10, fontWeight: 800, border: `1px solid ${user.league.color}`
+              padding: '2px 8px', borderRadius: 12, fontSize: 10, fontWeight: 800, border: `1px solid ${user.league.color}`, display: 'flex', alignItems: 'center', gap: 4
             }}>
-              {user.league.name}
+              {user.league.name === 'Diamond' ? '💎' : user.league.name === 'Platinum' ? '✨' : user.league.name === 'Gold' ? '🏆' : user.league.name === 'Silver' ? '🥈' : '🥉'} {user.league.name}
             </span>
           )}
         </div>
