@@ -2,6 +2,7 @@ const mongoose = require('mongoose');
 
 const skillSchema = new mongoose.Schema({
   name: { type: String, required: true },
+  category: { type: String, required: true },
   verified: { type: Boolean, default: false },
   credentialUrl: { type: String, default: '' },
 });

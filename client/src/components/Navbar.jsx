@@ -54,6 +54,7 @@ export default function Navbar() {
                 ) : (
                   <>
                     <NavLink to="/browse" className={({ isActive }) => isActive ? 'active' : ''} onClick={closeMobileMenu}>Browse</NavLink>
+                    <NavLink to="/workspaces" className={({ isActive }) => isActive ? 'active' : ''} onClick={closeMobileMenu}>Workspaces</NavLink>
                     <NavLink to="/swaps" className={({ isActive }) => isActive ? 'active' : ''} onClick={closeMobileMenu}>My Swaps</NavLink>
                     <NavLink to="/teams" className={({ isActive }) => isActive ? 'active' : ''} onClick={closeMobileMenu}>Teams</NavLink>
                     <NavLink to="/leaderboard" className={({ isActive }) => isActive ? 'active' : ''} onClick={closeMobileMenu}>Leaderboard</NavLink>

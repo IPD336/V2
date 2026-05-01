@@ -1,7 +1,8 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
+import api from '../api/axios';
 
 export default function Register() {
   const { register } = useAuth();
@@ -10,6 +11,23 @@ export default function Register() {
   const [form, setForm] = useState({ name: '', email: '', password: '', location: '' });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [isWaking, setIsWaking] = useState(false);
+
+  // Check if server is awake on mount
+  useEffect(() => {
+    let timer = setTimeout(() => setIsWaking(true), 1500);
+    
+    api.get('/health')
+      .then(() => {
+        clearTimeout(timer);
+        setIsWaking(false);
+      })
+      .catch(() => {
+        setIsWaking(true);
+      });
+
+    return () => clearTimeout(timer);
+  }, []);
 
   const handle = (e) => setForm({ ...form, [e.target.name]: e.target.value });
 
@@ -40,6 +58,25 @@ export default function Register() {
           <h1 style={{ fontFamily: 'PT Serif, serif', fontSize: 32, fontWeight: 600, letterSpacing: -1, color: 'var(--ink)' }}>Create Account</h1>
           <p style={{ color: 'var(--muted)', fontSize: 14, marginTop: 8 }}>Join the community. List your skills, find your match.</p>
         </div>
+
+        {isWaking && (
+          <div style={{ 
+            background: 'rgba(255, 165, 0, 0.1)', 
+            border: '1px solid orange', 
+            padding: '12px 16px', 
+            borderRadius: 12, 
+            marginBottom: 24, 
+            display: 'flex', 
+            alignItems: 'center', 
+            gap: 12,
+            color: 'orange',
+            fontSize: 13,
+            fontWeight: 600
+          }}>
+            <div className="pulse" style={{ width: 8, height: 8, borderRadius: '50%', background: 'orange' }} />
+            <span>The server is waking up from a nap. This might take 10-30 seconds...</span>
+          </div>
+        )}
 
         <form onSubmit={submit} style={{ background: 'var(--card-bg)', borderRadius: 20, padding: 36, border: '1px solid var(--border)', boxShadow: 'var(--shadow)' }}>
           <div className="form-group">

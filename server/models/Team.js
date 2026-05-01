@@ -16,6 +16,11 @@ const teamSchema = new mongoose.Schema(
     members: [memberSchema],
     status: { type: String, enum: ['open', 'closed'], default: 'open' },
     inviteCode: { type: String, unique: true },
+    goals: [{
+      text: { type: String, required: true },
+      completed: { type: Boolean, default: false },
+      createdBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' }
+    }]
   },
   { timestamps: true }
 );

@@ -15,6 +15,7 @@ import Profile from './pages/Profile';
 import UserProfile from './pages/UserProfile';
 import Leaderboard from './pages/Leaderboard';
 import AdminDashboard from './pages/AdminDashboard';
+import Workspaces from './pages/Workspaces';
 import './index.css';
 
 function ProtectedRoute({ children }) {
@@ -31,6 +32,7 @@ function AppRoutes() {
       <Route path="/login" element={user ? <Navigate to={user.role === 'admin' ? '/admin' : '/browse'} /> : <Login />} />
       <Route path="/register" element={user ? <Navigate to={user.role === 'admin' ? '/admin' : '/browse'} /> : <Register />} />
       <Route path="/browse" element={<ProtectedRoute><Browse /></ProtectedRoute>} />
+      <Route path="/workspaces" element={<ProtectedRoute><Workspaces /></ProtectedRoute>} />
       <Route path="/swaps" element={<ProtectedRoute><Swaps /></ProtectedRoute>} />
       <Route path="/teams" element={<ProtectedRoute><Teams /></ProtectedRoute>} />
       <Route path="/teams/:id" element={<ProtectedRoute><TeamDetail /></ProtectedRoute>} />

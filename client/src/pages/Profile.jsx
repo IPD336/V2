@@ -5,6 +5,53 @@ import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
 
 const AVAIL_OPTIONS = ['Weekends','Evenings','Weekday Mornings','Flexible / Any Time','Custom'];
+const CATEGORIES = ['Frontend', 'Backend', 'DevOps', 'Data Science', 'Mobile', 'AI/ML'];
+
+function StructuredSkillInput({ skills, onChange, colorClass = '' }) {
+  const [name, setName] = useState('');
+  const [category, setCategory] = useState(CATEGORIES[0]);
+
+  const add = () => {
+    if (name.trim()) {
+      onChange([...skills, { name: name.trim(), category }]);
+      setName('');
+    }
+  };
+
+  const remove = (i) => onChange(skills.filter((_, idx) => idx !== i));
+
+  return (
+    <div className="structured-skill-input">
+      <div className="chips-container" style={{ marginBottom: 12 }}>
+        {skills.map((s, i) => (
+          <span key={i} className={`chip ${colorClass}`} style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+            <span style={{ fontSize: 10, opacity: 0.7, textTransform: 'uppercase', fontWeight: 700 }}>{s.category}</span>
+            <strong>{s.name}</strong>
+            <button className="chip-x" type="button" onClick={() => remove(i)}>×</button>
+          </span>
+        ))}
+      </div>
+      <div style={{ display: 'flex', gap: 8 }}>
+        <input 
+          className="form-input" 
+          placeholder="Skill name (e.g. React)" 
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+          onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), add())}
+        />
+        <select 
+          className="form-select" 
+          style={{ width: 'auto', minWidth: 140 }}
+          value={category}
+          onChange={(e) => setCategory(e.target.value)}
+        >
+          {CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
+        </select>
+        <button type="button" className="btn-ghost" onClick={add} style={{ padding: '0 16px' }}>Add</button>
+      </div>
+    </div>
+  );
+}
 
 function ChipInput({ chips, onChange, colorClass = '' }) {
   const [val, setVal] = useState('');
@@ -67,7 +114,7 @@ export default function Profile() {
         location: me.location || '',
         bio: me.bio || '',
         availability: me.availability || 'Flexible / Any Time',
-        skillsOffered: me.skillsOffered?.map((s) => s.name) || [],
+        skillsOffered: me.skillsOffered || [],
         skillsWanted: me.skillsWanted || [],
         languages: me.languages || [],
         isPublic: me.isPublic ?? true,
@@ -84,7 +131,7 @@ export default function Profile() {
     try {
       await api.put(`/users/${me._id}`, {
         ...form,
-        skillsOffered: form.skillsOffered.map((n) => ({ name: n })),
+        skillsOffered: form.skillsOffered,
       });
       await refreshUser();
       showToast('Profile saved! ✓');
@@ -199,7 +246,7 @@ export default function Profile() {
             <div style={{ fontFamily: 'PT Mono, monospace', fontSize: 11, letterSpacing: 2, textTransform: 'uppercase', color: 'var(--muted)', marginBottom: 20 }}>Skills</div>
             <div className="form-group">
               <label className="form-label">Skills You Offer</label>
-              <ChipInput chips={form.skillsOffered} onChange={(v) => setForm({ ...form, skillsOffered: v })} />
+              <StructuredSkillInput skills={form.skillsOffered} onChange={(v) => setForm({ ...form, skillsOffered: v })} />
             </div>
             <div className="form-group">
               <label className="form-label">Skills You Want to Learn</label>

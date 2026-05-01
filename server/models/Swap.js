@@ -19,6 +19,11 @@ const swapSchema = new mongoose.Schema(
       default: 'pending',
     },
     completedAt: { type: Date },
+    goals: [{
+      text: { type: String, required: true },
+      completed: { type: Boolean, default: false },
+      createdBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' }
+    }]
   },
   { timestamps: true }
 );

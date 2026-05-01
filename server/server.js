@@ -14,6 +14,7 @@ const teamRoutes = require('./routes/teams');
 const adminRoutes = require('./routes/admin');
 const leaderboardRoutes = require('./routes/leaderboard');
 const notificationRoutes = require('./routes/notifications');
+const messageRoutes = require('./routes/messages');
 
 const app = express();
 const server = http.createServer(app);
@@ -35,6 +36,7 @@ app.use('/api/teams', teamRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/leaderboard', leaderboardRoutes);
 app.use('/api/notifications', notificationRoutes);
+app.use('/api/messages', messageRoutes);
 
 // ── Health check ──
 app.get('/api/health', (_, res) => res.json({ status: 'ok', time: new Date().toISOString() }));

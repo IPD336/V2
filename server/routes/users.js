@@ -46,17 +46,7 @@ router.get('/', async (req, res) => {
     }
 
     if (category && category !== 'All') {
-      const categorySkills = {
-        Frontend: ['react', 'vue', 'angular', 'html', 'css', 'javascript', 'typescript', 'tailwind', 'next.js', 'svelte'],
-        Backend: ['node', 'express', 'python', 'django', 'java', 'spring', 'go', 'ruby', 'php', 'c#', '.net'],
-        DevOps: ['docker', 'kubernetes', 'aws', 'azure', 'gcp', 'ci/cd', 'linux', 'terraform', 'jenkins'],
-        'Data Science': ['python', 'machine learning', 'data analysis', 'sql', 'pandas', 'tensorflow', 'pytorch', 'r'],
-        Mobile: ['react native', 'flutter', 'swift', 'ios', 'android', 'kotlin'],
-        'AI/ML': ['machine learning', 'deep learning', 'nlp', 'openai', 'llm', 'computer vision'],
-      };
-      const skills = categorySkills[category] || [];
-      const re = new RegExp(skills.join('|'), 'i');
-      query['skillsOffered.name'] = re;
+      query['skillsOffered.category'] = category;
     }
 
     const skip = (parseInt(page) - 1) * parseInt(limit);
