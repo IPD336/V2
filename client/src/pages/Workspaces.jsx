@@ -104,25 +104,42 @@ export default function Workspaces() {
     if (!selected || selected.type !== 'swap') return;
     try {
       await api.put(`/swaps/${selected.id}/complete`);
+      showToast('Completion request sent! 🏆');
+      
+      // Refresh list to show pending state
+      const res = await api.get('/swaps');
+      setActiveSwaps(res.data.active);
+    } catch (err) {
+      showToast('Failed to request completion', 'error');
+    }
+  };
 
-      // Determine what skill this user learned
-      // If I am sender, I wanted 'skillWanted'
-      // If I am receiver, I was offered 'skillOffered'
-      const swap = activeSwaps.find(s => s._id === selected.id);
+  const handleConfirmComplete = async () => {
+    try {
+      await api.put(`/swaps/${selected.id}/confirm-complete`);
+      showToast('Swap confirmed as completed! 🎉');
+      
+      const swap = activeSwaps.find(s => String(s._id) === String(selected.id));
       const learnedSkill = swap.sender._id === user._id ? swap.skillWanted : swap.skillOffered;
-
       setCompletedSkill(learnedSkill);
       setShowCompletionModal(true);
 
-      // Refresh list
       const res = await api.get('/swaps');
       setActiveSwaps(res.data.active);
-      if (res.data.active.length === 0) setSelected(null);
-      else if (!res.data.active.find(s => s._id === selected.id)) setSelected(null);
-
-      showToast('Swap marked as completed! 🏆');
     } catch (err) {
-      showToast('Failed to complete swap', 'error');
+      showToast('Failed to confirm completion', 'error');
+    }
+  };
+
+  const handleDeclineComplete = async () => {
+    try {
+      await api.put(`/swaps/${selected.id}/decline-complete`);
+      showToast('Completion request declined');
+      
+      const res = await api.get('/swaps');
+      setActiveSwaps(res.data.active);
+    } catch (err) {
+      showToast('Action failed', 'error');
     }
   };
 
@@ -132,7 +149,6 @@ export default function Workspaces() {
       await api.put(`/users/${user._id}`, { skillsOffered: updatedSkills });
       showToast(`${completedSkill} added to your offered skills! 🚀`);
       setShowCompletionModal(false);
-      // Optional: refresh user context if needed, but the toast and local state change is usually enough for a WOW factor
     } catch (err) {
       showToast('Failed to add skill', 'error');
     }
@@ -287,11 +303,34 @@ export default function Workspaces() {
                   <div style={{ fontSize: 18, fontWeight: 700, color: 'var(--ink)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{selected.name}</div>
                   <div style={{ fontSize: 12, color: 'var(--muted)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{selected.detail}</div>
                 </div>
-                {selected.type === 'swap' && (
-                  <button className="btn-modal-primary" style={{ fontSize: 13, width: 'auto', padding: '8px 16px', marginTop: 0, flexShrink: 0 }} onClick={handleComplete}>
-                    Mark as Completed
-                  </button>
-                )}
+                {selected.type === 'swap' && (() => {
+                  const s = activeSwaps.find(sw => String(sw._id) === String(selected.id));
+                  if (!s) return null;
+                  
+                  if (s.status === 'pending_completion') {
+                    const isRequester = s.completedBy.includes(user._id);
+                    return isRequester ? (
+                      <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--gold)', background: 'var(--gold-light)', padding: '6px 12px', borderRadius: 8 }}>
+                        Waiting for partner confirmation...
+                      </div>
+                    ) : (
+                      <div style={{ display: 'flex', gap: 8 }}>
+                        <button className="btn-modal-primary" style={{ fontSize: 12, width: 'auto', padding: '6px 12px', marginTop: 0 }} onClick={handleConfirmComplete}>
+                          Confirm Completion
+                        </button>
+                        <button className="btn-ghost" style={{ fontSize: 12, padding: '6px 12px' }} onClick={handleDeclineComplete}>
+                          Not Yet
+                        </button>
+                      </div>
+                    );
+                  }
+
+                  return (
+                    <button className="btn-modal-primary" style={{ fontSize: 13, width: 'auto', padding: '8px 16px', marginTop: 0, flexShrink: 0 }} onClick={handleComplete}>
+                      Mark as Completed
+                    </button>
+                  );
+                })()}
               </div>
 
               {/* Chat Area */}

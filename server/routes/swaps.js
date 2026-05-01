@@ -11,10 +11,27 @@ const router = express.Router();
 router.get('/', auth, async (req, res) => {
   try {
     const uid = req.user.id;
+
+    // AUTO-COMPLETE LOGIC: Check for any pending_completion swaps older than 48h
+    const fortyEightHoursAgo = new Date(Date.now() - 48 * 60 * 60 * 1000);
+    const staleSwaps = await Swap.find({ 
+      status: 'pending_completion', 
+      completionRequestedAt: { $lt: fortyEightHoursAgo } 
+    });
+
+    for (const s of staleSwaps) {
+      s.status = 'completed';
+      s.completedAt = new Date();
+      await s.save();
+    }
+
     const [incoming, outgoing, active, completed] = await Promise.all([
       Swap.find({ receiver: uid, status: 'pending' }).populate('sender', 'name avatarColor avatarUrl location'),
       Swap.find({ sender: uid, status: 'pending' }).populate('receiver', 'name avatarColor avatarUrl location'),
-      Swap.find({ $or: [{ sender: uid }, { receiver: uid }], status: 'active' })
+      Swap.find({ 
+        $or: [{ sender: uid }, { receiver: uid }], 
+        status: { $in: ['active', 'pending_completion'] } 
+      })
         .populate('sender', 'name avatarColor avatarUrl')
         .populate('receiver', 'name avatarColor avatarUrl'),
       Swap.find({ $or: [{ sender: uid }, { receiver: uid }], status: 'completed' })
@@ -99,7 +116,7 @@ router.put('/:id/decline', auth, async (req, res) => {
   }
 });
 
-// PUT /api/swaps/:id/complete  — either party can mark complete
+// PUT /api/swaps/:id/complete  — Request completion
 router.put('/:id/complete', auth, async (req, res) => {
   try {
     const swap = await Swap.findById(req.params.id);
@@ -108,24 +125,89 @@ router.put('/:id/complete', auth, async (req, res) => {
     if (!isParty) return res.status(403).json({ message: 'Not authorised' });
     if (swap.status !== 'active')
       return res.status(400).json({ message: 'Swap must be active to complete' });
+    
+    swap.status = 'pending_completion';
+    swap.completedBy = [req.user.id];
+    swap.completionRequestedAt = new Date();
+    await swap.save();
+
+    // Notify the other user
+    const otherId = swap.sender.toString() === req.user.id.toString() ? swap.receiver : swap.sender;
+    const otherUser = await User.findById(otherId);
+    const me = await User.findById(req.user.id);
+    if (otherUser) {
+      otherUser.notifications.push({
+        type: 'system',
+        message: `${me.name} marked the swap as completed. Do you agree?`,
+        relatedId: swap._id
+      });
+      await otherUser.save();
+      socket.sendNotification(otherId, otherUser.notifications[otherUser.notifications.length - 1]);
+    }
+
+    res.json(swap);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
+// PUT /api/swaps/:id/confirm-complete — Other party agrees
+router.put('/:id/confirm-complete', auth, async (req, res) => {
+  try {
+    const swap = await Swap.findById(req.params.id);
+    if (!swap) return res.status(404).json({ message: 'Swap not found' });
+    const isParty = [swap.sender.toString(), swap.receiver.toString()].includes(req.user.id.toString());
+    if (!isParty) return res.status(403).json({ message: 'Not authorised' });
+    if (swap.status !== 'pending_completion')
+      return res.status(400).json({ message: 'No completion request pending' });
+    
+    // Add to completedBy if not already there
+    if (!swap.completedBy.includes(req.user.id)) {
+      swap.completedBy.push(req.user.id);
+    }
+
     swap.status = 'completed';
     swap.completedAt = new Date();
     await swap.save();
 
-    // Check for Early Bird Badge
+    // Badges logic (moved from original complete)
     const u1 = await User.findById(swap.sender);
     const u2 = await User.findById(swap.receiver);
     const senderCompleted = await Swap.countDocuments({ $or: [{sender: u1._id}, {receiver: u1._id}], status: 'completed' });
     const receiverCompleted = await Swap.countDocuments({ $or: [{sender: u2._id}, {receiver: u2._id}], status: 'completed' });
+    if (senderCompleted === 1 && !u1.badges.includes('Early Bird')) u1.badges.push('Early Bird');
+    if (receiverCompleted === 1 && !u2.badges.includes('Early Bird')) u2.badges.push('Early Bird');
+    await u1.save();
+    await u2.save();
+
+    res.json(swap);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
+// PUT /api/swaps/:id/decline-complete — Other party disagrees
+router.put('/:id/decline-complete', auth, async (req, res) => {
+  try {
+    const swap = await Swap.findById(req.params.id);
+    if (!swap) return res.status(404).json({ message: 'Swap not found' });
+    const isParty = [swap.sender.toString(), swap.receiver.toString()].includes(req.user.id.toString());
+    if (!isParty) return res.status(403).json({ message: 'Not authorised' });
     
-    if (senderCompleted === 1 && !u1.badges.includes('Early Bird')) {
-      u1.badges.push('Early Bird');
-      await u1.save();
-    }
-    if (receiverCompleted === 1 && !u2.badges.includes('Early Bird')) {
-      u2.badges.push('Early Bird');
-      await u2.save();
-    }
+    swap.status = 'active';
+    swap.completedBy = [];
+    swap.completionRequestedAt = null;
+    await swap.save();
+
+    // Send a system message to chat via socket
+    const me = await User.findById(req.user.id);
+    socket.getIo().to(swap._id.toString()).emit('new_message', {
+      room: swap._id,
+      content: `${me.name} declined the completion request. The swap is still active.`,
+      sender: { _id: 'system', name: 'System', avatarColor: '#333' },
+      type: 'text',
+      createdAt: new Date()
+    });
 
     res.json(swap);
   } catch (err) {

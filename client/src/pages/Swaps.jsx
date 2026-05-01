@@ -214,6 +214,9 @@ export default function Swaps() {
 
                 {tab === 'active' && data.active.map((s) => {
                   const other = getOther(s);
+                  const isPending = s.status === 'pending_completion';
+                  const hasRequested = s.completedBy?.includes(me?._id);
+
                   return (
                     <div key={s._id} className="swap-card" style={{ background: 'var(--card-bg)' }}>
                       <div className="swap-ava" style={{ background: other?.avatarUrl ? `url(${other.avatarUrl}) center/cover` : (other?.avatarColor || '#3B4F8C') }}>
@@ -227,10 +230,24 @@ export default function Swaps() {
                           <span className="swap-skill-tag green">{s.skillWanted}</span>
                         </div>
                       </div>
-                      <div className="swap-time hide-mobile"><span className="status-badge status-active">Active</span></div>
+                      <div className="swap-time hide-mobile">
+                        {isPending ? (
+                          <span className="status-badge status-pending" style={{ background: 'var(--gold-light)', color: 'var(--gold)' }}>Awaiting Confirmation</span>
+                        ) : (
+                          <span className="status-badge status-active">Active</span>
+                        )}
+                      </div>
                       <div className="swap-actions">
                         <button className="btn-ghost hide-mobile" style={{ padding: '7px 14px', fontSize: 11 }} onClick={() => navigate(`/profile/${other?._id}`)}>Profile</button>
-                        <button className="btn-review" onClick={() => complete(s._id)}>Mark Done</button>
+                        {isPending ? (
+                          hasRequested ? (
+                            <span style={{ fontSize: 11, color: 'var(--muted)', fontWeight: 600 }}>Requested</span>
+                          ) : (
+                            <button className="btn-accept" style={{ fontSize: 11 }} onClick={() => navigate('/workspaces')}>Respond in Workspace</button>
+                          )
+                        ) : (
+                          <button className="btn-review" onClick={() => complete(s._id)}>Mark Done</button>
+                        )}
                       </div>
                     </div>
                   );

@@ -15,9 +15,11 @@ const swapSchema = new mongoose.Schema(
     },
     status: {
       type: String,
-      enum: ['pending', 'active', 'completed', 'declined'],
+      enum: ['pending', 'active', 'pending_completion', 'completed', 'declined'],
       default: 'pending',
     },
+    completedBy: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
+    completionRequestedAt: { type: Date },
     completedAt: { type: Date },
     goals: [{
       text: { type: String, required: true },
