@@ -18,6 +18,10 @@ export default function Workspaces() {
   const [showCompletionModal, setShowCompletionModal] = useState(false);
   const [completedSkill, setCompletedSkill] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('Frontend');
+  // Track which rooms have unread messages (Set of room IDs)
+  const [unreadRooms, setUnreadRooms] = useState(new Set());
+  // Mobile tab: 'chat' | 'goals'
+  const [mobileTab, setMobileTab] = useState('chat');
   const CATEGORIES = ['Frontend', 'Backend', 'DevOps', 'Data Science', 'Mobile', 'AI/ML', 'Programming Languages'];
 
   // Load active swaps and teams
@@ -40,7 +44,21 @@ export default function Workspaces() {
     setSelected(null);
   }, []);
 
-  // Handle socket events
+  // GLOBAL socket listener — always on, handles unread dots for ALL rooms
+  useEffect(() => {
+    if (!socket) return;
+    const handleGlobalMessage = (msg) => {
+      setUnreadRooms(prev => {
+        // Only add unread dot if it's NOT the currently open room
+        if (selected && String(msg.room) === String(selected.id)) return prev;
+        return new Set([...prev, String(msg.room)]);
+      });
+    };
+    socket.on('new_message', handleGlobalMessage);
+    return () => socket.off('new_message', handleGlobalMessage);
+  }, [socket, selected]);
+
+  // Room-specific socket listener — joins/leaves room and handles in-room updates
   useEffect(() => {
     if (!socket || !selected) return;
 
@@ -48,10 +66,8 @@ export default function Workspaces() {
     socket.emit('join_room', selected.id);
 
     const handleNewMessage = (msg) => {
-      console.log('Incoming message:', msg);
       if (String(msg.room) === String(selected.id)) {
         setMessages(prev => {
-          // Prevent duplicates if already in list
           if (prev.find(m => m._id === msg._id)) return prev;
           return [...prev, msg];
         });
@@ -59,7 +75,6 @@ export default function Workspaces() {
     };
 
     const handleGoalUpdated = (goals) => {
-      console.log('Incoming goal update:', goals);
       if (selected.type === 'swap') {
         setActiveSwaps(prev => prev.map(s => String(s._id) === String(selected.id) ? { ...s, goals } : s));
       } else {
@@ -178,6 +193,12 @@ export default function Workspaces() {
   };
 
   const handleSelect = (item, type) => {
+    // Clear unread dot when opening a room
+    setUnreadRooms(prev => {
+      const next = new Set(prev);
+      next.delete(String(item._id));
+      return next;
+    });
     if (type === 'swap') {
       const otherUser = item.sender._id === user._id ? item.receiver : item.sender;
       setSelected({
@@ -234,29 +255,32 @@ export default function Workspaces() {
             {activeSwaps.length > 0 && (
               <div style={{ marginBottom: 24 }}>
                 <div style={{ fontSize: 11, textTransform: 'uppercase', letterSpacing: 1, fontWeight: 700, color: 'var(--muted)', padding: '0 12px 8px' }}>Active Swaps</div>
-                {activeSwaps.map(s => (
-                  <div
-                    key={s._id}
-                    className={`workspace-item ${selected?.id === s._id ? 'active' : ''}`}
-                    onClick={() => handleSelect(s, 'swap')}
-                    style={{
-                      padding: '12px',
-                      borderRadius: 12,
-                      cursor: 'pointer',
-                      transition: 'all 0.2s',
-                      marginBottom: 4,
-                      background: selected?.id === s._id ? 'var(--accent-light)' : 'transparent',
-                      border: selected?.id === s._id ? '1px solid var(--border)' : '1px solid transparent'
-                    }}
-                  >
-                    <div style={{ fontWeight: 600, fontSize: 14, color: 'var(--ink)' }}>
-                      {s.sender._id === user._id ? s.receiver.name : s.sender.name}
+                  {activeSwaps.map(s => (
+                    <div
+                      key={s._id}
+                      className={`workspace-item ${selected?.id === s._id ? 'active' : ''}`}
+                      onClick={() => handleSelect(s, 'swap')}
+                      style={{
+                        padding: '12px',
+                        borderRadius: 12,
+                        cursor: 'pointer',
+                        transition: 'all 0.2s',
+                        marginBottom: 4,
+                        background: selected?.id === s._id ? 'var(--accent-light)' : 'transparent',
+                        border: selected?.id === s._id ? '1px solid var(--border)' : '1px solid transparent'
+                      }}
+                    >
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <div style={{ fontWeight: 600, fontSize: 14, color: 'var(--ink)' }}>
+                          {s.sender._id === user._id ? s.receiver.name : s.sender.name}
+                        </div>
+                        {unreadRooms.has(String(s._id)) && <div className="workspace-unread-dot" />}
+                      </div>
+                      <div style={{ fontSize: 12, color: 'var(--muted)', marginTop: 2, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                        {s.skillOffered} ⇄ {s.skillWanted}
+                      </div>
                     </div>
-                    <div style={{ fontSize: 12, color: 'var(--muted)', marginTop: 2, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                      {s.skillOffered} ⇄ {s.skillWanted}
-                    </div>
-                  </div>
-                ))}
+                  ))}
               </div>
             )}
 
@@ -264,26 +288,29 @@ export default function Workspaces() {
               <div>
                 <div style={{ fontSize: 11, textTransform: 'uppercase', letterSpacing: 1, fontWeight: 700, color: 'var(--muted)', padding: '0 12px 8px' }}>Teams</div>
                 {activeTeams.map(t => (
-                  <div
-                    key={t._id}
-                    className={`workspace-item ${selected?.id === t._id ? 'active' : ''}`}
-                    onClick={() => handleSelect(t, 'team')}
-                    style={{
-                      padding: '12px',
-                      borderRadius: 12,
-                      cursor: 'pointer',
-                      transition: 'all 0.2s',
-                      marginBottom: 4,
-                      background: selected?.id === t._id ? 'var(--accent-light)' : 'transparent',
-                      border: selected?.id === t._id ? '1px solid var(--border)' : '1px solid transparent'
-                    }}
-                  >
-                    <div style={{ fontWeight: 600, fontSize: 14, color: 'var(--ink)' }}>{t.name}</div>
-                    <div style={{ fontSize: 12, color: 'var(--muted)', marginTop: 2, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                      {t.members.filter(m => m.status === 'accepted').length} members
+                    <div
+                      key={t._id}
+                      className={`workspace-item ${selected?.id === t._id ? 'active' : ''}`}
+                      onClick={() => handleSelect(t, 'team')}
+                      style={{
+                        padding: '12px',
+                        borderRadius: 12,
+                        cursor: 'pointer',
+                        transition: 'all 0.2s',
+                        marginBottom: 4,
+                        background: selected?.id === t._id ? 'var(--accent-light)' : 'transparent',
+                        border: selected?.id === t._id ? '1px solid var(--border)' : '1px solid transparent'
+                      }}
+                    >
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <div style={{ fontWeight: 600, fontSize: 14, color: 'var(--ink)' }}>{t.name}</div>
+                        {unreadRooms.has(String(t._id)) && <div className="workspace-unread-dot" />}
+                      </div>
+                      <div style={{ fontSize: 12, color: 'var(--muted)', marginTop: 2, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                        {t.members.filter(m => m.status === 'accepted').length} members
+                      </div>
                     </div>
-                  </div>
-                ))}
+                  ))}
               </div>
             )}
 
@@ -308,46 +335,49 @@ export default function Workspaces() {
           {selected ? (
             <>
               {/* Header */}
-              <div style={{ padding: '16px 24px', borderBottom: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'var(--card-bg)' }}>
-                <div style={{ minWidth: 0, display: 'flex', alignItems: 'center', gap: 12 }}>
-                  <button className="btn-ghost hide-desktop" style={{ padding: '6px 10px' }} onClick={() => setSelected(null)}>←</button>
+              <div style={{ padding: '12px 16px', borderBottom: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'var(--card-bg)', gap: 8 }}>
+                <div style={{ minWidth: 0, display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <button className="btn-ghost hide-desktop" style={{ padding: '6px 10px', flexShrink: 0 }} onClick={() => setSelected(null)}>←</button>
                   <div style={{ minWidth: 0 }}>
-                    <div style={{ fontSize: 18, fontWeight: 700, color: 'var(--ink)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{selected.name}</div>
-                    <div style={{ fontSize: 12, color: 'var(--muted)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{selected.detail}</div>
+                    <div style={{ fontSize: 16, fontWeight: 700, color: 'var(--ink)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{selected.name}</div>
+                    <div style={{ fontSize: 11, color: 'var(--muted)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{selected.detail}</div>
                   </div>
                 </div>
-                {selected.type === 'swap' && (() => {
-                  const s = activeSwaps.find(sw => String(sw._id) === String(selected.id));
-                  if (!s) return null;
-                  
-                  if (s.status === 'pending_completion') {
-                    const isRequester = s.completedBy.includes(user._id);
-                    return isRequester ? (
-                      <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--gold)', background: 'var(--gold-light)', padding: '6px 12px', borderRadius: 8 }}>
-                        Waiting for partner confirmation...
-                      </div>
-                    ) : (
-                      <div style={{ display: 'flex', gap: 8 }}>
-                        <button className="btn-modal-primary" style={{ fontSize: 12, width: 'auto', padding: '6px 12px', marginTop: 0 }} onClick={handleConfirmComplete}>
-                          Confirm Completion
-                        </button>
-                        <button className="btn-decline" style={{ fontSize: 12, padding: '6px 12px' }} onClick={handleDeclineComplete}>
-                          Not Yet
-                        </button>
-                      </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0 }}>
+                  {/* Mobile chat/goals toggle */}
+                  <div className="hide-desktop" style={{ display: 'flex', background: 'var(--cream)', borderRadius: 8, padding: 2, gap: 2 }}>
+                    <button
+                      onClick={() => setMobileTab('chat')}
+                      style={{ padding: '4px 10px', borderRadius: 6, border: 'none', fontSize: 11, fontWeight: 700, cursor: 'pointer', fontFamily: 'PT Sans, sans-serif', background: mobileTab === 'chat' ? 'var(--accent)' : 'transparent', color: mobileTab === 'chat' ? 'white' : 'var(--muted)' }}
+                    >Chat</button>
+                    <button
+                      onClick={() => setMobileTab('goals')}
+                      style={{ padding: '4px 10px', borderRadius: 6, border: 'none', fontSize: 11, fontWeight: 700, cursor: 'pointer', fontFamily: 'PT Sans, sans-serif', background: mobileTab === 'goals' ? 'var(--accent)' : 'transparent', color: mobileTab === 'goals' ? 'white' : 'var(--muted)' }}
+                    >🎯 Goals</button>
+                  </div>
+                  {selected.type === 'swap' && (() => {
+                    const s = activeSwaps.find(sw => String(sw._id) === String(selected.id));
+                    if (!s) return null;
+                    if (s.status === 'pending_completion') {
+                      const isRequester = s.completedBy.includes(user._id);
+                      return isRequester ? (
+                        <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--gold)', background: 'var(--gold-light)', padding: '4px 8px', borderRadius: 6 }}>Waiting...</div>
+                      ) : (
+                        <div style={{ display: 'flex', gap: 6 }}>
+                          <button className="btn-modal-primary" style={{ fontSize: 11, width: 'auto', padding: '5px 10px', marginTop: 0 }} onClick={handleConfirmComplete}>Confirm</button>
+                          <button className="btn-decline" style={{ fontSize: 11, padding: '5px 10px' }} onClick={handleDeclineComplete}>Not Yet</button>
+                        </div>
+                      );
+                    }
+                    return (
+                      <button className="btn-modal-primary" style={{ fontSize: 12, width: 'auto', padding: '6px 12px', marginTop: 0, flexShrink: 0 }} onClick={handleComplete}>✓ Complete</button>
                     );
-                  }
-
-                  return (
-                    <button className="btn-modal-primary" style={{ fontSize: 13, width: 'auto', padding: '8px 16px', marginTop: 0, flexShrink: 0 }} onClick={handleComplete}>
-                      Mark as Completed
-                    </button>
-                  );
-                })()}
+                  })()}
+                </div>
               </div>
 
-              {/* Chat Area */}
-              <div style={{ flex: 1, overflowY: 'auto', padding: '24px', display: 'flex', flexDirection: 'column', gap: 16 }}>
+              {/* Chat Area — hidden on mobile when goals tab active */}
+              <div style={{ flex: 1, overflowY: 'auto', padding: '24px', display: 'flex', flexDirection: 'column', gap: 16, ...(mobileTab === 'goals' ? { display: 'none' } : {}) }} className={mobileTab === 'goals' ? 'hide-desktop' : ''}>
                 {messages.length === 0 ? (
                   <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', color: 'var(--muted)' }}>
                     <div style={{ fontSize: 48, marginBottom: 16 }}>💬</div>
@@ -416,7 +446,7 @@ export default function Workspaces() {
           )}
         </div>
 
-        {/* Right Panel (Goals) */}
+        {/* Right Panel (Goals) — desktop only */}
         {selected && (
           <div style={{ width: 320, borderLeft: '1px solid var(--border)', background: 'var(--card-bg)', padding: 24, display: 'flex', flexDirection: 'column', flexShrink: 0 }} className="hide-mobile">
             <div style={{ flex: 1, overflowY: 'auto' }}>
@@ -465,6 +495,42 @@ export default function Workspaces() {
               />
               <p style={{ fontSize: 10, color: 'var(--muted)', marginTop: 8 }}>Press Enter to add. Synchronized in real-time!</p>
             </div>
+          </div>
+        )}
+
+        {/* Mobile Goals Panel — shown when Goals tab active */}
+        {selected && mobileTab === 'goals' && (
+          <div className="hide-desktop" style={{ position: 'absolute', top: 68, left: 0, right: 0, bottom: 0, background: 'var(--card-bg)', overflowY: 'auto', zIndex: 10, display: 'flex', flexDirection: 'column' }}>
+            {/* Goals header with back button */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '12px 16px', borderBottom: '1px solid var(--border)', background: 'var(--card-bg)', position: 'sticky', top: 0, zIndex: 1 }}>
+              <button className="btn-ghost" style={{ padding: '6px 12px', fontSize: 12 }} onClick={() => setMobileTab('chat')}>← Chat</button>
+              <h4 style={{ fontSize: 13, fontWeight: 700, color: 'var(--ink)', margin: 0 }}>🎯 Goals</h4>
+            </div>
+            <div style={{ padding: 20, flex: 1 }}>
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginBottom: 20 }}>
+              {currentGoals.map(goal => (
+                <div
+                  key={goal._id}
+                  style={{ display: 'flex', alignItems: 'flex-start', gap: 10, fontSize: 13, color: goal.completed ? 'var(--muted)' : 'var(--ink)', textDecoration: goal.completed ? 'line-through' : 'none', cursor: 'pointer', padding: '8px 0', borderBottom: '1px solid var(--border)' }}
+                  onClick={() => handleToggleGoal(goal._id)}
+                >
+                  <div style={{ width: 20, height: 20, borderRadius: 4, border: goal.completed ? 'none' : '1.5px solid var(--border)', background: goal.completed ? 'var(--sage)' : 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontSize: 11, flexShrink: 0 }}>
+                    {goal.completed && '✓'}
+                  </div>
+                  <span style={{ wordBreak: 'break-word' }}>{goal.text}</span>
+                </div>
+              ))}
+              {currentGoals.length === 0 && <div style={{ color: 'var(--muted)', fontSize: 13, textAlign: 'center', padding: '20px 0' }}>No goals yet. Add one below!</div>}
+            </div>
+            <input
+              className="form-input"
+              placeholder="+ Add a goal and press Enter..."
+              onKeyDown={handleAddGoal}
+              style={{ fontSize: 13, padding: '10px 14px', background: 'var(--cream)', borderRadius: 8 }}
+            />
+            <p style={{ fontSize: 11, color: 'var(--muted)', marginTop: 8 }}>Synchronized in real-time with your partner!</p>
+            </div>{/* close inner padding div */}
           </div>
         )}
       </div>

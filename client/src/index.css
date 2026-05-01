@@ -227,9 +227,23 @@ nav { position: fixed; top: 0; left: 0; right: 0; z-index: 100; display: flex; a
 
 /* ── TOAST STACK ── */
 .toast-stack { position: fixed; bottom: 28px; right: 28px; z-index: 99999; display: flex; flex-direction: column; gap: 10px; }
-.toast-item { background: var(--ink); color: white; padding: 13px 20px; border-radius: 10px; font-size: 13px; font-weight: 600; display: flex; align-items: center; gap: 10px; max-width: 320px; box-shadow: var(--shadow-lg); font-family: 'PT Sans', sans-serif; animation: toastIn .3s cubic-bezier(.2,.8,.2,1); border-left: 3px solid var(--sage); }
-.toast-error { border-left-color: var(--accent); }
+/* Toast always uses a fixed dark background — independent of theme so it's always readable */
+.toast-item { background: #1a1612; color: #f0ebe4; padding: 13px 20px; border-radius: 10px; font-size: 13px; font-weight: 600; display: flex; align-items: center; gap: 10px; max-width: 320px; box-shadow: 0 8px 32px rgba(0,0,0,0.4); font-family: 'PT Sans', sans-serif; animation: toastIn .3s cubic-bezier(.2,.8,.2,1); border-left: 3px solid #5fa882; }
+.toast-item span { color: #5fa882; flex-shrink: 0; }
+.toast-error { border-left-color: #d9562e; }
+.toast-error span { color: #d9562e; }
 @keyframes toastIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: none; } }
+
+/* Workspace unread message dot */
+.workspace-unread-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #e53e3e;
+  flex-shrink: 0;
+  animation: pulse 1.5s infinite ease-in-out;
+  box-shadow: 0 0 0 2px rgba(229, 62, 62, 0.3);
+}
 
 /* ── CHIPS ── */
 .chips-container { display: flex; flex-wrap: wrap; gap: 7px; padding: 10px; border: 1.5px solid var(--border); border-radius: 8px; min-height: 46px; background: var(--card-bg); }
