@@ -44,20 +44,26 @@ export default function Workspaces() {
   useEffect(() => {
     if (!socket || !selected) return;
 
+    console.log('Joining room:', selected.id);
     socket.emit('join_room', selected.id);
 
     const handleNewMessage = (msg) => {
-      if (msg.room === selected.id) {
-        setMessages(prev => [...prev, msg]);
+      console.log('Incoming message:', msg);
+      if (String(msg.room) === String(selected.id)) {
+        setMessages(prev => {
+          // Prevent duplicates if already in list
+          if (prev.find(m => m._id === msg._id)) return prev;
+          return [...prev, msg];
+        });
       }
     };
 
     const handleGoalUpdated = (goals) => {
-      // Update the local state of the selected item to reflect new goals
+      console.log('Incoming goal update:', goals);
       if (selected.type === 'swap') {
-        setActiveSwaps(prev => prev.map(s => s._id === selected.id ? { ...s, goals } : s));
+        setActiveSwaps(prev => prev.map(s => String(s._id) === String(selected.id) ? { ...s, goals } : s));
       } else {
-        setActiveTeams(prev => prev.map(t => t._id === selected.id ? { ...t, goals } : t));
+        setActiveTeams(prev => prev.map(t => String(t._id) === String(selected.id) ? { ...t, goals } : t));
       }
     };
 
@@ -174,8 +180,8 @@ export default function Workspaces() {
   };
 
   const currentGoals = selected?.type === 'swap'
-    ? activeSwaps.find(s => s._id === selected.id)?.goals || []
-    : activeTeams.find(t => t._id === selected.id)?.goals || [];
+    ? activeSwaps.find(s => String(s._id) === String(selected.id))?.goals || []
+    : activeTeams.find(t => String(t._id) === String(selected.id))?.goals || [];
 
   if (loading) return <div className="spinner" />;
 
