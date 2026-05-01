@@ -39,11 +39,11 @@
   --accent: #d9562e;        /* earthy brick-orange — keeps the light mode vibe */
   --accent-light: #2c1a13;
   --sage: #5fa882;
-  --sage-light: #182620;
+  --sage-light: #2d4f3d;      /* more visible green in dark mode */
   --gold: #c9a040;
-  --gold-light: #241e0e;
+  --gold-light: #453b1d;      /* more visible gold in dark mode */
   --indigo: #8097d4;
-  --indigo-light: #141928;
+  --indigo-light: #242c45;    /* more visible indigo in dark mode */
   --muted: #9a9088;         /* warm muted, not cold grey */
   --white: #231e1a;
   --border: rgba(240,235,228,0.10);

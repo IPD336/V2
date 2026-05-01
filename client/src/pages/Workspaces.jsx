@@ -120,7 +120,9 @@ export default function Workspaces() {
       showToast('Swap confirmed as completed! 🎉');
       
       const swap = activeSwaps.find(s => String(s._id) === String(selected.id));
-      const learnedSkill = swap.sender._id === user._id ? swap.skillWanted : swap.skillOffered;
+      if (!swap) return;
+
+      const learnedSkill = (swap.sender._id || swap.sender) === user._id ? swap.skillWanted : swap.skillOffered;
       setCompletedSkill(learnedSkill);
       setShowCompletionModal(true);
 
@@ -195,9 +197,11 @@ export default function Workspaces() {
     }
   };
 
-  const currentGoals = selected?.type === 'swap'
-    ? activeSwaps.find(s => String(s._id) === String(selected.id))?.goals || []
-    : activeTeams.find(t => String(t._id) === String(selected.id))?.goals || [];
+  const currentGoals = (selected && selected.id)
+    ? (selected.type === 'swap'
+      ? activeSwaps.find(s => String(s._id) === String(selected.id))?.goals || []
+      : activeTeams.find(t => String(t._id) === String(selected.id))?.goals || [])
+    : [];
 
   if (loading) return <div className="spinner" />;
 
@@ -318,7 +322,7 @@ export default function Workspaces() {
                         <button className="btn-modal-primary" style={{ fontSize: 12, width: 'auto', padding: '6px 12px', marginTop: 0 }} onClick={handleConfirmComplete}>
                           Confirm Completion
                         </button>
-                        <button className="btn-ghost" style={{ fontSize: 12, padding: '6px 12px' }} onClick={handleDeclineComplete}>
+                        <button className="btn-decline" style={{ fontSize: 12, padding: '6px 12px' }} onClick={handleDeclineComplete}>
                           Not Yet
                         </button>
                       </div>
