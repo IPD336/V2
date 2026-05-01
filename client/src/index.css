@@ -227,9 +227,8 @@ nav { position: fixed; top: 0; left: 0; right: 0; z-index: 100; display: flex; a
 
 /* ── TOAST STACK ── */
 .toast-stack { position: fixed; bottom: 28px; right: 28px; z-index: 99999; display: flex; flex-direction: column; gap: 10px; }
-.toast-item { background: #1a1a1a !important; color: #ffffff !important; padding: 13px 20px; border-radius: 10px; font-size: 13px; font-weight: 600; display: flex; align-items: center; gap: 10px; max-width: 320px; box-shadow: 0 10px 40px rgba(0,0,0,0.3); font-family: 'PT Sans', sans-serif; animation: toastIn .3s cubic-bezier(.2,.8,.2,1); border-left: 4px solid #3A6351 !important; }
-.toast-error { border-left-color: #C84B31 !important; }
-.toast-item span { color: #ffffff !important; }
+.toast-item { background: var(--ink); color: white; padding: 13px 20px; border-radius: 10px; font-size: 13px; font-weight: 600; display: flex; align-items: center; gap: 10px; max-width: 320px; box-shadow: var(--shadow-lg); font-family: 'PT Sans', sans-serif; animation: toastIn .3s cubic-bezier(.2,.8,.2,1); border-left: 3px solid var(--sage); }
+.toast-error { border-left-color: var(--accent); }
 @keyframes toastIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: none; } }
 
 /* ── CHIPS ── */

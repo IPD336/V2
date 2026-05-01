@@ -19,15 +19,6 @@ export default function Workspaces() {
   const [completedSkill, setCompletedSkill] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('Frontend');
   const CATEGORIES = ['Frontend', 'Backend', 'DevOps', 'Data Science', 'Mobile', 'AI/ML', 'Programming Languages'];
-  const [unreadRooms, setUnreadRooms] = useState(new Set());
-  const [showGoalsMobile, setShowGoalsMobile] = useState(false);
-  const [isMobile, setIsMobile] = useState(window.innerWidth <= 900);
-
-  useEffect(() => {
-    const handleResize = () => setIsMobile(window.innerWidth <= 900);
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
-  }, []);
 
   // Load active swaps and teams
   useEffect(() => {
@@ -60,11 +51,10 @@ export default function Workspaces() {
       console.log('Incoming message:', msg);
       if (String(msg.room) === String(selected.id)) {
         setMessages(prev => {
+          // Prevent duplicates if already in list
           if (prev.find(m => m._id === msg._id)) return prev;
           return [...prev, msg];
         });
-      } else {
-        setUnreadRooms(prev => new Set([...prev, msg.room]));
       }
     };
 
@@ -197,22 +187,12 @@ export default function Workspaces() {
         detail: `${item.skillOffered} ⇄ ${item.skillWanted}`,
         otherUser
       });
-      setUnreadRooms(prev => {
-        const next = new Set(prev);
-        next.delete(item._id);
-        return next;
-      });
     } else {
       setSelected({
         id: item._id,
         type: 'team',
         name: item.name,
         detail: item.purpose
-      });
-      setUnreadRooms(prev => {
-        const next = new Set(prev);
-        next.delete(item._id);
-        return next;
       });
     }
   };
@@ -241,7 +221,7 @@ export default function Workspaces() {
           width: 320,
           background: 'var(--card-bg)',
           borderRight: '1px solid var(--border)',
-          display: (selected && isMobile) ? 'none' : 'flex',
+          display: (selected && window.innerWidth <= 900) ? 'none' : 'flex',
           flexDirection: 'column',
           flexShrink: 0
         }}>
@@ -269,11 +249,8 @@ export default function Workspaces() {
                       border: selected?.id === s._id ? '1px solid var(--border)' : '1px solid transparent'
                     }}
                   >
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                      <div style={{ fontWeight: 600, fontSize: 14, color: 'var(--ink)' }}>
-                        {s.sender._id === user._id ? s.receiver.name : s.sender.name}
-                      </div>
-                      {unreadRooms.has(s._id) && <div style={{ width: 8, height: 8, borderRadius: '50%', background: 'var(--accent)' }} />}
+                    <div style={{ fontWeight: 600, fontSize: 14, color: 'var(--ink)' }}>
+                      {s.sender._id === user._id ? s.receiver.name : s.sender.name}
                     </div>
                     <div style={{ fontSize: 12, color: 'var(--muted)', marginTop: 2, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                       {s.skillOffered} ⇄ {s.skillWanted}
@@ -301,10 +278,7 @@ export default function Workspaces() {
                       border: selected?.id === t._id ? '1px solid var(--border)' : '1px solid transparent'
                     }}
                   >
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                      <div style={{ fontWeight: 600, fontSize: 14, color: 'var(--ink)' }}>{t.name}</div>
-                      {unreadRooms.has(t._id) && <div style={{ width: 8, height: 8, borderRadius: '50%', background: 'var(--accent)' }} />}
-                    </div>
+                    <div style={{ fontWeight: 600, fontSize: 14, color: 'var(--ink)' }}>{t.name}</div>
                     <div style={{ fontSize: 12, color: 'var(--muted)', marginTop: 2, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                       {t.members.filter(m => m.status === 'accepted').length} members
                     </div>
@@ -326,7 +300,7 @@ export default function Workspaces() {
         {/* Main Content (Chat) */}
         <div style={{ 
           flex: 1, 
-          display: (selected || !isMobile) ? 'flex' : 'none', 
+          display: (selected || window.innerWidth > 900) ? 'flex' : 'none', 
           flexDirection: 'column', 
           background: 'var(--cream)', 
           minWidth: 0 
@@ -336,14 +310,12 @@ export default function Workspaces() {
               {/* Header */}
               <div style={{ padding: '16px 24px', borderBottom: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'var(--card-bg)' }}>
                 <div style={{ minWidth: 0, display: 'flex', alignItems: 'center', gap: 12 }}>
-                  <button className="btn-accent hide-desktop" style={{ padding: '4px 10px', fontSize: 14, width: 32, height: 32, borderRadius: 8 }} onClick={() => setSelected(null)}>←</button>
+                  <button className="btn-ghost hide-desktop" style={{ padding: '6px 10px' }} onClick={() => setSelected(null)}>←</button>
                   <div style={{ minWidth: 0 }}>
                     <div style={{ fontSize: 18, fontWeight: 700, color: 'var(--ink)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{selected.name}</div>
                     <div style={{ fontSize: 12, color: 'var(--muted)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{selected.detail}</div>
                   </div>
                 </div>
-                <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-                  <button className="btn-outline-sm hide-desktop" style={{ fontSize: 16, padding: '6px 10px', width: 40, height: 40, borderRadius: 10, justifyContent: 'center' }} onClick={() => setShowGoalsMobile(!showGoalsMobile)}>🎯</button>
                 {selected.type === 'swap' && (() => {
                   const s = activeSwaps.find(sw => String(sw._id) === String(selected.id));
                   if (!s) return null;
@@ -446,24 +418,9 @@ export default function Workspaces() {
 
         {/* Right Panel (Goals) */}
         {selected && (
-          <div style={{ 
-            width: 320, 
-            borderLeft: '1px solid var(--border)', 
-            background: 'var(--card-bg)', 
-            padding: 24, 
-            display: 'flex', 
-            flexDirection: 'column', 
-            flexShrink: 0,
-            position: isMobile ? 'absolute' : 'relative',
-            inset: isMobile ? '0 0 0 0' : 'auto',
-            zIndex: isMobile ? 100 : 1,
-            display: (showGoalsMobile || !isMobile) ? 'flex' : 'none'
-          }}>
+          <div style={{ width: 320, borderLeft: '1px solid var(--border)', background: 'var(--card-bg)', padding: 24, display: 'flex', flexDirection: 'column', flexShrink: 0 }} className="hide-mobile">
             <div style={{ flex: 1, overflowY: 'auto' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
-                <h4 style={{ fontSize: 11, textTransform: 'uppercase', letterSpacing: 2, color: 'var(--muted)', margin: 0 }}>🎯 Collaborative Goals</h4>
-                <button className="hide-desktop" style={{ background: 'none', border: 'none', fontSize: 18, cursor: 'pointer' }} onClick={() => setShowGoalsMobile(false)}>✕</button>
-              </div>
+              <h4 style={{ fontSize: 11, textTransform: 'uppercase', letterSpacing: 2, color: 'var(--muted)', marginBottom: 16 }}>🎯 Collaborative Goals</h4>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginBottom: 20 }}>
                 {currentGoals.map(goal => (
                   <div
@@ -537,7 +494,7 @@ export default function Workspaces() {
 
             <div style={{ display: 'flex', gap: 12 }}>
               <button className="btn-modal-primary" style={{ marginTop: 0 }} onClick={handleAddSkill}>Yes, add it! 🚀</button>
-              <button className="btn-decline" style={{ padding: '12px 24px', fontSize: 14, borderRadius: 8 }} onClick={() => setShowCompletionModal(false)}>Not now</button>
+              <button className="btn-ghost" onClick={() => setShowCompletionModal(false)}>Not now</button>
             </div>
           </div>
         </div>
