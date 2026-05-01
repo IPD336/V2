@@ -132,4 +132,27 @@ router.delete('/teams/:id', async (req, res) => {
   }
 });
 
+// DELETE /api/admin/reset — Reset Database (Wipe everything except admins)
+router.delete('/reset', async (req, res) => {
+  try {
+    const Message = require('../models/Message');
+    
+    // Delete all users except admin
+    const userResult = await User.deleteMany({ role: { $ne: 'admin' } });
+    
+    // Delete all related data
+    await Swap.deleteMany({});
+    await Team.deleteMany({});
+    await Message.deleteMany({});
+    await Review.deleteMany({});
+
+    res.json({ 
+      message: 'System reset successfully', 
+      usersDeleted: userResult.deletedCount 
+    });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
 module.exports = router;

@@ -83,7 +83,42 @@ export default function AdminDashboard() {
           <button className={`tab-btn ${tab === 'teams' ? 'active' : ''}`} onClick={() => setTab('teams')}>
             Team Management
           </button>
+          <button className={`tab-btn ${tab === 'maintenance' ? 'active' : ''}`} onClick={() => setTab('maintenance')}>
+            System Maintenance
+          </button>
         </div>
+
+        {tab === 'maintenance' && (
+          <div style={{ background: 'var(--card-bg)', borderRadius: 16, padding: 32, border: '1px solid var(--border)', textAlign: 'center' }}>
+            <div style={{ fontSize: 48, marginBottom: 16 }}>⚠️</div>
+            <h3 style={{ fontFamily: 'PT Serif, serif', fontSize: 24, marginBottom: 12, color: 'var(--ink)' }}>System Reset</h3>
+            <p style={{ color: 'var(--muted)', maxWidth: 600, margin: '0 auto 32px', lineHeight: 1.6 }}>
+              This will permanently delete <strong>all user accounts</strong> (except administrators), 
+              all swaps, teams, messages, and reviews. This action cannot be undone. 
+              Use this only when performing a major platform migration or cleanup.
+            </p>
+            <button 
+              className="btn-decline" 
+              style={{ width: 'auto', padding: '12px 32px', fontWeight: 800, textTransform: 'uppercase', letterSpacing: 1 }}
+              onClick={async () => {
+                if (!window.confirm('CRITICAL WARNING: This will wipe almost all data. Are you absolutely sure?')) return;
+                const finalConfirm = window.prompt('Type "RESET" to confirm:');
+                if (finalConfirm !== 'RESET') return;
+
+                try {
+                  const res = await api.delete('/admin/reset');
+                  showToast(res.data.message);
+                  loadData();
+                  setTab('analytics');
+                } catch (err) {
+                  showToast('Reset failed', 'error');
+                }
+              }}
+            >
+              Dangerous: Wipe All Data
+            </button>
+          </div>
+        )}
 
         {tab === 'analytics' && (
           <div>
