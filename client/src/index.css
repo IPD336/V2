@@ -190,6 +190,37 @@ nav { position: fixed; top: 0; left: 0; right: 0; z-index: 100; display: flex; a
 .btn-review { background: var(--gold-light); color: var(--gold); border: none; border-radius: 7px; padding: 7px 14px; font-size: 11px; font-weight: 700; cursor: pointer; font-family: 'PT Sans', sans-serif; transition: all .2s; }
 .btn-review:hover { background: var(--gold); color: white; }
 .status-badge { padding: 4px 10px; border-radius: 5px; font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.8px; }
+
+/* Dark mode specific overrides for buttons that were "grey" */
+[data-theme='dark'] .btn-accept {
+  background: rgba(95, 168, 130, 0.2);
+  color: #5fa882;
+  border: 1px solid rgba(95, 168, 130, 0.3);
+}
+[data-theme='dark'] .btn-accept:hover {
+  background: #5fa882;
+  color: #1c1814;
+}
+
+[data-theme='dark'] .btn-decline {
+  background: rgba(217, 86, 46, 0.2);
+  color: #d9562e;
+  border: 1px solid rgba(217, 86, 46, 0.3);
+}
+[data-theme='dark'] .btn-decline:hover {
+  background: #d9562e;
+  color: #1c1814;
+}
+
+[data-theme='dark'] .btn-review {
+  background: rgba(201, 160, 64, 0.2);
+  color: #c9a040;
+  border: 1px solid rgba(201, 160, 64, 0.3);
+}
+[data-theme='dark'] .btn-review:hover {
+  background: #c9a040;
+  color: #1c1814;
+}
 .status-pending { background: var(--gold-light); color: var(--gold); }
 .status-active { background: var(--sage-light); color: var(--sage); }
 .status-done { background: var(--indigo-light); color: var(--indigo); }
@@ -367,6 +398,11 @@ nav { position: fixed; top: 0; left: 0; right: 0; z-index: 100; display: flex; a
   
   footer {
     padding: 40px 20px !important;
+  }
+
+  .workspace-sidebar {
+    width: 100% !important;
+    border-right: none !important;
   }
 }
 

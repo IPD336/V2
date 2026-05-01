@@ -221,7 +221,7 @@ export default function Workspaces() {
           width: 320,
           background: 'var(--card-bg)',
           borderRight: '1px solid var(--border)',
-          display: 'flex',
+          display: (selected && window.innerWidth <= 900) ? 'none' : 'flex',
           flexDirection: 'column',
           flexShrink: 0
         }}>
@@ -298,14 +298,23 @@ export default function Workspaces() {
         </div>
 
         {/* Main Content (Chat) */}
-        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', background: 'var(--cream)', minWidth: 0 }}>
+        <div style={{ 
+          flex: 1, 
+          display: (selected || window.innerWidth > 900) ? 'flex' : 'none', 
+          flexDirection: 'column', 
+          background: 'var(--cream)', 
+          minWidth: 0 
+        }}>
           {selected ? (
             <>
               {/* Header */}
               <div style={{ padding: '16px 24px', borderBottom: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'var(--card-bg)' }}>
-                <div style={{ minWidth: 0 }}>
-                  <div style={{ fontSize: 18, fontWeight: 700, color: 'var(--ink)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{selected.name}</div>
-                  <div style={{ fontSize: 12, color: 'var(--muted)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{selected.detail}</div>
+                <div style={{ minWidth: 0, display: 'flex', alignItems: 'center', gap: 12 }}>
+                  <button className="btn-ghost hide-desktop" style={{ padding: '6px 10px' }} onClick={() => setSelected(null)}>←</button>
+                  <div style={{ minWidth: 0 }}>
+                    <div style={{ fontSize: 18, fontWeight: 700, color: 'var(--ink)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{selected.name}</div>
+                    <div style={{ fontSize: 12, color: 'var(--muted)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{selected.detail}</div>
+                  </div>
                 </div>
                 {selected.type === 'swap' && (() => {
                   const s = activeSwaps.find(sw => String(sw._id) === String(selected.id));
