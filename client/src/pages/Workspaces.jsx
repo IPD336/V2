@@ -18,7 +18,7 @@ export default function Workspaces() {
   const [showCompletionModal, setShowCompletionModal] = useState(false);
   const [completedSkill, setCompletedSkill] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('Frontend');
-  const CATEGORIES = ['Frontend', 'Backend', 'DevOps', 'Data Science', 'Mobile', 'AI/ML'];
+  const CATEGORIES = ['Frontend', 'Backend', 'DevOps', 'Data Science', 'Mobile', 'AI/ML', 'Programming Languages'];
 
   // Load active swaps and teams
   useEffect(() => {

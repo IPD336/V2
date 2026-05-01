@@ -5,7 +5,7 @@ import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
 
 const AVAIL_OPTIONS = ['Weekends','Evenings','Weekday Mornings','Flexible / Any Time','Custom'];
-const CATEGORIES = ['Frontend', 'Backend', 'DevOps', 'Data Science', 'Mobile', 'AI/ML'];
+const CATEGORIES = ['Frontend', 'Backend', 'DevOps', 'Data Science', 'Mobile', 'AI/ML', 'Programming Languages'];
 
 function StructuredSkillInput({ skills, onChange, colorClass = '' }) {
   const [name, setName] = useState('');

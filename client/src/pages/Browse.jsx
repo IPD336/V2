@@ -5,7 +5,7 @@ import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
 import SwapRequestModal from '../components/SwapRequestModal';
 
-const CATEGORIES = ['All', 'Frontend', 'Backend', 'DevOps', 'Data Science', 'Mobile', 'AI/ML'];
+const CATEGORIES = ['All', 'Frontend', 'Backend', 'DevOps', 'Data Science', 'Mobile', 'AI/ML', 'Programming Languages'];
 const COLORS = { 0: '#C84B31', 1: '#3A6351', 2: '#3B4F8C', 3: '#B8902A', 4: '#7A5FA8', 5: '#2980b9' };
 
 function initials(name = '') {
