@@ -95,7 +95,7 @@ router.post('/:id/invite', auth, async (req, res) => {
     await team.save();
 
     const creatorUser = await User.findById(req.user.id).select('name');
-    
+
     if (invitee) {
       const notif = {
         type: 'team_invite',
@@ -105,7 +105,7 @@ router.post('/:id/invite', auth, async (req, res) => {
       };
       invitee.notifications.push(notif);
       await invitee.save();
-      
+
       socket.sendNotification(userId, invitee.notifications[invitee.notifications.length - 1]);
     }
     await team.populate('members.user', 'name avatarColor avatarUrl');
@@ -140,7 +140,7 @@ router.put('/:id/respond', auth, async (req, res) => {
     }
 
     await team.save(); // pre-save hook auto-closes if full
-    
+
     if (team.status === 'closed') {
       const acceptedMembers = team.members.filter(m => m.status === 'accepted');
       for (const m of acceptedMembers) {

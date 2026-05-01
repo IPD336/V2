@@ -1,10 +1,11 @@
 const User = require('../models/User');
 
-function getLeague(percentile) {
-  if (percentile <= 1) return { name: 'Diamond', color: '#00E5FF' };
-  if (percentile <= 5) return { name: 'Platinum', color: '#B4C6DF' };
-  if (percentile <= 15) return { name: 'Gold', color: '#FFD700' };
-  if (percentile <= 30) return { name: 'Silver', color: '#C0C0C0' };
+function getLeague(percentile, rank) {
+  // Always give the top users the best leagues, even if total users are few
+  if (rank === 1 || percentile <= 1) return { name: 'Diamond', color: '#00E5FF' };
+  if (rank === 2 || percentile <= 5) return { name: 'Platinum', color: '#B4C6DF' };
+  if (rank <= 5  || percentile <= 15) return { name: 'Gold', color: '#FFD700' };
+  if (rank <= 10 || percentile <= 30) return { name: 'Silver', color: '#C0C0C0' };
   return { name: 'Bronze', color: '#CD7F32' };
 }
 
@@ -29,7 +30,7 @@ async function updateAllLeagues() {
       return {
         updateOne: {
           filter: { _id: u._id },
-          update: { $set: { league: getLeague(percentile) } }
+          update: { $set: { league: getLeague(percentile, idx + 1) } }
         }
       };
     });
