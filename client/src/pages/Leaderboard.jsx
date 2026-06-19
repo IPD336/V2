@@ -3,17 +3,16 @@ import { useNavigate } from 'react-router-dom';
 import api from '../api/axios';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
-
-function initials(name = '') {
-  return name.split(' ').map((w) => w[0]).join('').toUpperCase().slice(0, 2);
-}
+import { initials } from '../utils';
+import { SkeletonRow } from '../components/Skeleton';
+import { StarIcon, SwapIcon, TrophyIcon } from '../components/Icons';
 
 function LeagueBadge({ league, rank, showRank = false }) {
   if (!league) return null;
   return (
     <div style={{
       display: 'inline-flex', alignItems: 'center', gap: 6,
-      background: 'white', border: `1.5px solid ${league.color}`,
+      background: 'var(--card-bg)', border: `1.5px solid ${league.color}`,
       padding: '4px 10px', borderRadius: 20, fontSize: 11, fontWeight: 700,
       color: 'var(--ink)', boxShadow: `0 2px 8px ${league.color}33`
     }}>
@@ -43,9 +42,9 @@ function PodiumStep({ user, pos }) {
           display: 'flex', alignItems: 'center', justifyContent: 'center',
           fontSize: pos === 1 ? 24 : 18, fontWeight: 800, color: 'white',
           border: `3px solid ${colors[pos]}`, margin: '0 auto 12px',
-          boxShadow: `0 8px 24px ${colors[pos]}40`
+          boxShadow: `0 8px 24px ${colors[pos]}40`, overflow: 'hidden'
         }}>
-          {!user.avatarUrl && initials(user.name)}
+          {user.avatarUrl ? <img src={user.avatarUrl} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: 'inherit' }} loading="lazy" /> : initials(user.name)}
         </div>
         <div style={{ fontWeight: 700, fontSize: 15, marginBottom: 4 }}>{user.name}</div>
         <div style={{ fontSize: 12, color: 'var(--muted)' }}>Score: {user.score.toFixed(1)}</div>
@@ -85,13 +84,34 @@ export default function Leaderboard() {
     load();
   }, [showToast]);
 
-  if (loading || !data) return <div className="spinner" />;
+  if (loading || !data) return (
+    <div className="page bg-gradient-subtle page-fade-in">
+      <div className="container" style={{ paddingTop: 48, paddingBottom: 100, maxWidth: 800 }}>
+        <div style={{ textAlign: 'center', marginBottom: 64 }}>
+          <div className="section-label">Top Mentors</div>
+          <div className="section-title">Global <em>Leaderboard</em></div>
+        </div>
+        <div style={{ display: 'flex', justifyContent: 'center', gap: 16, marginBottom: 64 }}>
+          {[1,2,3].map((n) => (
+            <div key={n} style={{ flex: 1, maxWidth: 200, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 12 }}>
+              <div className="skeleton" style={{ width: 64, height: 64, borderRadius: 20 }} />
+              <div className="skeleton skeleton-text" style={{ width: '60%' }} />
+              <div className="skeleton skeleton-text-sm" />
+            </div>
+          ))}
+        </div>
+        <div style={{ background: 'var(--card-bg)', borderRadius: 16, border: '1px solid var(--border)', padding: 24 }}>
+          {[1,2,3,4,5].map((n) => <SkeletonRow key={n} />)}
+        </div>
+      </div>
+    </div>
+  );
 
   const { top20, me, totalUsers } = data;
   const podium = [top20[1], top20[0], top20[2]]; // 2nd, 1st, 3rd
 
   return (
-    <div className="page" style={{ background: 'var(--cream)' }}>
+    <div className="page bg-gradient-subtle page-fade-in">
       <div className="container" style={{ paddingTop: 48, paddingBottom: 100, maxWidth: 800 }}>
         <div style={{ textAlign: 'center', marginBottom: 64 }}>
           <div className="section-label">Top Mentors</div>
@@ -102,11 +122,18 @@ export default function Leaderboard() {
         </div>
 
         {/* PODIUM */}
+        {top20.length > 0 ? (
         <div className="podium-container" style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'center', gap: 16, marginBottom: 64, padding: '0 20px', flexWrap: 'wrap' }}>
           {podium.map((u, i) => (
             <PodiumStep key={u?._id || i} user={u} pos={[2, 1, 3][i]} />
           ))}
         </div>
+        ) : (
+          <div style={{ textAlign: 'center', padding: '40px 20px', color: 'var(--muted)' }}>
+            <TrophyIcon size={48} style={{ opacity: 0.3, marginBottom: 12 }} />
+            <p style={{ fontSize: 15 }}>No leaderboard data yet. Be the first to complete a swap!</p>
+          </div>
+        )}
 
         {/* MY RANK BANNER (If not in top 3 and exists) */}
         {me && me.rank > 3 && (
@@ -131,7 +158,7 @@ export default function Leaderboard() {
         )}
 
         {/* LIST 4-20 */}
-        <div style={{ background: 'var(--card-bg)', borderRadius: 20, border: '1px solid var(--border)', overflow: 'hidden' }}>
+        <div style={{ background: 'var(--card-bg)', borderRadius: 16, border: '1px solid var(--border)', overflow: 'hidden' }}>
           {top20.slice(3).map((u, i) => (
             <div key={u._id} 
               style={{
@@ -144,14 +171,14 @@ export default function Leaderboard() {
               onClick={() => navigate(`/profile/${u._id}`)}
             >
               <div style={{ width: 40, fontSize: 16, fontWeight: 700, color: 'var(--muted)' }}>#{u.rank}</div>
-              <div style={{ width: 48, height: 48, borderRadius: 14, background: u.avatarUrl ? `url(${u.avatarUrl}) center/cover` : u.avatarColor, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 14, fontWeight: 800, color: 'white', marginRight: 16 }}>
-                {!u.avatarUrl && initials(u.name)}
+              <div style={{ width: 48, height: 48, borderRadius: 14, background: u.avatarUrl ? `url(${u.avatarUrl}) center/cover` : u.avatarColor, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 14, fontWeight: 800, color: 'white', marginRight: 16, overflow: 'hidden' }}>
+                {u.avatarUrl ? <img src={u.avatarUrl} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: 14 }} loading="lazy" /> : initials(u.name)}
               </div>
               <div style={{ flex: 1, minWidth: '150px' }}>
                 <div style={{ fontWeight: 600, fontSize: 15, marginBottom: 4, color: 'var(--ink)' }}>{u.name}</div>
                 <div style={{ fontSize: 13, color: 'var(--muted)', display: 'flex', gap: 12 }}>
-                  <span>⭐ {u.rating?.toFixed(1) || '—'}</span>
-                  <span>🔄 {u.reviewCount} Swaps</span>
+                  <span style={{ display: 'flex', alignItems: 'center', gap: 3 }}><StarIcon size={12} style={{ color: 'var(--gold)' }} />{u.rating?.toFixed(1) || '—'}</span>
+                  <span style={{ display: 'flex', alignItems: 'center', gap: 3 }}><SwapIcon size={12} />{u.reviewCount} Swaps</span>
                 </div>
               </div>
               <div style={{ textAlign: 'right' }}>

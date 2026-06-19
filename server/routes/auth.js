@@ -1,3 +1,4 @@
+const crypto = require('crypto');
 const express = require('express');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
@@ -66,6 +67,64 @@ router.get('/me', auth, async (req, res) => {
       return res.status(403).json({ message: `Your account has been banned. Reason: ${user.banReason || 'No reason provided.'}` });
     }
     res.json(user);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
+// POST /api/auth/forgot-password
+router.post('/forgot-password', async (req, res) => {
+  try {
+    const { email } = req.body;
+    if (!email) return res.status(400).json({ message: 'Email is required' });
+
+    const user = await User.findOne({ email });
+    if (!user) return res.status(404).json({ message: 'No account with that email exists' });
+
+    const token = crypto.randomBytes(32).toString('hex');
+    user.resetPasswordToken = token;
+    user.resetPasswordExpires = Date.now() + 3600000; // 1 hour
+    await user.save();
+
+    const resetUrl = `http://localhost:5173/reset-password/${token}`;
+    console.log('');
+    console.log('╔══════════════════════════════════════════════════╗');
+    console.log('║         PASSWORD RESET LINK (dev mode)          ║');
+    console.log('╠══════════════════════════════════════════════════╣');
+    console.log(`║  ${resetUrl}`);
+    console.log(`║  Expires: ${new Date(user.resetPasswordExpires).toLocaleString()}`);
+    console.log('╚══════════════════════════════════════════════════╝');
+    console.log('');
+
+    res.json({ message: 'Password reset link has been sent to your email (check server console in dev mode).' });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
+// POST /api/auth/reset-password/:token
+router.post('/reset-password/:token', async (req, res) => {
+  try {
+    const { password } = req.body;
+    if (!password || password.length < 6) {
+      return res.status(400).json({ message: 'Password must be at least 6 characters' });
+    }
+
+    const user = await User.findOne({
+      resetPasswordToken: req.params.token,
+      resetPasswordExpires: { $gt: Date.now() },
+    });
+
+    if (!user) return res.status(400).json({ message: 'Invalid or expired reset token' });
+
+    user.passwordHash = await bcrypt.hash(password, 10);
+    user.resetPasswordToken = '';
+    user.resetPasswordExpires = null;
+    await user.save();
+
+    console.log(`Password reset successful for ${user.email}`);
+
+    res.json({ message: 'Password updated successfully. You can now login with your new password.' });
   } catch (err) {
     res.status(500).json({ message: err.message });
   }

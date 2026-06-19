@@ -231,4 +231,21 @@ router.delete('/:id', auth, async (req, res) => {
   }
 });
 
+// GET /api/swaps/user/:id  — get completed swaps for a specific user (public)
+router.get('/user/:id', async (req, res) => {
+  try {
+    const swaps = await Swap.find({
+      $or: [{ sender: req.params.id }, { receiver: req.params.id }],
+      status: 'completed',
+    })
+      .populate('sender', 'name avatarColor avatarUrl')
+      .populate('receiver', 'name avatarColor avatarUrl')
+      .sort({ completedAt: -1 })
+      .limit(10);
+    res.json(swaps);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
 module.exports = router;

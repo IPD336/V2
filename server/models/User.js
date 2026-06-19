@@ -41,6 +41,8 @@ const userSchema = new mongoose.Schema(
       color: { type: String, default: '#CD7F32' }
     },
     badges: [{ type: String }],
+    resetPasswordToken: { type: String, default: '' },
+    resetPasswordExpires: { type: Date, default: null },
     notifications: [{
       type: { type: String, enum: ['swap_request', 'team_invite', 'badge_earned', 'system'] },
       message: { type: String, required: true },

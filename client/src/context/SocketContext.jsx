@@ -19,7 +19,7 @@ export function SocketProvider({ children }) {
       api.get('/notifications').then(res => {
         setNotifications(res.data);
         setUnreadCount(res.data.filter(n => !n.read).length);
-      }).catch(console.error);
+      }).catch(() => showToast('Failed to load notifications', 'error'));
     }
   }, [user]);
 
@@ -50,9 +50,9 @@ export function SocketProvider({ children }) {
       setUnreadCount(prev => prev + 1);
       
       // Play a sound or show toast based on type
-      if (notif.type === 'swap_request') showToast('New Swap Request! 🔄');
-      else if (notif.type === 'team_invite') showToast('New Team Invite! 🤝');
-      else if (notif.type === 'badge_earned') showToast('You earned a new badge! 🏆');
+      if (notif.type === 'swap_request') showToast('New Swap Request!');
+      else if (notif.type === 'team_invite') showToast('New Team Invite!');
+      else if (notif.type === 'badge_earned') showToast('You earned a new badge!');
       else showToast('New notification!');
     });
 
@@ -70,7 +70,7 @@ export function SocketProvider({ children }) {
         setUnreadCount(prev => Math.max(0, prev - 1));
       }
     } catch (err) {
-      console.error(err);
+      showToast('Failed to mark notification as read', 'error');
     }
   };
 
@@ -78,17 +78,13 @@ export function SocketProvider({ children }) {
     try {
       const unreadOfType = notifications.filter(n => n.type === type && !n.read);
       if (unreadOfType.length === 0) return;
-
-      // For simplicity, we'll just mark them locally and call a bulk read if we had one,
-      // but here we can just loop or wait for a better API.
-      // Let's just do it locally for now to clear the UI immediately.
       for (const n of unreadOfType) {
         await api.put(`/notifications/${n._id}/read`);
       }
       setNotifications(prev => prev.map(n => n.type === type ? { ...n, read: true } : n));
       setUnreadCount(prev => Math.max(0, prev - unreadOfType.length));
     } catch (err) {
-      console.error(err);
+      showToast('Failed to update notifications', 'error');
     }
   };
 
@@ -98,7 +94,7 @@ export function SocketProvider({ children }) {
       setNotifications(prev => prev.map(n => ({ ...n, read: true })));
       setUnreadCount(0);
     } catch (err) {
-      console.error(err);
+      showToast('Failed to mark all as read', 'error');
     }
   };
 

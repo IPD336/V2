@@ -3,6 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import api from '../api/axios';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
+import ConfirmModal from '../components/ConfirmModal';
+import { StarIcon, WarningIcon } from '../components/Icons';
 
 export default function AdminDashboard() {
   const { user } = useAuth();
@@ -14,6 +16,8 @@ export default function AdminDashboard() {
   const [users, setUsers] = useState([]);
   const [teams, setTeams] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [showDeleteModal, setShowDeleteModal] = useState(null);
+  const [showResetModal, setShowResetModal] = useState(false);
 
   useEffect(() => {
     if (user?.role !== 'admin') {
@@ -54,8 +58,9 @@ export default function AdminDashboard() {
     }
   };
 
-  const deleteTeam = async (id) => {
-    if (!window.confirm('Are you sure you want to delete this team?')) return;
+  const handleDeleteTeam = async () => {
+    const id = showDeleteModal;
+    setShowDeleteModal(null);
     try {
       await api.delete(`/admin/teams/${id}`);
       showToast('Team deleted successfully');
@@ -65,10 +70,33 @@ export default function AdminDashboard() {
     }
   };
 
-  if (loading || !stats) return <div className="spinner" />;
+  const handleSystemReset = async () => {
+    setShowResetModal(false);
+    try {
+      const res = await api.delete('/admin/reset');
+      showToast(res.data.message);
+      loadData();
+      setTab('analytics');
+    } catch (err) {
+      showToast('Reset failed', 'error');
+    }
+  };
+
+  if (loading || !stats) return (
+    <div className="page bg-gradient-subtle page-fade-in">
+      <div className="container" style={{ maxWidth: 900, paddingTop: 48, paddingBottom: 80 }}>
+        <div className="skeleton" style={{ width: '30%', height: 32, borderRadius: 8, marginBottom: 8 }} />
+        <div className="skeleton" style={{ width: '50%', height: 16, borderRadius: 6, marginBottom: 32 }} />
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 16, marginBottom: 32 }}>
+          {[1,2,3].map((n) => <div key={n} className="skeleton" style={{ width: '100%', height: 80, borderRadius: 12 }} />)}
+        </div>
+        <div className="skeleton" style={{ width: '100%', height: 300, borderRadius: 16 }} />
+      </div>
+    </div>
+  );
 
   return (
-    <div className="page" style={{ background: 'var(--cream)' }}>
+    <div className="page bg-gradient-subtle page-fade-in">
       <div className="container" style={{ paddingTop: 48, paddingBottom: 80 }}>
         <div className="section-label">Administration</div>
         <div className="section-title">Admin <em>Dashboard</em></div>
@@ -90,7 +118,7 @@ export default function AdminDashboard() {
 
         {tab === 'maintenance' && (
           <div style={{ background: 'var(--card-bg)', borderRadius: 16, padding: 32, border: '1px solid var(--border)', textAlign: 'center' }}>
-            <div style={{ fontSize: 48, marginBottom: 16 }}>⚠️</div>
+            <div style={{ marginBottom: 16 }}><WarningIcon size={48} style={{ color: 'var(--accent)' }} /></div>
             <h3 style={{ fontFamily: 'PT Serif, serif', fontSize: 24, marginBottom: 12, color: 'var(--ink)' }}>System Reset</h3>
             <p style={{ color: 'var(--muted)', maxWidth: 600, margin: '0 auto 32px', lineHeight: 1.6 }}>
               This will permanently delete <strong>all user accounts</strong> (except administrators), 
@@ -98,22 +126,9 @@ export default function AdminDashboard() {
               Use this only when performing a major platform migration or cleanup.
             </p>
             <button 
-              className="btn-decline" 
+              className="btn-cosmos-ghost" 
               style={{ width: 'auto', padding: '12px 32px', fontWeight: 800, textTransform: 'uppercase', letterSpacing: 1 }}
-              onClick={async () => {
-                if (!window.confirm('CRITICAL WARNING: This will wipe almost all data. Are you absolutely sure?')) return;
-                const finalConfirm = window.prompt('Type "RESET" to confirm:');
-                if (finalConfirm !== 'RESET') return;
-
-                try {
-                  const res = await api.delete('/admin/reset');
-                  showToast(res.data.message);
-                  loadData();
-                  setTab('analytics');
-                } catch (err) {
-                  showToast('Reset failed', 'error');
-                }
-              }}
+              onClick={() => setShowResetModal(true)}
             >
               Dangerous: Wipe All Data
             </button>
@@ -175,7 +190,7 @@ export default function AdminDashboard() {
                       </div>
                     </div>
                     <div style={{ textAlign: 'right' }}>
-                      <div style={{ fontWeight: 700, color: 'var(--gold)' }}>⭐ {u.rating ? u.rating.toFixed(1) : '—'}</div>
+                      <div style={{ fontWeight: 700, color: 'var(--gold)', display: 'flex', alignItems: 'center', gap: 3, justifyContent: 'flex-end' }}><StarIcon size={12} style={{ color: 'var(--gold)' }} />{u.rating ? u.rating.toFixed(1) : '—'}</div>
                       <div style={{ fontSize: 11, color: 'var(--muted)' }}>{u.reviews} swaps</div>
                     </div>
                   </div>
@@ -236,14 +251,14 @@ export default function AdminDashboard() {
                       {new Date(u.createdAt).toLocaleDateString()}
                     </td>
                     <td style={{ padding: '16px 20px', fontSize: 13, color: 'var(--ink)' }}>
-                      ⭐ {u.rating ? u.rating.toFixed(1) : '—'} <span style={{ color: 'var(--muted)', fontSize: 11 }}>({u.reviewCount})</span>
+                      <span style={{ display: 'inline-flex', alignItems: 'center', gap: 3 }}><StarIcon size={12} style={{ color: 'var(--gold)' }} />{u.rating ? u.rating.toFixed(1) : '—'}</span> <span style={{ color: 'var(--muted)', fontSize: 11 }}>({u.reviewCount})</span>
                     </td>
                     <td style={{ padding: '16px 20px', textAlign: 'right' }}>
                       {u.role !== 'admin' && (
                         u.isBanned ? (
-                          <button className="btn-accept" onClick={() => toggleBan(u._id, false)}>Unban</button>
+                          <button className="btn-cosmos-primary" onClick={() => toggleBan(u._id, false)} style={{ padding: '6px 12px', fontSize: 11, fontWeight: 700 }}>Unban</button>
                         ) : (
-                          <button className="btn-decline" onClick={() => toggleBan(u._id, true)}>Ban User</button>
+                          <button className="btn-cosmos-ghost" onClick={() => toggleBan(u._id, true)} style={{ padding: '6px 12px', fontSize: 11, fontWeight: 700 }}>Ban User</button>
                         )
                       )}
                     </td>
@@ -287,7 +302,7 @@ export default function AdminDashboard() {
                         </span>
                       </td>
                       <td style={{ padding: '16px 20px', textAlign: 'right' }}>
-                        <button className="btn-decline" onClick={() => deleteTeam(t._id)}>Delete</button>
+                        <button className="btn-cosmos-ghost" onClick={() => setShowDeleteModal(t._id)} style={{ padding: '6px 12px', fontSize: 11, fontWeight: 700 }}>Delete</button>
                       </td>
                     </tr>
                   );
@@ -300,6 +315,22 @@ export default function AdminDashboard() {
           </div>
         )}
       </div>
+      <ConfirmModal
+        open={showDeleteModal !== null}
+        title="Delete Team?"
+        message="Are you sure you want to delete this team?"
+        confirmLabel="Delete Team"
+        onConfirm={handleDeleteTeam}
+        onCancel={() => setShowDeleteModal(null)}
+      />
+      <ConfirmModal
+        open={showResetModal}
+        title="System Reset"
+        message="This will permanently delete all user accounts (except administrators), all swaps, teams, messages, and reviews. This action cannot be undone."
+        confirmLabel="Wipe All Data"
+        onConfirm={handleSystemReset}
+        onCancel={() => setShowResetModal(false)}
+      />
     </div>
   );
 }

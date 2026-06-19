@@ -115,7 +115,21 @@ router.get('/:id', async (req, res) => {
   try {
     const user = await User.findById(req.params.id).select('-passwordHash -notifications');
     if (!user) return res.status(404).json({ message: 'User not found' });
-    res.json(user);
+    const obj = user.toObject();
+    // Add match info if authenticated
+    const token = req.headers.authorization?.split(' ')[1];
+    if (token) {
+      try {
+        const jwt = require('jsonwebtoken');
+        const decoded = jwt.verify(token, process.env.JWT_SECRET);
+        const meUser = await User.findById(decoded.id).select('skillsOffered skillsWanted');
+        if (meUser && user._id.toString() !== meUser._id.toString()) {
+          obj.mutualMatch = isMutualMatch(meUser, user);
+          obj.matchScore = matchScore(meUser, user);
+        }
+      } catch { /* ignore */ }
+    }
+    res.json(obj);
   } catch (err) {
     res.status(500).json({ message: err.message });
   }

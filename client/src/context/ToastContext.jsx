@@ -11,12 +11,16 @@ export function ToastProvider({ children }) {
     setTimeout(() => setToasts((prev) => prev.filter((t) => t.id !== id)), 3200);
   }, []);
 
+  const dismissToast = useCallback((id) => {
+    setToasts((prev) => prev.filter((t) => t.id !== id));
+  }, []);
+
   return (
     <ToastContext.Provider value={{ showToast }}>
       {children}
       <div className="toast-stack">
         {toasts.map((t) => (
-          <div key={t.id} className={`toast-item toast-${t.type}`}>
+          <div key={t.id} className={`toast-item toast-${t.type}`} onClick={() => dismissToast(t.id)} role="alert" style={{ cursor: 'pointer' }}>
             <span>{t.type === 'error' ? '✕' : '✓'}</span>
             {t.msg}
           </div>
