@@ -49,7 +49,7 @@ router.get('/', auth, async (req, res) => {
 
 router.post('/', auth, async (req, res) => {
   try {
-    const { receiverId, skillOffered, skillWanted, message, schedule, format } = req.body;
+    const { receiverId, skillOffered, skillWanted, message, schedule, format, scheduledAt, scheduledEndAt } = req.body;
     if (!receiverId || !skillOffered || !skillWanted)
       return res.status(400).json({ message: 'receiverId, skillOffered and skillWanted required' });
     if (receiverId === req.user.id)
@@ -61,6 +61,8 @@ router.post('/', auth, async (req, res) => {
     const swap = await Swap.create({
       sender: req.user.id, receiver: receiverId,
       skillOffered, skillWanted, message, schedule, format,
+      scheduledAt: scheduledAt || null,
+      scheduledEndAt: scheduledEndAt || null,
     });
 
     const senderUser = await User.findById(req.user.id).select('name');
@@ -188,6 +190,69 @@ router.put('/:id/decline-complete', auth, async (req, res) => {
     });
 
     res.json(swap);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
+// Schedule a session date/time for an active swap
+router.put('/:id/schedule', auth, async (req, res) => {
+  try {
+    const swap = await Swap.findById(req.params.id);
+    if (!swap) return res.status(404).json({ message: 'Swap not found' });
+    const isParty = [swap.sender.toString(), swap.receiver.toString()].includes(req.user.id.toString());
+    if (!isParty) return res.status(403).json({ message: 'Not authorised' });
+    if (![SWAP_STATUS.PENDING, SWAP_STATUS.ACTIVE].includes(swap.status))
+      return res.status(400).json({ message: 'Can only schedule pending or active swaps' });
+
+    const { scheduledAt, scheduledEndAt } = req.body;
+    if (!scheduledAt) return res.status(400).json({ message: 'scheduledAt is required' });
+
+    swap.scheduledAt = new Date(scheduledAt);
+    swap.scheduledEndAt = scheduledEndAt ? new Date(scheduledEndAt) : new Date(new Date(scheduledAt).getTime() + 60 * 60 * 1000);
+    await swap.save();
+
+    // Notify the other party
+    const otherId = swap.sender.toString() === req.user.id.toString() ? swap.receiver : swap.sender;
+    const me = await User.findById(req.user.id).select('name');
+    if (me) {
+      await createNotification(
+        otherId,
+        'system',
+        `${me.name} scheduled a session on ${new Date(scheduledAt).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}`,
+        swap._id
+      );
+    }
+
+    res.json(swap);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
+// Calendar endpoint — all user swaps that have a scheduled date
+router.get('/calendar', auth, async (req, res) => {
+  try {
+    const uid = req.user.id;
+    const { year, month } = req.query;
+    let dateFilter = {};
+    if (year && month) {
+      const start = new Date(parseInt(year), parseInt(month) - 1, 1);
+      const end = new Date(parseInt(year), parseInt(month), 0, 23, 59, 59);
+      dateFilter = { scheduledAt: { $gte: start, $lte: end } };
+    } else {
+      dateFilter = { scheduledAt: { $ne: null } };
+    }
+
+    const swaps = await Swap.find({
+      $or: [{ sender: uid }, { receiver: uid }],
+      ...dateFilter,
+    })
+      .populate('sender', 'name avatarColor avatarUrl')
+      .populate('receiver', 'name avatarColor avatarUrl')
+      .sort({ scheduledAt: 1 });
+
+    res.json(swaps);
   } catch (err) {
     res.status(500).json({ message: err.message });
   }

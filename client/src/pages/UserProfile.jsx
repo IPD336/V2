@@ -4,7 +4,7 @@ import api from '../api/axios';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
 import SwapRequestModal from '../components/SwapRequestModal';
-import { PinIcon, ClockIcon, StarIcon, DiamondIcon, TrophyIcon, MedalIcon, HandshakeIcon, LinkIcon } from '../components/Icons';
+import { PinIcon, ClockIcon, StarIcon, DiamondIcon, TrophyIcon, MedalIcon, HandshakeIcon, LinkIcon, SparklesIcon } from '../components/Icons';
 
 function initials(name = '') {
   return name.split(' ').map((w) => w[0]).join('').toUpperCase().slice(0, 2);
@@ -25,6 +25,8 @@ export default function UserProfile() {
   const [loading, setLoading] = useState(true);
   const [showSwap, setShowSwap] = useState(false);
   const [saved, setSaved] = useState(false);
+  const [aiSummary, setAiSummary] = useState('');
+  const [aiSummaryLoading, setAiSummaryLoading] = useState(false);
 
   useEffect(() => {
     const load = async () => {
@@ -38,6 +40,14 @@ export default function UserProfile() {
         setReviews(rRes.data);
         setSwapHistory(sRes.data);
         setSaved(me?.savedProfiles?.includes(id));
+        
+        if (rRes.data.length > 0) {
+          setAiSummaryLoading(true);
+          api.get(`/ai/reviews-summary/${id}`)
+            .then(res => setAiSummary(res.data.summary))
+            .catch(() => {})
+            .finally(() => setAiSummaryLoading(false));
+        }
       } catch {
         showToast('User not found', 'error');
         navigate('/browse');
@@ -246,6 +256,22 @@ export default function UserProfile() {
         <div>
           <div className="section-label">Feedback</div>
           <h2 style={{ fontFamily: 'PT Serif, serif', fontSize: 24, fontWeight: 600, marginBottom: 24, color: 'var(--ink)' }}>Reviews ({reviews.length})</h2>
+          
+          {reviews.length > 0 && (
+            <div style={{ background: 'var(--sage-light)', border: '1px solid var(--sage)', borderRadius: 16, padding: 24, marginBottom: 24, display: 'flex', gap: 16, alignItems: 'flex-start' }}>
+              <div style={{ color: 'var(--sage)', marginTop: 2, display: 'flex' }}><SparklesIcon size={20} /></div>
+              <div style={{ flex: 1 }}>
+                <h3 style={{ fontSize: 13, fontWeight: 700, textTransform: 'uppercase', letterSpacing: 1.5, color: 'var(--sage)', marginBottom: 8, fontFamily: 'PT Mono, monospace' }}>AI Feedback Summary</h3>
+                {aiSummaryLoading ? (
+                  <div className="skeleton" style={{ width: '100%', height: 16, borderRadius: 4, background: 'rgba(58,99,81,0.2)' }} />
+                ) : (
+                  <p style={{ fontSize: 14, lineHeight: 1.6, color: 'var(--ink)', margin: 0, fontStyle: 'italic' }}>
+                    "{aiSummary || 'No summary available.'}"
+                  </p>
+                )}
+              </div>
+            </div>
+          )}
           
           {reviews.length === 0 ? (
             <div className="empty-state" style={{ background: 'var(--card-bg)', borderRadius: 16, border: '1px solid var(--border)' }}>

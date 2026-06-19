@@ -21,6 +21,8 @@ const swapSchema = new mongoose.Schema(
     completedBy: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
     completionRequestedAt: { type: Date },
     completedAt: { type: Date },
+    scheduledAt: { type: Date, default: null },
+    scheduledEndAt: { type: Date, default: null },
     goals: [{
       text: { type: String, required: true },
       completed: { type: Boolean, default: false },
@@ -34,5 +36,6 @@ swapSchema.index({ sender: 1, status: 1 });
 swapSchema.index({ receiver: 1, status: 1 });
 swapSchema.index({ status: 1, completionRequestedAt: 1 });
 swapSchema.index({ status: 1, completedAt: -1 });
+swapSchema.index({ scheduledAt: 1 });
 
 module.exports = mongoose.model('Swap', swapSchema);

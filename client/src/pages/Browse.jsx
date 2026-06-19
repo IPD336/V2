@@ -6,7 +6,7 @@ import { useToast } from '../context/ToastContext';
 import SwapRequestModal from '../components/SwapRequestModal';
 import { SkeletonCard } from '../components/Skeleton';
 import { COLORS, CATEGORIES, initials, stars } from '../utils';
-import { SearchIcon, PinIcon, ClockIcon, DiamondIcon, TrophyIcon } from '../components/Icons';
+import { SearchIcon, PinIcon, ClockIcon, DiamondIcon, TrophyIcon, SparklesIcon } from '../components/Icons';
 
 function ProfileCard({ user, onSwap, onSave, saved }) {
   const navigate = useNavigate();
@@ -75,7 +75,13 @@ function ProfileCard({ user, onSwap, onSave, saved }) {
             </div>
           </>
         )}
-        <div className="avail-row"><ClockIcon size={12} /> <strong>{user.availability}</strong></div>
+         {user.aiMatchExplanation && (
+           <div style={{ background: 'var(--sage-light)', border: '1px solid var(--sage)', borderRadius: 8, padding: '8px 12px', fontSize: 11, color: 'var(--sage)', marginBottom: 12, display: 'flex', gap: 6, alignItems: 'flex-start' }}>
+             <SparklesIcon size={12} style={{ marginTop: 2, flexShrink: 0 }} />
+             <span style={{ fontStyle: 'italic', lineHeight: 1.4 }}>{user.aiMatchExplanation}</span>
+           </div>
+         )}
+         <div className="avail-row"><ClockIcon size={12} /> <strong>{user.availability}</strong></div>
         <div className="card-actions">
           <button className="btn-swap" onClick={() => onSwap(user)}>Request Swap</button>
           <button className={`btn-icon ${saved ? 'saved' : ''}`} onClick={() => onSave(user._id)} title="Save">
@@ -125,7 +131,13 @@ export default function Browse() {
   useEffect(() => { fetchUsers(); }, [fetchUsers]);
 
   useEffect(() => {
-    api.get('/users/recommendations').then((r) => setRecommendations(r.data)).catch(() => showToast('Failed to load recommendations', 'error'));
+    api.get('/ai/smart-recommendations')
+      .then((r) => setRecommendations(r.data))
+      .catch(() => {
+        api.get('/users/recommendations')
+          .then((r) => setRecommendations(r.data))
+          .catch(() => showToast('Failed to load recommendations', 'error'));
+      });
   }, []);
 
   const handleSave = async (userId) => {

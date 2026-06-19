@@ -6,9 +6,10 @@ import { useSocket } from '../context/SocketContext';
 import { initials } from '../utils';
 import Logo from './Logo';
 import { BellIcon } from './Logo';
-import { MoonIcon, SunIcon, WorkspaceIcon, TeamsIcon, TrophyIcon, ProfileIcon, LogoutIcon, SwapIcon, HandshakeIcon } from './Icons';
+import { MoonIcon, SunIcon, WorkspaceIcon, TeamsIcon, TrophyIcon, ProfileIcon, LogoutIcon, SwapIcon, HandshakeIcon, CalendarIcon } from './Icons';
 
 const moreLinks = [
+  { to: '/calendar', label: 'Calendar', icon: 'calendar' },
   { to: '/workspaces', label: 'Workspaces', icon: 'workspace' },
   { to: '/teams', label: 'Teams', icon: 'teams' },
   { to: '/leaderboard', label: 'Leaderboard', icon: 'trophy' },
@@ -113,7 +114,7 @@ export default function Navbar() {
                         className="nav-dropdown-item"
                       >
                         <span className="nav-dropdown-icon">
-                          {l.icon === 'workspace' ? <WorkspaceIcon size={16} /> : l.icon === 'teams' ? <TeamsIcon size={16} /> : <TrophyIcon size={16} />}
+                          {l.icon === 'calendar' ? <CalendarIcon size={16} /> : l.icon === 'workspace' ? <WorkspaceIcon size={16} /> : l.icon === 'teams' ? <TeamsIcon size={16} /> : <TrophyIcon size={16} />}
                         </span>
                         {l.label}
                       </NavLink>

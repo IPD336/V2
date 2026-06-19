@@ -16,6 +16,12 @@ function timeAgo(date) {
   return `${Math.floor(h / 24)}d ago`;
 }
 
+function formatScheduled(date) {
+  if (!date) return null;
+  const d = new Date(date);
+  return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) + ' · ' + d.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true });
+}
+
 function initials(name = '') {
   return name.split(' ').map((w) => w[0]).join('').toUpperCase().slice(0, 2);
 }
@@ -70,6 +76,89 @@ function ReviewModal({ swap, me, onClose, onDone }) {
   );
 }
 
+function ScheduleSwapModal({ swap, me, onClose, onDone }) {
+  const { showToast } = useToast();
+  const other = swap.sender?._id === me?._id ? swap.receiver : swap.sender;
+  const getDuration = () => {
+    if (!swap.scheduledAt || !swap.scheduledEndAt) return '60';
+    return String(Math.round((new Date(swap.scheduledEndAt) - new Date(swap.scheduledAt)) / 60000));
+  };
+  const [scheduledAt, setScheduledAt] = useState(
+    swap.scheduledAt ? new Date(swap.scheduledAt).toISOString().slice(0, 16) : ''
+  );
+  const [duration, setDuration] = useState(getDuration());
+  const [loading, setLoading] = useState(false);
+
+  const submit = async (e) => {
+    e.preventDefault();
+    if (!scheduledAt) { showToast('Please pick a date and time', 'error'); return; }
+    setLoading(true);
+    try {
+      const start = new Date(scheduledAt);
+      const end = new Date(start.getTime() + parseInt(duration) * 60 * 1000);
+      await api.put(`/swaps/${swap._id}/schedule`, {
+        scheduledAt: start.toISOString(),
+        scheduledEndAt: end.toISOString(),
+      });
+      showToast('Session scheduled! ✓');
+      onDone();
+      onClose();
+    } catch (err) {
+      showToast(err.response?.data?.message || 'Failed to schedule', 'error');
+    } finally { setLoading(false); }
+  };
+
+  const endTime = scheduledAt
+    ? new Date(new Date(scheduledAt).getTime() + parseInt(duration) * 60000).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true })
+    : null;
+  const startTime = scheduledAt
+    ? new Date(scheduledAt).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true })
+    : null;
+
+  return (
+    <div className="modal-overlay active" onClick={(e) => e.target === e.currentTarget && onClose()}>
+      <div className="modal" style={{ maxWidth: 440 }}>
+        <button className="modal-close" onClick={onClose}>✕</button>
+        <div className="modal-heading" style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 22 }}>
+          <CalendarIcon size={20} /> Schedule Session
+        </div>
+        <div className="modal-sub">
+          Set a session time with <strong>{other?.name}</strong> —&nbsp;
+          <span style={{ color: 'var(--accent)' }}>{swap.skillOffered}</span> ↔ <span style={{ color: 'var(--sage)' }}>{swap.skillWanted}</span>
+        </div>
+        <form onSubmit={submit}>
+          <div className="form-group">
+            <label className="form-label">Date & Time</label>
+            <input className="form-input" type="datetime-local" value={scheduledAt}
+              onChange={(e) => setScheduledAt(e.target.value)}
+              min={new Date().toISOString().slice(0, 16)} required />
+          </div>
+          <div className="form-group">
+            <label className="form-label">Duration</label>
+            <select className="form-select" value={duration} onChange={(e) => setDuration(e.target.value)}>
+              <option value="30">30 minutes</option>
+              <option value="60">1 hour</option>
+              <option value="90">1.5 hours</option>
+              <option value="120">2 hours</option>
+            </select>
+          </div>
+          {scheduledAt && (
+            <div style={{ background: 'var(--accent-light)', border: '1px solid rgba(100,100,255,0.15)', borderRadius: 10, padding: '12px 16px', marginBottom: 20, fontSize: 13 }}>
+              📅 {new Date(scheduledAt).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })} · {startTime} – {endTime}
+            </div>
+          )}
+          <div style={{ display: 'flex', gap: 10 }}>
+            <button type="button" className="btn-cosmos-ghost" style={{ flex: 1, padding: '12px' }} onClick={onClose}>Cancel</button>
+            <button type="submit" className="btn-cosmos-primary" style={{ flex: 1, padding: '12px' }} disabled={loading}>
+              {loading ? 'Saving…' : 'Save Session'}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+}
+
 export default function Swaps() {
   const { user: me } = useAuth();
   const { showToast } = useToast();
@@ -82,6 +171,7 @@ export default function Swaps() {
   const [showDeleteModal, setShowDeleteModal] = useState(null);
   const [showCompleteModal, setShowCompleteModal] = useState(null);
   const [showDeclineCompleteModal, setShowDeclineCompleteModal] = useState(null);
+  const [scheduleSwap, setScheduleSwap] = useState(null);
 
   const load = async () => {
     setLoading(true);
@@ -189,6 +279,15 @@ export default function Swaps() {
               <div className="stat-mini-card"><div className="stat-mini-num">{data.incoming.length}</div><div className="stat-mini-label">Pending</div></div>
               <div className="stat-mini-card"><div className="stat-mini-num">{data.active.length}</div><div className="stat-mini-label">Active</div></div>
               <div className="stat-mini-card"><div className="stat-mini-num" style={{ fontSize: 24 }}>{me?.rating?.toFixed(1) || '—'}</div><div className="stat-mini-label">Rating</div></div>
+            </div>
+            <div style={{ marginTop: 20 }}>
+              <button
+                className="btn-ghost"
+                style={{ width: '100%', fontSize: 11, padding: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}
+                onClick={() => navigate('/calendar')}
+              >
+                <CalendarIcon size={13} /> View Calendar
+              </button>
             </div>
           </div>
 
@@ -303,7 +402,13 @@ export default function Swaps() {
                           <span>↔</span>
                           <span className="swap-skill-tag green">{s.skillWanted}</span>
                         </div>
-                        {s.schedule && <div style={{ fontSize: 11, color: 'var(--muted)', marginTop: 4, display: 'flex', alignItems: 'center', gap: 3 }}><CalendarIcon size={12} />{s.schedule}</div>}
+                        {s.scheduledAt ? (
+                          <div style={{ fontSize: 11, color: 'var(--accent)', fontWeight: 600, marginTop: 4, display: 'flex', alignItems: 'center', gap: 3 }}>
+                            <CalendarIcon size={12} />📅 {formatScheduled(s.scheduledAt)}
+                          </div>
+                        ) : s.schedule ? (
+                          <div style={{ fontSize: 11, color: 'var(--muted)', marginTop: 4, display: 'flex', alignItems: 'center', gap: 3 }}><CalendarIcon size={12} />{s.schedule}</div>
+                        ) : null}
                         {s.format && <div style={{ fontSize: 11, color: 'var(--muted)', display: 'flex', alignItems: 'center', gap: 3 }}><VideoIcon size={12} />{s.format}</div>}
                       </div>
                       <div className="swap-time hide-mobile">
@@ -315,6 +420,13 @@ export default function Swaps() {
                       </div>
                       <div className="swap-actions">
                         <button className="btn-ghost" style={{ padding: '7px 14px', fontSize: 11 }} onClick={() => navigate(`/profile/${other?._id}`)}>Profile</button>
+                        <button
+                          className="btn-ghost"
+                          style={{ padding: '7px 14px', fontSize: 11, display: 'flex', alignItems: 'center', gap: 5 }}
+                          onClick={() => setScheduleSwap(s)}
+                        >
+                          <CalendarIcon size={11} />{s.scheduledAt ? 'Reschedule' : 'Schedule'}
+                        </button>
                         {isPending ? (
                           hasRequested ? (
                             <span style={{ fontSize: 11, color: 'var(--muted)', fontWeight: 600 }}>Requested</span>
@@ -390,6 +502,14 @@ export default function Swaps() {
         onConfirm={handleDeclineComplete}
         onCancel={() => setShowDeclineCompleteModal(null)}
       />
+      {scheduleSwap && (
+        <ScheduleSwapModal
+          swap={scheduleSwap}
+          me={me}
+          onClose={() => setScheduleSwap(null)}
+          onDone={load}
+        />
+      )}
     </div>
   );
 }

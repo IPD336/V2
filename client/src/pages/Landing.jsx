@@ -1,6 +1,7 @@
 import { useNavigate } from 'react-router-dom';
 import Reveal from '../components/Reveal';
-import { PinIcon, CheckIcon } from '../components/Icons';
+import { PinIcon, CheckIcon, SparklesIcon, CalendarIcon } from '../components/Icons';
+
 
 const TESTIMONIALS = [
   { name: 'Rahul Sharma', role: 'Frontend Developer', initials: 'RS', color: 'var(--accent)', text: 'SkillSwap helped me learn Go in two weeks while teaching React to someone building their first app. Best learning experience I\'ve had.' },
@@ -367,7 +368,7 @@ export default function Landing() {
           </div>
         </div>
 
-        {/* Feature 2: Real-time Workspaces */}
+        {/* Feature 2: Workspaces & Scheduling */}
         <div className="section-spacing" style={{ position: 'relative', zIndex: 1 }}>
           <div className="split-section reverse" style={{ maxWidth: 1100, margin: '0 auto' }}>
             <Reveal className="split-content" delay={0}>
@@ -387,13 +388,13 @@ export default function Landing() {
                   fontWeight: 600, lineHeight: 1.08, letterSpacing: -1.2,
                   margin: '0 0 20px', color: 'var(--ink)',
                 }}>
-                  <em style={{ fontStyle: 'italic', color: 'var(--accent)' }}>Real-time</em> Workspaces
+                  <em style={{ fontStyle: 'italic', color: 'var(--accent)' }}>Workspaces & Scheduling</em>
                 </h2>
                 <p style={{ fontSize: 14, lineHeight: 1.8, color: 'var(--muted)', margin: '0 0 28px' }}>
-                  Every swap gets its own dedicated room with live chat, shared goal tracking, progress milestones, and end-to-end session management.
+                  Every swap gets its own dedicated workspace with live chat and shared goals, integrated directly with a custom monthly calendar to schedule, reschedule, and track your sessions.
                 </p>
                 <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: 14 }}>
-                  {['Live messaging with swap partners', 'Collaborative goal & milestone tracking', 'Session scheduling & reminders', 'Progress dashboard with completion stats'].map((item, i) => (
+                  {['Live messaging & collaboration workspace', 'Interactive month-view swap calendar', 'Collaborative goal & milestone tracking', 'Session duration & format configurations'].map((item, i) => (
                     <li key={i} style={{ display: 'flex', alignItems: 'flex-start', gap: 10, fontSize: 13, color: 'var(--ink)' }}>
                       <span style={{ color: 'var(--sage)', fontWeight: 700, fontSize: 16, lineHeight: 1.2 }}>✓</span>
                       {item}
@@ -415,8 +416,8 @@ export default function Landing() {
                   { name: 'You', msg: 'Sure. I pushed the goroutine example to our repo', time: '10:36', isYou: true },
                 ].map((msg, i) => (
                   <div key={i} style={{
-                    display: 'flex', justifyContent: msg.isYou ? 'flex-end' : 'flex-start',
-                    marginBottom: 12,
+                     display: 'flex', justifyContent: msg.isYou ? 'flex-end' : 'flex-start',
+                     marginBottom: 12,
                   }}>
                     <div style={{
                       maxWidth: '75%',
@@ -454,6 +455,7 @@ export default function Landing() {
             </Reveal>
           </div>
         </div>
+
 
         {/* Feature 3: Gamified Rankings */}
         <div className="section-spacing" style={{ position: 'relative', zIndex: 1 }}>
@@ -553,7 +555,72 @@ export default function Landing() {
             </Reveal>
           </div>
         </div>
+
+        {/* Feature 4: AI-Powered Assistance */}
+        <div className="section-spacing" style={{ position: 'relative', zIndex: 1 }}>
+          <div className="split-section reverse" style={{ maxWidth: 1100, margin: '0 auto' }}>
+            <Reveal className="split-content" delay={0}>
+              <div>
+                <div style={{
+                  fontFamily: 'PT Mono, monospace', fontSize: 10,
+                  letterSpacing: 2.5, textTransform: 'uppercase',
+                  color: 'var(--muted)', marginBottom: 14,
+                  display: 'flex', alignItems: 'center', gap: 10,
+                }}>
+                  <span style={{ display: 'inline-block', width: 24, height: 1, background: 'var(--muted)' }} />
+                  Feature
+                </div>
+                <h2 style={{
+                  fontFamily: 'PT Serif, serif',
+                  fontSize: 'clamp(28px, 3.5vw, 44px)',
+                  fontWeight: 600, lineHeight: 1.08, letterSpacing: -1.2,
+                  margin: '0 0 20px', color: 'var(--ink)',
+                }}>
+                  <em style={{ fontStyle: 'italic', color: 'var(--accent)' }}>AI-Powered</em> Assistance
+                </h2>
+                <p style={{ fontSize: 14, lineHeight: 1.8, color: 'var(--muted)', margin: '0 0 28px' }}>
+                  Supercharge your exchanges with Gemini AI. Instantly draft personalized swap proposal messages, scan your GitHub repositories to suggest verified technical skills, and view summarized reviews of other members.
+                </p>
+                <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: 14 }}>
+                  {['AI-assisted proposal draft generator', 'GitHub repository skill scanning', 'AI-generated user review summaries', 'Smart explanation of matches'].map((item, i) => (
+                    <li key={i} style={{ display: 'flex', alignItems: 'flex-start', gap: 10, fontSize: 13, color: 'var(--ink)' }}>
+                      <span style={{ color: 'var(--sage)', fontWeight: 700, fontSize: 16, lineHeight: 1.2 }}>✓</span>
+                      {item}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            </Reveal>
+            <Reveal className="split-visual" delay={150}>
+              <div className="mockup-card" style={{ padding: '24px 20px', background: 'var(--card-bg)' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 16 }}>
+                  <SparklesIcon size={18} style={{ color: 'var(--accent)' }} />
+                  <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--ink)' }}>AI Proposal Draft</div>
+                </div>
+                
+                <div style={{ background: 'var(--warm)', border: '1px solid var(--border)', borderRadius: 10, padding: 14, fontSize: 12, color: 'var(--ink)', lineHeight: 1.5, marginBottom: 16 }}>
+                  "Hi Aarav, I would love to share my React skills with you in exchange for your Python backend knowledge. Let me know if you would like to collaborate on a session!"
+                </div>
+
+                <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
+                  <button className="btn-cosmos btn-cosmos-ghost" style={{ padding: '6px 12px', fontSize: 10 }} disabled>Re-generate</button>
+                  <button className="btn-cosmos btn-cosmos-primary" style={{ padding: '6px 12px', fontSize: 10 }} disabled>Use Draft</button>
+                </div>
+                
+                <div style={{ marginTop: 20, paddingTop: 16, borderTop: '1px solid var(--border)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10 }}>
+                  <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--muted)', display: 'flex', alignItems: 'center', gap: 4 }}>
+                    GitHub Link Connected
+                  </div>
+                  <span style={{ fontSize: 10, padding: '2px 8px', borderRadius: 10, background: 'var(--sage-light)', color: 'var(--sage)', fontWeight: 700, border: '1px solid var(--sage)' }}>
+                    ✨ Inferred 4 Skills
+                  </span>
+                </div>
+              </div>
+            </Reveal>
+          </div>
+        </div>
       </section>
+
 
       {/* ──────────────── HOW IT WORKS ──────────────── */}
       <section id="how" style={{
