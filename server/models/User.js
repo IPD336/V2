@@ -47,7 +47,6 @@ const userSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-userSchema.index({ email: 1 });
 userSchema.index({ isPublic: 1, role: 1 });
 userSchema.index({ 'skillsOffered.name': 1 });
 userSchema.index({ 'skillsOffered.category': 1 });
