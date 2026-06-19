@@ -1,14 +1,17 @@
 const socketIo = require('socket.io');
 const jwt = require('jsonwebtoken');
+const Message = require('./models/Message');
+const Swap = require('./models/Swap');
+const Team = require('./models/Team');
 
 let io;
-const userSockets = new Map(); // Maps userId to socketId
+const userSockets = new Map();
 
 module.exports = {
   init: (server) => {
     io = socketIo(server, {
       cors: {
-        origin: '*', // Adjust in production
+        origin: process.env.CORS_ORIGIN || 'http://localhost:5173',
         methods: ['GET', 'POST']
       }
     });
@@ -31,14 +34,10 @@ module.exports = {
 
       socket.on('join_room', (roomId) => {
         socket.join(roomId);
-        console.log(`User ${socket.userId} joined room ${roomId}`);
       });
 
       socket.on('send_message', async (data) => {
         const { room, content, type = 'text' } = data;
-        const Message = require('./models/Message');
-        const User = require('./models/User');
-        
         try {
           const msg = await Message.create({ room, sender: socket.userId, content, type });
           const populatedMsg = await Message.findById(msg._id).populate('sender', 'name avatarUrl avatarColor');
@@ -49,9 +48,8 @@ module.exports = {
       });
 
       socket.on('add_goal', async (data) => {
-        const { room, type, text } = data; // type: 'swap' | 'team'
-        const Model = type === 'swap' ? require('./models/Swap') : require('./models/Team');
-        
+        const { room, type, text } = data;
+        const Model = type === 'swap' ? Swap : Team;
         try {
           const item = await Model.findById(room);
           if (item) {
@@ -66,8 +64,7 @@ module.exports = {
 
       socket.on('toggle_goal', async (data) => {
         const { room, type, goalId } = data;
-        const Model = type === 'swap' ? require('./models/Swap') : require('./models/Team');
-        
+        const Model = type === 'swap' ? Swap : Team;
         try {
           const item = await Model.findById(room);
           if (item) {
@@ -84,7 +81,6 @@ module.exports = {
       });
 
       socket.on('disconnect', () => {
-        console.log('User disconnected:', socket.userId);
         if (userSockets.get(socket.userId.toString()) === socket.id) {
           userSockets.delete(socket.userId.toString());
         }
@@ -93,7 +89,7 @@ module.exports = {
 
     return io;
   },
-  
+
   getIo: () => {
     if (!io) throw new Error('Socket.io not initialized!');
     return io;

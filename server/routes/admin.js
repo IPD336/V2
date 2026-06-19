@@ -3,28 +3,24 @@ const User = require('../models/User');
 const Swap = require('../models/Swap');
 const Review = require('../models/Review');
 const Team = require('../models/Team');
+const Message = require('../models/Message');
+const Notification = require('../models/Notification');
 const auth = require('../middleware/auth');
 const adminAuth = require('../middleware/admin');
 
 const router = express.Router();
 
-// All routes here are protected by auth AND adminAuth
 router.use(auth, adminAuth);
 
-// GET /api/admin/stats — Platform Analytics
 router.get('/stats', async (req, res) => {
   try {
     const totalUsers = await User.countDocuments();
     const bannedUsers = await User.countDocuments({ isBanned: true });
-    
     const totalSwaps = await Swap.countDocuments();
     const completedSwaps = await Swap.countDocuments({ status: 'completed' });
-    
-    // Most popular skills (simple aggregation)
-    const users = await User.find({ role: 'user' });
-    const swaps = await Swap.find();
 
-    // Skill frequencies
+    const users = await User.find({ role: 'user' });
+
     const skillFreq = {};
     users.forEach(u => {
       u.skillsOffered.forEach(s => {
@@ -37,13 +33,8 @@ router.get('/stats', async (req, res) => {
       .sort((a, b) => b.count - a.count)
       .slice(0, 5);
 
-    // League Distribution
     const leagueDist = {
-      Diamond: 0,
-      Platinum: 0,
-      Gold: 0,
-      Silver: 0,
-      Bronze: 0
+      Diamond: 0, Platinum: 0, Gold: 0, Silver: 0, Bronze: 0
     };
     users.forEach(u => {
       if (u.league && u.league.name) {
@@ -53,28 +44,21 @@ router.get('/stats', async (req, res) => {
       }
     });
 
-    // Top Mentors (top 5 by rating * reviewCount)
     const topMentors = users
       .map(u => ({ name: u.name, score: (u.rating || 0) * (u.reviewCount || 0), reviews: u.reviewCount, rating: u.rating }))
       .sort((a, b) => b.score - a.score)
       .slice(0, 5);
 
     res.json({
-      totalUsers,
-      bannedUsers,
-      totalSwaps,
-      completedSwaps,
-      popularSkills,
-      topMentors,
-      leagueDist,
-      completionRate: totalSwaps ? Math.round((completedSwaps / totalSwaps) * 100) : 0
+      totalUsers, bannedUsers, totalSwaps, completedSwaps,
+      popularSkills, topMentors, leagueDist,
+      completionRate: totalSwaps ? Math.round((completedSwaps / totalSwaps) * 100) : 0,
     });
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
 });
 
-// GET /api/admin/users — List users
 router.get('/users', async (req, res) => {
   try {
     const users = await User.find()
@@ -86,11 +70,10 @@ router.get('/users', async (req, res) => {
   }
 });
 
-// PUT /api/admin/users/:id/ban — Toggle ban status
 router.put('/users/:id/ban', async (req, res) => {
   try {
     const { isBanned, banReason } = req.body;
-    
+
     if (req.params.id === req.user.id.toString()) {
       return res.status(400).json({ message: 'You cannot ban yourself.' });
     }
@@ -109,7 +92,6 @@ router.put('/users/:id/ban', async (req, res) => {
   }
 });
 
-// GET /api/admin/teams — List all teams
 router.get('/teams', async (req, res) => {
   try {
     const teams = await Team.find()
@@ -121,7 +103,6 @@ router.get('/teams', async (req, res) => {
   }
 });
 
-// DELETE /api/admin/teams/:id — Admin deletes a team
 router.delete('/teams/:id', async (req, res) => {
   try {
     const team = await Team.findByIdAndDelete(req.params.id);
@@ -132,23 +113,18 @@ router.delete('/teams/:id', async (req, res) => {
   }
 });
 
-// DELETE /api/admin/reset — Reset Database (Wipe everything except admins)
 router.delete('/reset', async (req, res) => {
   try {
-    const Message = require('../models/Message');
-    
-    // Delete all users except admin
     const userResult = await User.deleteMany({ role: { $ne: 'admin' } });
-    
-    // Delete all related data
     await Swap.deleteMany({});
     await Team.deleteMany({});
     await Message.deleteMany({});
     await Review.deleteMany({});
+    await Notification.deleteMany({});
 
-    res.json({ 
-      message: 'System reset successfully', 
-      usersDeleted: userResult.deletedCount 
+    res.json({
+      message: 'System reset successfully',
+      usersDeleted: userResult.deletedCount,
     });
   } catch (err) {
     res.status(500).json({ message: err.message });

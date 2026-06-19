@@ -43,15 +43,16 @@ const userSchema = new mongoose.Schema(
     badges: [{ type: String }],
     resetPasswordToken: { type: String, default: '' },
     resetPasswordExpires: { type: Date, default: null },
-    notifications: [{
-      type: { type: String, enum: ['swap_request', 'team_invite', 'badge_earned', 'system'] },
-      message: { type: String, required: true },
-      read: { type: Boolean, default: false },
-      relatedId: { type: mongoose.Schema.Types.ObjectId },
-      createdAt: { type: Date, default: Date.now }
-    }]
   },
   { timestamps: true }
 );
+
+userSchema.index({ email: 1 });
+userSchema.index({ isPublic: 1, role: 1 });
+userSchema.index({ 'skillsOffered.name': 1 });
+userSchema.index({ 'skillsOffered.category': 1 });
+userSchema.index({ skillsWanted: 1 });
+userSchema.index({ rating: -1, createdAt: -1 });
+userSchema.index({ role: 1, createdAt: -1 });
 
 module.exports = mongoose.model('User', userSchema);

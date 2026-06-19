@@ -4,6 +4,8 @@ import { useAuth } from './AuthContext';
 import { useToast } from './ToastContext';
 import api from '../api/axios';
 
+const SOCKET_BASE = (import.meta.env.VITE_API_URL || 'http://localhost:5000').replace(/\/api\/?$/, '');
+
 const SocketContext = createContext(null);
 
 export function SocketProvider({ children }) {
@@ -14,7 +16,6 @@ export function SocketProvider({ children }) {
   const [unreadCount, setUnreadCount] = useState(0);
 
   useEffect(() => {
-    // Load initial notifications from DB
     if (user) {
       api.get('/notifications').then(res => {
         setNotifications(res.data);
@@ -32,13 +33,9 @@ export function SocketProvider({ children }) {
     const token = localStorage.getItem('ss_token');
     if (!token) return;
 
-    // Connect to Socket.io server
-    let apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000';
-    if (apiUrl.endsWith('/api')) apiUrl = apiUrl.replace(/\/api$/, '');
-    
-    const newSocket = io(apiUrl, {
+    const newSocket = io(SOCKET_BASE, {
       auth: { token },
-      transports: ['websocket', 'polling'] // Try websocket first
+      transports: ['websocket', 'polling']
     });
 
     newSocket.on('connect', () => {
@@ -48,8 +45,7 @@ export function SocketProvider({ children }) {
     newSocket.on('new_notification', (notif) => {
       setNotifications(prev => [notif, ...prev]);
       setUnreadCount(prev => prev + 1);
-      
-      // Play a sound or show toast based on type
+
       if (notif.type === 'swap_request') showToast('New Swap Request!');
       else if (notif.type === 'team_invite') showToast('New Team Invite!');
       else if (notif.type === 'badge_earned') showToast('You earned a new badge!');

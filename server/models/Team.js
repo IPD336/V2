@@ -25,12 +25,14 @@ const teamSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-// Auto-generate invite code before saving
+teamSchema.index({ status: 1, createdAt: -1 });
+teamSchema.index({ creator: 1 });
+teamSchema.index({ 'members.user': 1 });
+
 teamSchema.pre('save', function () {
   if (!this.inviteCode) {
     this.inviteCode = Math.random().toString(36).substring(2, 8).toUpperCase();
   }
-  // Auto-close when accepted members == maxSize
   const acceptedCount = this.members.filter((m) => m.status === 'accepted').length;
   if (acceptedCount >= this.maxSize) {
     this.status = 'closed';
