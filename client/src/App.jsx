@@ -18,6 +18,7 @@ import ResetPassword from './pages/ResetPassword';
 const Browse = lazy(() => import('./pages/Browse'));
 const Dashboard = lazy(() => import('./pages/Dashboard'));
 const Swaps = lazy(() => import('./pages/Swaps'));
+const CalendarPage = lazy(() => import('./pages/CalendarPage'));
 const Teams = lazy(() => import('./pages/Teams'));
 const TeamDetail = lazy(() => import('./pages/TeamDetail'));
 const Profile = lazy(() => import('./pages/Profile'));
@@ -57,6 +58,7 @@ function AppRoutes() {
         <Route path="/browse" element={<ProtectedRoute><Suspense fallback={<div className="spinner" />}><Browse /></Suspense></ProtectedRoute>} />
         <Route path="/workspaces" element={<ProtectedRoute><Suspense fallback={<div className="spinner" />}><Workspaces /></Suspense></ProtectedRoute>} />
         <Route path="/swaps" element={<ProtectedRoute><Suspense fallback={<div className="spinner" />}><Swaps /></Suspense></ProtectedRoute>} />
+        <Route path="/calendar" element={<ProtectedRoute><Suspense fallback={<div className="spinner" />}><CalendarPage /></Suspense></ProtectedRoute>} />
         <Route path="/teams" element={<ProtectedRoute><Suspense fallback={<div className="spinner" />}><Teams /></Suspense></ProtectedRoute>} />
         <Route path="/teams/:id" element={<ProtectedRoute><Suspense fallback={<div className="spinner" />}><TeamDetail /></Suspense></ProtectedRoute>} />
         <Route path="/leaderboard" element={<ProtectedRoute><Suspense fallback={<div className="spinner" />}><Leaderboard /></Suspense></ProtectedRoute>} />

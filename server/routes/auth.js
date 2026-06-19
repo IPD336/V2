@@ -5,8 +5,10 @@ const jwt = require('jsonwebtoken');
 const User = require('../models/User');
 const auth = require('../middleware/auth');
 const { AVATAR_COLORS } = require('../constants');
+const { sendPasswordResetEmail } = require('../services/emailService');
 
 const router = express.Router();
+
 
 router.post('/register', async (req, res) => {
   try {
@@ -79,17 +81,12 @@ router.post('/forgot-password', async (req, res) => {
     user.resetPasswordExpires = Date.now() + 3600000;
     await user.save();
 
-    const resetUrl = `http://localhost:5173/reset-password/${rawToken}`;
-    console.log('');
-    console.log('╔══════════════════════════════════════════════════╗');
-    console.log('║         PASSWORD RESET LINK (dev mode)          ║');
-    console.log('╠══════════════════════════════════════════════════╣');
-    console.log(`║  ${resetUrl}`);
-    console.log(`║  Expires: ${new Date(user.resetPasswordExpires).toLocaleString()}`);
-    console.log('╚══════════════════════════════════════════════════╝');
-    console.log('');
+    const clientUrl = process.env.CLIENT_URL || 'http://localhost:5173';
+    const resetUrl = `${clientUrl}/reset-password/${rawToken}`;
 
-    res.json({ message: 'Password reset link has been sent to your email (check server console in dev mode).' });
+    await sendPasswordResetEmail(user.email, user.name, resetUrl);
+
+    res.json({ message: 'Password reset link has been sent to your email.' });
   } catch (err) {
     res.status(500).json({ message: err.message });
   }

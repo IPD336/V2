@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import api from '../api/axios';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
+import { SparklesIcon } from './Icons';
 
 export default function SwapRequestModal({ target, onClose }) {
   useEffect(() => {
@@ -20,12 +21,34 @@ export default function SwapRequestModal({ target, onClose }) {
     message: '',
     schedule: '',
     format: 'Video Call',
+    scheduledAt: '',
+    duration: '60',
   });
   const [touched, setTouched] = useState({});
   const [loading, setLoading] = useState(false);
+  const [aiLoading, setAiLoading] = useState(false);
 
   const handle = (e) => setForm({ ...form, [e.target.name]: e.target.value });
   const handleBlur = (e) => setTouched({ ...touched, [e.target.name]: true });
+
+  const handleAiDraft = async () => {
+    if (!form.skillOffered || !form.skillWanted) {
+      showToast('Please select a skill to offer and want first', 'error');
+      return;
+    }
+    setAiLoading(true);
+    try {
+      const res = await api.post('/ai/draft-proposal', {
+        receiverId: target._id,
+        skillOffered: form.skillOffered,
+        skillWanted: form.skillWanted
+      });
+      setForm({ ...form, message: res.data.draft });
+      showToast('AI draft message created! ✓');
+    } catch (err) {
+      showToast(err.response?.data?.message || 'Failed to generate draft', 'error');
+    } finally { setAiLoading(false); }
+  };
 
   const messageValid = form.message.trim().length >= 10;
   const messageError = touched.message && form.message && !messageValid;
@@ -36,7 +59,17 @@ export default function SwapRequestModal({ target, onClose }) {
     if (!messageValid) return;
     setLoading(true);
     try {
-      await api.post('/swaps', { receiverId: target._id, ...form });
+      let scheduledEndAt = null;
+      if (form.scheduledAt) {
+        const start = new Date(form.scheduledAt);
+        scheduledEndAt = new Date(start.getTime() + parseInt(form.duration) * 60 * 1000).toISOString();
+      }
+      await api.post('/swaps', {
+        receiverId: target._id,
+        ...form,
+        scheduledAt: form.scheduledAt || null,
+        scheduledEndAt,
+      });
       showToast('Swap request sent!');
       onClose();
     } catch (err) {
@@ -72,7 +105,18 @@ export default function SwapRequestModal({ target, onClose }) {
             )}
           </div>
           <div className="form-group">
-            <label className="form-label">Personal Message</label>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+              <label className="form-label" style={{ margin: 0 }}>Personal Message</label>
+              <button 
+                type="button" 
+                className="btn-outline-sm" 
+                style={{ padding: '4px 10px', display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 11, border: '1px solid var(--border)' }}
+                onClick={handleAiDraft}
+                disabled={aiLoading}
+              >
+                <SparklesIcon size={12} /> {aiLoading ? 'Drafting…' : 'Write with AI'}
+              </button>
+            </div>
             <textarea
               className={`form-textarea${messageError ? ' error' : ''}${touched.message && messageValid ? ' success' : ''}`}
               name="message" placeholder="Introduce yourself and explain why you'd like to swap…"
@@ -82,8 +126,30 @@ export default function SwapRequestModal({ target, onClose }) {
             {messageError && <p className="form-error">Please write at least 10 characters</p>}
           </div>
           <div className="form-group">
-            <label className="form-label">Preferred Schedule</label>
-            <input className="form-input" name="schedule" placeholder="e.g. Saturday evenings, 7–9pm IST" value={form.schedule} onChange={handle} aria-label="Preferred schedule" />
+            <label className="form-label">Schedule Session <span style={{ color: 'var(--muted)', fontWeight: 400 }}>(optional)</span></label>
+            <div style={{ display: 'flex', gap: 8 }}>
+              <input
+                className="form-input"
+                type="datetime-local"
+                name="scheduledAt"
+                value={form.scheduledAt}
+                onChange={handle}
+                min={new Date().toISOString().slice(0, 16)}
+                aria-label="Schedule date and time"
+                style={{ flex: 1 }}
+              />
+              <select className="form-select" name="duration" value={form.duration} onChange={handle} style={{ width: 'auto', minWidth: 80 }} aria-label="Session duration">
+                <option value="30">30m</option>
+                <option value="60">1h</option>
+                <option value="90">1.5h</option>
+                <option value="120">2h</option>
+              </select>
+            </div>
+            <p style={{ fontSize: 11, color: 'var(--muted)', marginTop: 4 }}>Pick a date to appear on the calendar. You can schedule later too.</p>
+          </div>
+          <div className="form-group">
+            <label className="form-label">Notes / Preferred Times</label>
+            <input className="form-input" name="schedule" placeholder="e.g. Saturday evenings work best…" value={form.schedule} onChange={handle} aria-label="Schedule notes" />
           </div>
           <div className="form-group">
             <label className="form-label">Session Format</label>

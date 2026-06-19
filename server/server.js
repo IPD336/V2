@@ -17,6 +17,7 @@ const adminRoutes = require('./routes/admin');
 const leaderboardRoutes = require('./routes/leaderboard');
 const notificationRoutes = require('./routes/notifications');
 const messageRoutes = require('./routes/messages');
+const aiRoutes = require('./routes/ai');
 
 const app = express();
 const server = http.createServer(app);
@@ -52,6 +53,7 @@ app.use('/api/admin', adminRoutes);
 app.use('/api/leaderboard', leaderboardRoutes);
 app.use('/api/notifications', notificationRoutes);
 app.use('/api/messages', messageRoutes);
+app.use('/api/ai', aiRoutes);
 
 app.get('/api/health', (_, res) => res.json({ status: 'ok', time: new Date().toISOString() }));
 

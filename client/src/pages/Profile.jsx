@@ -4,7 +4,7 @@ import api from '../api/axios';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
 import { AVAIL_OPTIONS, CATEGORIES_NOALL as CATEGORIES } from '../utils';
-import { PinIcon, DiamondIcon, TrophyIcon, StarIcon, MedalIcon, HandshakeIcon, CameraIcon } from '../components/Icons';
+import { PinIcon, DiamondIcon, TrophyIcon, StarIcon, MedalIcon, HandshakeIcon, CameraIcon, SparklesIcon } from '../components/Icons';
 
 function StructuredSkillInput({ skills, onChange, colorClass = '' }) {
   const [name, setName] = useState('');
@@ -86,6 +86,44 @@ export default function Profile() {
   const [touched, setTouched] = useState({});
   const [loading, setLoading] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [scanLoading, setScanLoading] = useState(false);
+  const [inferredSkills, setInferredSkills] = useState([]);
+  const [showScanModal, setShowScanModal] = useState(false);
+  const [selectedSkills, setSelectedSkills] = useState([]);
+
+  const handleGithubScan = async () => {
+    if (!form.socialLinks.github) {
+      showToast('Please enter your GitHub profile URL first', 'error');
+      return;
+    }
+    setScanLoading(true);
+    try {
+      const res = await api.post('/ai/github-verify', { githubUrl: form.socialLinks.github });
+      setInferredSkills(res.data.skills);
+      setSelectedSkills(res.data.skills.map((_, i) => i)); // select all by default
+      setShowScanModal(true);
+      showToast('GitHub repositories scanned! ✓');
+    } catch (err) {
+      showToast(err.response?.data?.message || 'Failed to scan GitHub profile', 'error');
+    } finally { setScanLoading(false); }
+  };
+
+  const handleAddSkills = () => {
+    const toAdd = inferredSkills.filter((_, idx) => selectedSkills.includes(idx));
+    const currentOffered = form.skillsOffered || [];
+    const merged = [...currentOffered];
+    
+    toAdd.forEach(newSkill => {
+      const exists = merged.some(s => s.name.toLowerCase() === newSkill.name.toLowerCase());
+      if (!exists) {
+        merged.push({ name: newSkill.name, category: newSkill.category, verified: true });
+      }
+    });
+
+    setForm({ ...form, skillsOffered: merged });
+    setShowScanModal(false);
+    showToast(`Added ${toAdd.length} verified skills to your profile! ✓`);
+  };
 
   const handleAvatarUpload = async (e) => {
     const file = e.target.files[0];
@@ -287,9 +325,30 @@ export default function Profile() {
 
           <div style={{ background: 'var(--card-bg)', borderRadius: 16, padding: 32, border: '1px solid var(--border)', marginBottom: 24 }}>
             <div style={{ fontFamily: 'PT Mono, monospace', fontSize: 11, letterSpacing: 2, textTransform: 'uppercase', color: 'var(--muted)', marginBottom: 20 }}>Social Links</div>
-            <div className="form-group"><label className="form-label">LinkedIn</label><input className="form-input" style={{ background: 'var(--cream)', color: 'var(--ink)' }} name="linkedin" value={form.socialLinks.linkedin} onChange={(e) => setForm({ ...form, socialLinks: { ...form.socialLinks, linkedin: e.target.value } })} placeholder="https://linkedin.com/in/…" /></div>
-            <div className="form-group"><label className="form-label">GitHub</label><input className="form-input" style={{ background: 'var(--cream)', color: 'var(--ink)' }} name="github" value={form.socialLinks.github} onChange={(e) => setForm({ ...form, socialLinks: { ...form.socialLinks, github: e.target.value } })} placeholder="https://github.com/…" /></div>
-            <div className="form-group"><label className="form-label">Portfolio</label><input className="form-input" style={{ background: 'var(--cream)', color: 'var(--ink)' }} name="portfolio" value={form.socialLinks.portfolio} onChange={(e) => setForm({ ...form, socialLinks: { ...form.socialLinks, portfolio: e.target.value } })} placeholder="https://yoursite.com" /></div>
+             <div className="form-group"><label className="form-label">LinkedIn</label><input className="form-input" style={{ background: 'var(--cream)', color: 'var(--ink)' }} name="linkedin" value={form.socialLinks.linkedin} onChange={(e) => setForm({ ...form, socialLinks: { ...form.socialLinks, linkedin: e.target.value } })} placeholder="https://linkedin.com/in/…" /></div>
+             <div className="form-group">
+               <label className="form-label">GitHub</label>
+               <div style={{ display: 'flex', gap: 8 }}>
+                 <input 
+                   className="form-input" 
+                   style={{ background: 'var(--cream)', color: 'var(--ink)', flex: 1 }} 
+                   name="github" 
+                   value={form.socialLinks.github} 
+                   onChange={(e) => setForm({ ...form, socialLinks: { ...form.socialLinks, github: e.target.value } })} 
+                   placeholder="https://github.com/…" 
+                 />
+                 <button 
+                   type="button" 
+                   className="btn-outline-sm" 
+                   style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '0 16px', height: '46px', border: '1.5px solid var(--border)' }}
+                   onClick={handleGithubScan}
+                   disabled={scanLoading}
+                 >
+                   <SparklesIcon size={14} /> {scanLoading ? 'Scanning…' : 'Scan Skills'}
+                 </button>
+               </div>
+             </div>
+             <div className="form-group"><label className="form-label">Portfolio</label><input className="form-input" style={{ background: 'var(--cream)', color: 'var(--ink)' }} name="portfolio" value={form.socialLinks.portfolio} onChange={(e) => setForm({ ...form, socialLinks: { ...form.socialLinks, portfolio: e.target.value } })} placeholder="https://yoursite.com" /></div>
           </div>
 
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 20 }}>
@@ -320,6 +379,55 @@ export default function Profile() {
                 <button className="btn-cosmos-ghost" style={{ flex: 1, padding: '13px', fontWeight: 700 }} onClick={() => setShowDeleteModal(false)}>Cancel</button>
                 <button className="btn-cosmos-primary" style={{ flex: 1, padding: '13px', fontWeight: 700, background: 'var(--accent)' }} onClick={handleDeleteAccount} disabled={loading}>
                   {loading ? 'Deleting…' : 'Yes, Delete'}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* GitHub Inferred Skills Modal */}
+        {showScanModal && (
+          <div className="modal-overlay active" onClick={(e) => e.target === e.currentTarget && setShowScanModal(false)}>
+            <div className="modal" style={{ maxWidth: 500 }}>
+              <button className="modal-close" onClick={() => setShowScanModal(false)}>✕</button>
+              <div className="modal-heading" style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 24 }}>
+                <SparklesIcon size={20} /> AI Inferred Skills
+              </div>
+              <div className="modal-sub">
+                Based on your GitHub repositories, the AI detected these skills. Select the ones you want to list as verified on your profile:
+              </div>
+              
+              <div style={{ maxHeight: 260, overflowY: 'auto', marginBottom: 24, border: '1px solid var(--border)', borderRadius: 12, padding: 12, display: 'flex', flexDirection: 'column', gap: 10 }}>
+                {inferredSkills.map((s, idx) => (
+                  <label key={idx} style={{ display: 'flex', alignItems: 'center', gap: 12, cursor: 'pointer', padding: '6px 8px', borderRadius: 8, background: selectedSkills.includes(idx) ? 'var(--accent-light)' : 'transparent', transition: 'background 0.2s' }}>
+                    <input 
+                      type="checkbox" 
+                      checked={selectedSkills.includes(idx)} 
+                      onChange={(e) => {
+                        if (e.target.checked) {
+                          setSelectedSkills([...selectedSkills, idx]);
+                        } else {
+                          setSelectedSkills(selectedSkills.filter(i => i !== idx));
+                        }
+                      }} 
+                    />
+                    <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                      <strong style={{ color: 'var(--ink)' }}>{s.name}</strong>
+                      <span style={{ fontSize: 10, padding: '2px 6px', background: 'var(--white)', border: '1px solid var(--border)', borderRadius: 10, textTransform: 'uppercase', color: 'var(--muted)' }}>
+                        {s.category}
+                      </span>
+                    </div>
+                  </label>
+                ))}
+                {inferredSkills.length === 0 && (
+                  <div style={{ textAlign: 'center', padding: 20, color: 'var(--muted)' }}>No skills could be inferred. Try updating your profile or repos.</div>
+                )}
+              </div>
+
+              <div style={{ display: 'flex', gap: 12 }}>
+                <button className="btn-cosmos-ghost" style={{ flex: 1, padding: '13px', fontWeight: 700 }} onClick={() => setShowScanModal(false)}>Cancel</button>
+                <button className="btn-cosmos-primary" style={{ flex: 1, padding: '13px', fontWeight: 700 }} onClick={handleAddSkills}>
+                  Add Selected ({selectedSkills.length})
                 </button>
               </div>
             </div>

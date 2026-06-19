@@ -1,11 +1,12 @@
 import { NavLink } from 'react-router-dom';
 import { useSocket } from '../context/SocketContext';
-import { HomeIcon, SearchIcon, SwapIcon, WorkspaceIcon, TeamsIcon, ProfileIcon, TrophyIcon } from './Icons';
+import { HomeIcon, SearchIcon, SwapIcon, WorkspaceIcon, TeamsIcon, ProfileIcon, TrophyIcon, CalendarIcon } from './Icons';
 
 const tabs = [
   { to: '/dashboard', label: 'Home', icon: HomeIcon },
   { to: '/browse', label: 'Browse', icon: SearchIcon },
   { to: '/swaps', label: 'Swaps', icon: SwapIcon },
+  { to: '/calendar', label: 'Calendar', icon: CalendarIcon },
   { to: '/workspaces', label: 'Work', icon: WorkspaceIcon },
   { to: '/teams', label: 'Teams', icon: TeamsIcon },
   { to: '/leaderboard', label: 'Rank', icon: TrophyIcon },
