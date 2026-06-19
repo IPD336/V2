@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useEffect } from 'react';
+import { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import api from '../api/axios';
 
 const AuthContext = createContext(null);
@@ -13,7 +13,7 @@ export function AuthProvider({ children }) {
     const token = localStorage.getItem('ss_token');
     if (token) {
       api.get('/auth/me')
-        .then((res) => setUser(res.data))
+        .then((res) => { setUser(res.data); localStorage.setItem('ss_user', JSON.stringify(res.data)); })
         .catch(() => { localStorage.removeItem('ss_token'); localStorage.removeItem('ss_user'); })
         .finally(() => setLoading(false));
     } else {
@@ -37,17 +37,17 @@ export function AuthProvider({ children }) {
     return res.data;
   };
 
-  const logout = () => {
+  const logout = useCallback(() => {
     localStorage.removeItem('ss_token');
     localStorage.removeItem('ss_user');
     setUser(null);
-  };
+  }, []);
 
-  const refreshUser = async () => {
+  const refreshUser = useCallback(async () => {
     const res = await api.get('/auth/me');
     setUser(res.data);
     localStorage.setItem('ss_user', JSON.stringify(res.data));
-  };
+  }, []);
 
   return (
     <AuthContext.Provider value={{ user, loading, login, register, logout, refreshUser }}>

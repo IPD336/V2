@@ -1,38 +1,37 @@
 const express = require('express');
+const jwt = require('jsonwebtoken');
 const User = require('../models/User');
 const auth = require('../middleware/auth');
 const { upload } = require('../utils/cloudinary');
+const { matchScore, isMutualMatch } = require('../services/matchService');
 
 const router = express.Router();
 
-// Helper: compute mutual match score between two users
-function matchScore(me, other) {
-  const myOffered = me.skillsOffered.map((s) => s.name.toLowerCase());
-  const myWanted = me.skillsWanted.map((s) => s.toLowerCase());
-  const theirOffered = other.skillsOffered.map((s) => s.name.toLowerCase());
-  const theirWanted = other.skillsWanted.map((s) => s.toLowerCase());
+async function enrichWithMatch(users, req) {
+  const token = req.headers.authorization?.split(' ')[1];
+  if (!token) return users.map(u => ({ ...u.toObject(), mutualMatch: false, matchScore: 0 }));
 
-  const iGiveThemWant = myOffered.filter((s) => theirWanted.includes(s)).length;
-  const theyGiveMeWant = theirOffered.filter((s) => myWanted.includes(s)).length;
-  return iGiveThemWant + theyGiveMeWant;
+  try {
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    const meUser = await User.findById(decoded.id).select('skillsOffered skillsWanted');
+    if (!meUser) return users.map(u => ({ ...u.toObject(), mutualMatch: false, matchScore: 0 }));
+
+    return users.map((u) => {
+      const obj = u.toObject();
+      if (u._id.toString() !== meUser._id.toString()) {
+        obj.mutualMatch = isMutualMatch(meUser, u);
+        obj.matchScore = matchScore(meUser, u);
+      }
+      return obj;
+    });
+  } catch {
+    return users.map(u => ({ ...u.toObject(), mutualMatch: false, matchScore: 0 }));
+  }
 }
 
-function isMutualMatch(me, other) {
-  const myOffered = me.skillsOffered.map((s) => s.name.toLowerCase());
-  const myWanted = me.skillsWanted.map((s) => s.toLowerCase());
-  const theirOffered = other.skillsOffered.map((s) => s.name.toLowerCase());
-  const theirWanted = other.skillsWanted.map((s) => s.toLowerCase());
-  return (
-    myOffered.some((s) => theirWanted.includes(s)) &&
-    theirOffered.some((s) => myWanted.includes(s))
-  );
-}
-
-// GET /api/users  — browse public profiles
 router.get('/', async (req, res) => {
   try {
     const { search, category, page = 1, limit = 12 } = req.query;
-
     const query = { isPublic: { $ne: false }, role: { $ne: 'admin' } };
 
     if (search) {
@@ -57,36 +56,13 @@ router.get('/', async (req, res) => {
       .limit(parseInt(limit))
       .sort({ rating: -1, createdAt: -1 });
 
-    // If authenticated, add match info
-    let meUser = null;
-    const token = req.headers.authorization?.split(' ')[1];
-    if (token) {
-      const jwt = require('jsonwebtoken');
-      try {
-        const decoded = jwt.verify(token, process.env.JWT_SECRET);
-        meUser = await User.findById(decoded.id).select('skillsOffered skillsWanted');
-      } catch { /* ignore */ }
-    }
-
-    const enriched = users.map((u) => {
-      const obj = u.toObject();
-      if (meUser && u._id.toString() !== meUser._id.toString()) {
-        obj.mutualMatch = isMutualMatch(meUser, u);
-        obj.matchScore = matchScore(meUser, u);
-      } else {
-        obj.mutualMatch = false;
-        obj.matchScore = 0;
-      }
-      return obj;
-    });
-
+    const enriched = await enrichWithMatch(users, req);
     res.json({ users: enriched, total, page: parseInt(page), pages: Math.ceil(total / limit) });
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
 });
 
-// GET /api/users/recommendations  — "For You" list
 router.get('/recommendations', auth, async (req, res) => {
   try {
     const me = await User.findById(req.user.id).select('skillsOffered skillsWanted');
@@ -110,32 +86,17 @@ router.get('/recommendations', auth, async (req, res) => {
   }
 });
 
-// GET /api/users/:id
 router.get('/:id', async (req, res) => {
   try {
-    const user = await User.findById(req.params.id).select('-passwordHash -notifications');
+    const user = await User.findById(req.params.id).select('-passwordHash');
     if (!user) return res.status(404).json({ message: 'User not found' });
-    const obj = user.toObject();
-    // Add match info if authenticated
-    const token = req.headers.authorization?.split(' ')[1];
-    if (token) {
-      try {
-        const jwt = require('jsonwebtoken');
-        const decoded = jwt.verify(token, process.env.JWT_SECRET);
-        const meUser = await User.findById(decoded.id).select('skillsOffered skillsWanted');
-        if (meUser && user._id.toString() !== meUser._id.toString()) {
-          obj.mutualMatch = isMutualMatch(meUser, user);
-          obj.matchScore = matchScore(meUser, user);
-        }
-      } catch { /* ignore */ }
-    }
-    res.json(obj);
+    const enriched = await enrichWithMatch([user], req);
+    res.json(enriched[0]);
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
 });
 
-// PUT /api/users/:id  — update own profile
 router.put('/:id', auth, async (req, res) => {
   try {
     if (req.user.id.toString() !== req.params.id)
@@ -155,7 +116,6 @@ router.put('/:id', auth, async (req, res) => {
   }
 });
 
-// POST /api/users/:id/save  — toggle save/favourite
 router.post('/:id/save', auth, async (req, res) => {
   try {
     const me = await User.findById(req.user.id);
@@ -173,7 +133,6 @@ router.post('/:id/save', auth, async (req, res) => {
   }
 });
 
-// DELETE /api/users/:id — delete own account
 router.delete('/:id', auth, async (req, res) => {
   try {
     if (req.user.id.toString() !== req.params.id) {
@@ -186,18 +145,16 @@ router.delete('/:id', auth, async (req, res) => {
   }
 });
 
-// POST /api/users/:id/avatar — upload profile picture
 router.post('/:id/avatar', auth, upload.single('avatar'), async (req, res) => {
   try {
     if (req.user.id.toString() !== req.params.id) {
       return res.status(403).json({ message: 'Not authorised' });
     }
-    
+
     if (!req.file) {
       return res.status(400).json({ message: 'No file uploaded' });
     }
 
-    // req.file.path contains the URL from Cloudinary
     const user = await User.findByIdAndUpdate(
       req.params.id,
       { avatarUrl: req.file.path },

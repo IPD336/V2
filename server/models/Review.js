@@ -12,4 +12,7 @@ const reviewSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
+reviewSchema.index({ reviewee: 1, createdAt: -1 });
+reviewSchema.index({ swap: 1, reviewer: 1 }, { unique: true });
+
 module.exports = mongoose.model('Review', reviewSchema);

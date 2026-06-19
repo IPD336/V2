@@ -52,36 +52,6 @@ export default function Navbar() {
     else navigate('/profile');
   };
 
-  const dropdownCommon = {
-    position: 'absolute',
-    top: 'calc(100% + 8px)',
-    right: 0,
-    background: 'var(--card-bg)',
-    border: '1px solid var(--border)',
-    borderRadius: 12,
-    boxShadow: 'var(--shadow-lg)',
-    minWidth: 180,
-    zIndex: 100,
-    overflow: 'hidden',
-  };
-
-  const dropdownItem = {
-    padding: '10px 16px',
-    fontSize: 13,
-    fontWeight: 600,
-    color: 'var(--ink)',
-    cursor: 'pointer',
-    display: 'flex',
-    alignItems: 'center',
-    gap: 10,
-    transition: 'background 0.15s',
-    border: 'none',
-    background: 'transparent',
-    width: '100%',
-    textAlign: 'left',
-    textDecoration: 'none',
-  };
-
   return (
     <>
       <nav>
@@ -90,20 +60,18 @@ export default function Navbar() {
           <Logo size={32} />
         </NavLink>
 
-        <div className="nav-actions" style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          {/* Compact theme toggle */}
+        <div className="nav-actions">
           <button
             onClick={toggleTheme}
             title={`Switch to ${theme === 'light' ? 'dark' : 'light'} mode`}
             aria-label={`Switch to ${theme === 'light' ? 'dark' : 'light'} mode`}
-            style={{ background: 'none', border: '1px solid var(--border)', borderRadius: 6, padding: '6px 8px', fontSize: 16, lineHeight: 1, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--ink)' }}
+            className="nav-icon-btn"
           >
             {theme === 'light' ? <MoonIcon size={16} /> : <SunIcon size={16} />}
           </button>
 
           {user ? (
             <>
-              {/* Desktop nav links */}
               <div className={`nav-links ${mobileMenuOpen ? 'mobile-active' : ''}`}>
                 {user?.role === 'admin' ? (
                   <NavLink to="/admin" className={({ isActive }) => isActive ? 'active' : ''} onClick={closeMobileMenu} style={{ color: 'var(--accent)' }}>Admin Dashboard</NavLink>
@@ -112,44 +80,39 @@ export default function Navbar() {
                     <NavLink to="/dashboard" className={({ isActive }) => isActive ? 'active' : ''} onClick={closeMobileMenu}>Dashboard</NavLink>
                     <NavLink to="/browse" className={({ isActive }) => isActive ? 'active' : ''} onClick={closeMobileMenu}>Browse</NavLink>
                     <NavLink to="/swaps" className={({ isActive }) => isActive ? 'active' : ''} onClick={closeMobileMenu}>Swaps</NavLink>
-                    {/* More links shown inline on mobile, hidden on desktop */}
                     {moreLinks.map((l) => (
                       <NavLink key={l.to} to={l.to} className={({ isActive }) => `hide-desktop ${isActive ? 'active' : ''}`} onClick={closeMobileMenu}>{l.label}</NavLink>
                     ))}
                     <NavLink to="/profile" className={({ isActive }) => `hide-desktop ${isActive ? 'active' : ''}`} onClick={closeMobileMenu}>Profile</NavLink>
-                    <button className="mobile-only-flex btn-cosmos" onClick={() => setNotifOpen(!notifOpen)} style={{ background: 'none', border: 'none', textAlign: 'left', fontSize: 11, fontWeight: 700, letterSpacing: 1.2, textTransform: 'uppercase', padding: '14px 0', borderBottom: '1px solid var(--border)', cursor: 'pointer', alignItems: 'center', gap: 8, color: 'var(--ink)' }}>
-                      Notifications {unreadCount > 0 && <span style={{ background: 'red', color: 'white', borderRadius: 10, padding: '2px 8px', fontSize: 11 }}>{unreadCount} new</span>}
+                    <button className="mobile-only-flex nav-mobile-notif-btn" onClick={() => setNotifOpen(!notifOpen)}>
+                      Notifications {unreadCount > 0 && <span className="nav-notif-badge-sm">{unreadCount} new</span>}
                     </button>
-                    <button className="mobile-only-flex" onClick={() => { handleLogout(); }} style={{ background: 'none', border: 'none', textAlign: 'left', fontSize: 11, fontWeight: 700, letterSpacing: 1.2, textTransform: 'uppercase', padding: '14px 0', borderBottom: '1px solid var(--border)', cursor: 'pointer', color: 'var(--accent)' }}>
+                    <button className="mobile-only-flex nav-mobile-logout-btn" onClick={handleLogout}>
                       Logout
                     </button>
                   </>
                 )}
               </div>
 
-              {/* "More" dropdown trigger — desktop only */}
-              <div ref={moreRef} style={{ position: 'relative' }} className="hide-mobile">
+              <div ref={moreRef} className="hide-mobile nav-dropdown-wrap">
                 <button
                   onClick={() => { setMoreOpen(!moreOpen); setAvatarOpen(false); setNotifOpen(false); }}
-                  style={{ background: 'none', border: '1px solid var(--border)', borderRadius: 6, padding: '6px 10px', fontSize: 11, fontWeight: 700, letterSpacing: 0.5, textTransform: 'uppercase', cursor: 'pointer', color: 'var(--muted)', display: 'flex', alignItems: 'center', gap: 4, opacity: 0.8 }}
+                  className="nav-more-btn"
                   aria-label="More navigation"
                   aria-expanded={moreOpen}
                 >
-                  More
-                  <span style={{ fontSize: 8 }}>▾</span>
+                  More <span className="nav-chevron">▾</span>
                 </button>
                 {moreOpen && (
-                  <div style={dropdownCommon}>
+                  <div className="nav-dropdown">
                     {moreLinks.map((l) => (
                       <NavLink
                         key={l.to}
                         to={l.to}
                         onClick={() => setMoreOpen(false)}
-                        style={{ ...dropdownItem, textDecoration: 'none' }}
-                        onMouseEnter={(e) => e.currentTarget.style.background = 'var(--accent-light)'}
-                        onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
+                        className="nav-dropdown-item"
                       >
-                        <span style={{ fontSize: 16, display: 'flex', color: 'var(--ink)' }}>
+                        <span className="nav-dropdown-icon">
                           {l.icon === 'workspace' ? <WorkspaceIcon size={16} /> : l.icon === 'teams' ? <TeamsIcon size={16} /> : <TrophyIcon size={16} />}
                         </span>
                         {l.label}
@@ -159,42 +122,37 @@ export default function Navbar() {
                 )}
               </div>
 
-              {/* Notification bell */}
-              <div style={{ position: 'relative' }}>
+              <div className="nav-dropdown-wrap">
                 <button
-                  style={{ background: 'none', border: '1px solid var(--border)', borderRadius: 6, padding: '4px 8px', fontSize: 18, lineHeight: 1, cursor: 'pointer', position: 'relative', display: 'flex', alignItems: 'center', color: 'var(--ink)' }}
+                  className="nav-icon-btn nav-bell-btn"
                   onClick={() => { setNotifOpen(!notifOpen); setMoreOpen(false); setAvatarOpen(false); }}
                   aria-label={`Notifications${unreadCount > 0 ? `, ${unreadCount} unread` : ''}`}
                 >
                   <BellIcon count={unreadCount} style={{ position: 'static', width: 20, height: 20 }} />
                   {unreadCount > 0 && (
-                    <div style={{ position: 'absolute', top: -2, right: -2, background: 'red', color: 'white', borderRadius: '50%', width: 16, height: 16, fontSize: 10, display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold' }}>
-                      {unreadCount}
-                    </div>
+                    <div className="nav-notif-dot">{unreadCount}</div>
                   )}
                 </button>
                 {notifOpen && (
                   <div className="notif-dropdown">
-                    <div style={{ padding: '12px 16px', borderBottom: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                      <span style={{ fontWeight: 600, color: 'var(--ink)' }}>Notifications</span>
+                    <div className="notif-header">
+                      <span className="notif-header-title">Notifications</span>
                       {unreadCount > 0 && (
-                        <button
-                          onClick={(e) => { e.stopPropagation(); markAllAsRead(); }}
-                          style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 10, fontWeight: 700, color: 'var(--accent)', letterSpacing: 0.5, textTransform: 'uppercase' }}
-                          aria-label="Mark all notifications as read"
-                        >Mark Read</button>
+                        <button onClick={(e) => { e.stopPropagation(); markAllAsRead(); }} className="notif-mark-read-btn" aria-label="Mark all notifications as read">Mark Read</button>
                       )}
                     </div>
-                    <div style={{ maxHeight: 300, overflowY: 'auto' }}>
+                    <div className="notif-list">
                       {notifications.length === 0 ? (
-                        <div style={{ padding: 24, textAlign: 'center', color: 'var(--muted)', fontSize: 13 }}>No notifications yet.</div>
+                        <div className="notif-empty">No notifications yet.</div>
                       ) : (
                         notifications.map(n => (
-                          <div key={n._id} onClick={() => handleNotifClick(n)} style={{ padding: '12px 16px', borderBottom: '1px solid var(--border)', cursor: 'pointer', background: n.read ? 'transparent' : 'var(--gold-light)', display: 'flex', gap: 12, alignItems: 'flex-start' }}>
-                            <div style={{ fontSize: 18, display: 'flex', color: 'var(--muted)' }}>{n.type === 'swap_request' ? <SwapIcon size={18} /> : n.type === 'team_invite' ? <HandshakeIcon size={18} /> : <TrophyIcon size={18} />}</div>
+                          <div key={n._id} onClick={() => handleNotifClick(n)} className={`notif-item ${n.read ? '' : 'notif-unread'}`}>
+                            <div className="notif-item-icon">
+                              {n.type === 'swap_request' ? <SwapIcon size={18} /> : n.type === 'team_invite' ? <HandshakeIcon size={18} /> : <TrophyIcon size={18} />}
+                            </div>
                             <div>
-                              <div style={{ fontSize: 13, color: 'var(--ink)', lineHeight: 1.4 }}>{n.message}</div>
-                              <div style={{ fontSize: 11, color: 'var(--muted)', marginTop: 4 }}>{new Date(n.createdAt).toLocaleDateString()}</div>
+                              <div className="notif-item-text">{n.message}</div>
+                              <div className="notif-item-date">{new Date(n.createdAt).toLocaleDateString()}</div>
                             </div>
                           </div>
                         ))
@@ -204,11 +162,10 @@ export default function Navbar() {
                 )}
               </div>
 
-              {/* Avatar dropdown — desktop only */}
-              <div ref={avatarRef} style={{ position: 'relative' }} className="hide-mobile">
+              <div ref={avatarRef} className="hide-mobile nav-dropdown-wrap">
                 <button
                   onClick={() => { setAvatarOpen(!avatarOpen); setMoreOpen(false); setNotifOpen(false); }}
-                  style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer' }}
+                  className="nav-avatar-btn"
                   aria-label="User menu"
                   aria-expanded={avatarOpen}
                 >
@@ -217,28 +174,17 @@ export default function Navbar() {
                   </div>
                 </button>
                 {avatarOpen && (
-                  <div style={dropdownCommon}>
-                    <div style={{ padding: '14px 16px', borderBottom: '1px solid var(--border)' }}>
-                      <div style={{ fontWeight: 700, fontSize: 13, color: 'var(--ink)' }}>{user.name}</div>
-                      <div style={{ fontSize: 11, color: 'var(--muted)' }}>{user.email}</div>
+                  <div className="nav-dropdown">
+                    <div className="nav-dropdown-user">
+                      <div className="nav-dropdown-user-name">{user.name}</div>
+                      <div className="nav-dropdown-user-email">{user.email}</div>
                     </div>
-                    <NavLink
-                      to="/profile"
-                      onClick={() => setAvatarOpen(false)}
-                      style={{ ...dropdownItem, textDecoration: 'none', borderBottom: '1px solid var(--border)' }}
-                      onMouseEnter={(e) => e.currentTarget.style.background = 'var(--accent-light)'}
-                      onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
-                    >
-                      <span style={{ display: 'flex', color: 'var(--ink)' }}><ProfileIcon size={16} /></span>
+                    <NavLink to="/profile" onClick={() => setAvatarOpen(false)} className="nav-dropdown-item nav-dropdown-item-border">
+                      <span className="nav-dropdown-icon"><ProfileIcon size={16} /></span>
                       Profile
                     </NavLink>
-                    <button
-                      onClick={handleLogout}
-                      style={{ ...dropdownItem, borderBottom: 'none', color: 'var(--accent)' }}
-                      onMouseEnter={(e) => e.currentTarget.style.background = 'var(--accent-light)'}
-                      onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
-                    >
-                      <span style={{ display: 'flex' }}><LogoutIcon size={16} /></span>
+                    <button onClick={handleLogout} className="nav-dropdown-item nav-dropdown-logout">
+                      <span className="nav-dropdown-icon"><LogoutIcon size={16} /></span>
                       Logout
                     </button>
                   </div>
@@ -251,8 +197,12 @@ export default function Navbar() {
                 <NavLink to="/" onClick={closeMobileMenu}>Home</NavLink>
                 <a href="/#how" onClick={closeMobileMenu}>How It Works</a>
               </div>
-              <NavLink to="/login" onClick={closeMobileMenu}><button className="btn-cosmos btn-cosmos-ghost" style={{ padding: '8px 20px', fontSize: 11, border: '1.5px solid var(--border)', borderRadius: 6 }}>Sign In</button></NavLink>
-              <NavLink to="/register" onClick={closeMobileMenu}><button className="btn-cosmos btn-cosmos-primary" style={{ padding: '8px 20px', fontSize: 11 }}>Get Started</button></NavLink>
+              <NavLink to="/login" onClick={closeMobileMenu}>
+                <button className="btn-cosmos btn-cosmos-ghost nav-signin-btn">Sign In</button>
+              </NavLink>
+              <NavLink to="/register" onClick={closeMobileMenu}>
+                <button className="btn-cosmos btn-cosmos-primary nav-getstarted-btn">Get Started</button>
+              </NavLink>
             </>
           )}
 
@@ -262,12 +212,7 @@ export default function Navbar() {
         </div>
       </nav>
 
-      {/* Backdrop */}
-      <div
-        className={`nav-backdrop ${mobileMenuOpen ? 'active' : ''}`}
-        onClick={closeMobileMenu}
-        aria-hidden="true"
-      />
+      <div className={`nav-backdrop ${mobileMenuOpen ? 'active' : ''}`} onClick={closeMobileMenu} aria-hidden="true" />
     </>
   );
 }

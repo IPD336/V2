@@ -4,15 +4,10 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const User = require('../models/User');
 const auth = require('../middleware/auth');
+const { AVATAR_COLORS } = require('../constants');
 
 const router = express.Router();
 
-const AVATAR_COLORS = [
-  '#C84B31', '#3A6351', '#3B4F8C', '#B8902A',
-  '#7A5FA8', '#2980b9', '#e67e22', '#16a085',
-];
-
-// POST /api/auth/register
 router.post('/register', async (req, res) => {
   try {
     const { name, email, password, location } = req.body;
@@ -34,7 +29,6 @@ router.post('/register', async (req, res) => {
   }
 });
 
-// POST /api/auth/login
 router.post('/login', async (req, res) => {
   try {
     const { email, password } = req.body;
@@ -58,10 +52,9 @@ router.post('/login', async (req, res) => {
   }
 });
 
-// GET /api/auth/me
 router.get('/me', auth, async (req, res) => {
   try {
-    const user = await User.findById(req.user.id).select('-passwordHash -notifications');
+    const user = await User.findById(req.user.id).select('-passwordHash');
     if (!user) return res.status(404).json({ message: 'User not found' });
     if (user.isBanned) {
       return res.status(403).json({ message: `Your account has been banned. Reason: ${user.banReason || 'No reason provided.'}` });
@@ -72,7 +65,6 @@ router.get('/me', auth, async (req, res) => {
   }
 });
 
-// POST /api/auth/forgot-password
 router.post('/forgot-password', async (req, res) => {
   try {
     const { email } = req.body;
@@ -81,12 +73,13 @@ router.post('/forgot-password', async (req, res) => {
     const user = await User.findOne({ email });
     if (!user) return res.status(404).json({ message: 'No account with that email exists' });
 
-    const token = crypto.randomBytes(32).toString('hex');
-    user.resetPasswordToken = token;
-    user.resetPasswordExpires = Date.now() + 3600000; // 1 hour
+    const rawToken = crypto.randomBytes(32).toString('hex');
+    const hashedToken = crypto.createHash('sha256').update(rawToken).digest('hex');
+    user.resetPasswordToken = hashedToken;
+    user.resetPasswordExpires = Date.now() + 3600000;
     await user.save();
 
-    const resetUrl = `http://localhost:5173/reset-password/${token}`;
+    const resetUrl = `http://localhost:5173/reset-password/${rawToken}`;
     console.log('');
     console.log('╔══════════════════════════════════════════════════╗');
     console.log('║         PASSWORD RESET LINK (dev mode)          ║');
@@ -102,7 +95,6 @@ router.post('/forgot-password', async (req, res) => {
   }
 });
 
-// POST /api/auth/reset-password/:token
 router.post('/reset-password/:token', async (req, res) => {
   try {
     const { password } = req.body;
@@ -110,8 +102,10 @@ router.post('/reset-password/:token', async (req, res) => {
       return res.status(400).json({ message: 'Password must be at least 6 characters' });
     }
 
+    const hashedToken = crypto.createHash('sha256').update(req.params.token).digest('hex');
+
     const user = await User.findOne({
-      resetPasswordToken: req.params.token,
+      resetPasswordToken: hashedToken,
       resetPasswordExpires: { $gt: Date.now() },
     });
 
