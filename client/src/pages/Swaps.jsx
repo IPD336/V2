@@ -4,6 +4,9 @@ import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
 import { useNavigate } from 'react-router-dom';
 import { useSocket } from '../context/SocketContext';
+import { SkeletonRow } from '../components/Skeleton';
+import ConfirmModal from '../components/ConfirmModal';
+import { SwapIcon, MailIcon, SendIcon, CheckIcon, CalendarIcon, VideoIcon } from '../components/Icons';
 
 function timeAgo(date) {
   const diff = Date.now() - new Date(date);
@@ -29,7 +32,7 @@ function ReviewModal({ swap, me, onClose, onDone }) {
     setLoading(true);
     try {
       await api.post('/reviews', { swapId: swap._id, rating, learned, feedback });
-      showToast('Review submitted! ⭐');
+      showToast('Review submitted!');
       onDone();
       onClose();
     } catch (err) {
@@ -60,7 +63,7 @@ function ReviewModal({ swap, me, onClose, onDone }) {
             <label className="form-label">Your Feedback</label>
             <textarea className="form-textarea" placeholder="Was the other person punctual, well-prepared, and engaging?" value={feedback} onChange={(e) => setFeedback(e.target.value)} />
           </div>
-          <button className="btn-modal-primary" type="submit" disabled={loading}>{loading ? 'Submitting…' : 'Submit Review'}</button>
+          <button className="btn-cosmos-primary" type="submit" disabled={loading}>{loading ? 'Submitting…' : 'Submit Review'}</button>
         </form>
       </div>
     </div>
@@ -76,6 +79,9 @@ export default function Swaps() {
   const [tab, setTab] = useState('incoming');
   const [loading, setLoading] = useState(true);
   const [reviewSwap, setReviewSwap] = useState(null);
+  const [showDeleteModal, setShowDeleteModal] = useState(null);
+  const [showCompleteModal, setShowCompleteModal] = useState(null);
+  const [showDeclineCompleteModal, setShowDeclineCompleteModal] = useState(null);
 
   const load = async () => {
     setLoading(true);
@@ -91,26 +97,71 @@ export default function Swaps() {
     markTypeAsRead('swap_request');
   }, []);
 
+  useEffect(() => {
+    const interval = setInterval(load, 30000);
+    return () => clearInterval(interval);
+  }, []);
+
+  useEffect(() => {
+    const onFocus = () => load();
+    window.addEventListener('focus', onFocus);
+    return () => window.removeEventListener('focus', onFocus);
+  }, []);
+
+  const firstNonEmptyTab = (d) => {
+    const order = ['active', 'incoming', 'outgoing', 'completed'];
+    return order.find((k) => d[k].length > 0) || 'incoming';
+  };
+
   const accept = async (id) => {
-    await api.put(`/swaps/${id}/accept`);
-    showToast('Swap accepted! 🎉');
-    load();
+    try {
+      await api.put(`/swaps/${id}/accept`);
+      showToast('Swap accepted!');
+      await load();
+      setTab('active');
+    } catch { showToast('Failed to accept swap', 'error'); }
   };
   const decline = async (id) => {
-    await api.put(`/swaps/${id}/decline`);
-    showToast('Swap declined', 'error');
-    load();
+    try {
+      await api.put(`/swaps/${id}/decline`);
+      showToast('Swap declined', 'error');
+      await load();
+      setTab(firstNonEmptyTab(data));
+    } catch { showToast('Failed to decline swap', 'error'); }
   };
-  const del = async (id) => {
-    if (!confirm('Delete this swap request?')) return;
-    await api.delete(`/swaps/${id}`);
-    showToast('Request deleted');
-    load();
+  const handleDelete = async () => {
+    const id = showDeleteModal;
+    setShowDeleteModal(null);
+    try {
+      await api.delete(`/swaps/${id}`);
+      showToast('Request deleted');
+      await load();
+      setTab(firstNonEmptyTab(data));
+    } catch { showToast('Failed to delete request', 'error'); }
   };
   const complete = async (id) => {
-    await api.put(`/swaps/${id}/complete`);
-    showToast('Swap marked complete! 🎉');
-    load();
+    setShowCompleteModal(null);
+    try {
+      await api.put(`/swaps/${id}/complete`);
+      showToast('Swap marked complete!');
+      await load();
+    } catch { showToast('Failed to mark complete', 'error'); }
+  };
+  const confirmComplete = async (id) => {
+    try {
+      await api.put(`/swaps/${id}/confirm-complete`);
+      showToast('Swap confirmed!');
+      await load();
+    } catch { showToast('Failed to confirm completion', 'error'); }
+  };
+  const handleDeclineComplete = async () => {
+    const id = showDeclineCompleteModal;
+    setShowDeclineCompleteModal(null);
+    try {
+      await api.put(`/swaps/${id}/decline-complete`);
+      showToast('Completion request declined');
+      await load();
+    } catch { showToast('Failed to decline completion', 'error'); }
   };
 
   const tabs = [
@@ -123,7 +174,7 @@ export default function Swaps() {
   const getOther = (swap) => swap.sender?._id === me?._id ? swap.receiver : swap.sender;
 
   return (
-    <div className="page" style={{ background: 'var(--cream)' }}>
+    <div className="page bg-gradient-subtle page-fade-in">
       <div className="container">
         <div className="swaps-layout" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 64, paddingTop: 48, paddingBottom: 80, alignItems: 'start' }}>
           {/* Left */}
@@ -151,13 +202,30 @@ export default function Swaps() {
               ))}
             </div>
 
-            {loading ? <div className="spinner" /> : (
+            {loading ? <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>{[1,2,3,4].map((n) => <SkeletonRow key={n} />)}</div> : (
               <div className="swap-list">
                 {data[tab].length === 0 && (
                   <div className="empty-state">
-                    <div className="empty-state-icon">📭</div>
-                    <h3>Nothing here yet</h3>
-                    <p>Your {tab} swaps will appear here.</p>
+                    <div className="empty-state-icon">{
+                      tab === 'incoming' ? <MailIcon size={32} /> :
+                      tab === 'outgoing' ? <SendIcon size={32} /> :
+                      tab === 'active' ? <SwapIcon size={32} /> : <CheckIcon size={32} />
+                    }</div>
+                    <h3>{
+                      tab === 'incoming' ? 'No incoming requests' :
+                      tab === 'outgoing' ? 'No outgoing requests' :
+                      tab === 'active' ? 'No active swaps' : 'No completed swaps'
+                    }</h3>
+                    <p>{
+                      tab === 'incoming' ? 'When someone sends you a swap request, it will appear here.' :
+                      tab === 'outgoing' ? 'Browse the community and send your first swap request!' :
+                      tab === 'active' ? 'Accept an incoming swap to start collaborating.' : 'Completed swaps will show up here after both parties confirm.'
+                    }</p>
+                    {(tab === 'outgoing' || tab === 'incoming') && (
+                      <button className="btn-cosmos btn-cosmos-primary" onClick={() => navigate('/browse')} style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '10px 20px', fontSize: 11 }}>
+                        Browse Members
+                      </button>
+                    )}
                   </div>
                 )}
 
@@ -176,12 +244,15 @@ export default function Swaps() {
                           <span className="hide-desktop">→</span>
                           <span className="swap-skill-tag green">{s.skillWanted}</span>
                         </div>
+                        {s.schedule && <div style={{ fontSize: 11, color: 'var(--muted)', marginTop: 4, display: 'flex', alignItems: 'center', gap: 3 }}><CalendarIcon size={12} />{s.schedule}</div>}
+                        {s.format && <div style={{ fontSize: 11, color: 'var(--muted)', display: 'flex', alignItems: 'center', gap: 3 }}><VideoIcon size={12} />{s.format}</div>}
+                        {s.message && <div style={{ fontSize: 11, color: 'var(--muted)', fontStyle: 'italic', marginTop: 2, maxWidth: '100%', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>" {s.message}"</div>}
                       </div>
                       <div className="swap-time hide-mobile">{timeAgo(s.createdAt)}</div>
                       <div className="swap-actions">
-                        <button className="btn-ghost hide-mobile" style={{ padding: '7px 14px', fontSize: 11 }} onClick={() => navigate(`/profile/${other?._id}`)}>Profile</button>
-                        <button className="btn-accept" onClick={() => accept(s._id)}>Accept</button>
-                        <button className="btn-decline" onClick={() => decline(s._id)}>Decline</button>
+                        <button className="btn-ghost" style={{ padding: '7px 14px', fontSize: 11 }} onClick={() => navigate(`/profile/${other?._id}`)}>Profile</button>
+                        <button className="btn-cosmos-primary" onClick={() => accept(s._id)} style={{ padding: '7px 14px', fontSize: 11, fontWeight: 700 }}>Accept</button>
+                        <button className="btn-cosmos-ghost" onClick={() => decline(s._id)} style={{ padding: '7px 14px', fontSize: 11, fontWeight: 700 }}>Decline</button>
                       </div>
                     </div>
                   );
@@ -202,11 +273,14 @@ export default function Swaps() {
                           <span className="hide-desktop">→</span>
                           <span className="swap-skill-tag">{s.skillWanted}</span>
                         </div>
+                        {s.schedule && <div style={{ fontSize: 11, color: 'var(--muted)', marginTop: 4, display: 'flex', alignItems: 'center', gap: 3 }}><CalendarIcon size={12} />{s.schedule}</div>}
+                        {s.format && <div style={{ fontSize: 11, color: 'var(--muted)', display: 'flex', alignItems: 'center', gap: 3 }}><VideoIcon size={12} />{s.format}</div>}
+                        {s.message && <div style={{ fontSize: 11, color: 'var(--muted)', fontStyle: 'italic', marginTop: 2, maxWidth: '100%', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>" {s.message}"</div>}
                       </div>
                       <div className="swap-time hide-mobile"><span className="status-badge status-pending">Pending</span></div>
                       <div className="swap-actions">
-                        <button className="btn-ghost hide-mobile" style={{ padding: '7px 14px', fontSize: 11 }} onClick={() => navigate(`/profile/${other?._id}`)}>Profile</button>
-                        <button className="btn-delete" onClick={() => del(s._id)}>Delete</button>
+                        <button className="btn-ghost" style={{ padding: '7px 14px', fontSize: 11 }} onClick={() => navigate(`/profile/${other?._id}`)}>Profile</button>
+                        <button className="btn-cosmos-ghost" onClick={() => setShowDeleteModal(s._id)} style={{ padding: '7px 14px', fontSize: 11, fontWeight: 700 }}>Delete</button>
                       </div>
                     </div>
                   );
@@ -229,6 +303,8 @@ export default function Swaps() {
                           <span>↔</span>
                           <span className="swap-skill-tag green">{s.skillWanted}</span>
                         </div>
+                        {s.schedule && <div style={{ fontSize: 11, color: 'var(--muted)', marginTop: 4, display: 'flex', alignItems: 'center', gap: 3 }}><CalendarIcon size={12} />{s.schedule}</div>}
+                        {s.format && <div style={{ fontSize: 11, color: 'var(--muted)', display: 'flex', alignItems: 'center', gap: 3 }}><VideoIcon size={12} />{s.format}</div>}
                       </div>
                       <div className="swap-time hide-mobile">
                         {isPending ? (
@@ -238,15 +314,18 @@ export default function Swaps() {
                         )}
                       </div>
                       <div className="swap-actions">
-                        <button className="btn-ghost hide-mobile" style={{ padding: '7px 14px', fontSize: 11 }} onClick={() => navigate(`/profile/${other?._id}`)}>Profile</button>
+                        <button className="btn-ghost" style={{ padding: '7px 14px', fontSize: 11 }} onClick={() => navigate(`/profile/${other?._id}`)}>Profile</button>
                         {isPending ? (
                           hasRequested ? (
                             <span style={{ fontSize: 11, color: 'var(--muted)', fontWeight: 600 }}>Requested</span>
                           ) : (
-                            <button className="btn-accept" style={{ fontSize: 11 }} onClick={() => navigate('/workspaces')}>Respond in Workspace</button>
+                            <span style={{ display: 'flex', gap: 6 }}>
+                              <button className="btn-cosmos-primary" style={{ fontSize: 11, padding: '7px 10px', fontWeight: 700 }} onClick={() => confirmComplete(s._id)}>Confirm</button>
+                              <button className="btn-cosmos-ghost" style={{ fontSize: 11, padding: '7px 10px', fontWeight: 700 }} onClick={() => setShowDeclineCompleteModal(s._id)}>Not Yet</button>
+                            </span>
                           )
                         ) : (
-                          <button className="btn-review" onClick={() => complete(s._id)}>Mark Done</button>
+                          <button className="btn-cosmos-ghost" onClick={() => setShowCompleteModal(s._id)} style={{ padding: '7px 14px', fontSize: 11, fontWeight: 700 }}>Mark Done</button>
                         )}
                       </div>
                     </div>
@@ -267,11 +346,13 @@ export default function Swaps() {
                           <span>↔</span>
                           <span className="swap-skill-tag green">{s.skillWanted}</span>
                         </div>
+                        {s.schedule && <div style={{ fontSize: 11, color: 'var(--muted)', marginTop: 4, display: 'flex', alignItems: 'center', gap: 3 }}><CalendarIcon size={12} />{s.schedule}</div>}
+                        {s.format && <div style={{ fontSize: 11, color: 'var(--muted)', display: 'flex', alignItems: 'center', gap: 3 }}><VideoIcon size={12} />{s.format}</div>}
                       </div>
                       <div className="swap-time hide-mobile"><span className="status-badge status-done">Done</span></div>
                       <div className="swap-actions">
-                        <button className="btn-review hide-mobile" onClick={() => navigate(`/profile/${other?._id}`)}>Profile</button>
-                        <button className="btn-review" onClick={() => setReviewSwap(s)}>Review</button>
+                        <button className="btn-cosmos-ghost" onClick={() => navigate(`/profile/${other?._id}`)} style={{ padding: '7px 14px', fontSize: 11, fontWeight: 700 }}>Profile</button>
+                        <button className="btn-cosmos-ghost" onClick={() => setReviewSwap(s)} style={{ padding: '7px 14px', fontSize: 11, fontWeight: 700 }}>Review</button>
                       </div>
                     </div>
                   );
@@ -285,6 +366,30 @@ export default function Swaps() {
       {reviewSwap && (
         <ReviewModal swap={reviewSwap} me={me} onClose={() => setReviewSwap(null)} onDone={load} />
       )}
+      <ConfirmModal
+        open={showDeleteModal !== null}
+        title="Delete Request"
+        message="Delete this swap request? This cannot be undone."
+        confirmLabel="Delete"
+        onConfirm={handleDelete}
+        onCancel={() => setShowDeleteModal(null)}
+      />
+      <ConfirmModal
+        open={showCompleteModal !== null}
+        title="Mark Complete?"
+        message="Confirm that you've completed your part of the swap?"
+        confirmLabel="Mark Complete"
+        onConfirm={() => complete(showCompleteModal)}
+        onCancel={() => setShowCompleteModal(null)}
+      />
+      <ConfirmModal
+        open={showDeclineCompleteModal !== null}
+        title="Decline Completion?"
+        message="Decline the completion request? The swap will remain active."
+        confirmLabel="Decline"
+        onConfirm={handleDeclineComplete}
+        onCancel={() => setShowDeclineCompleteModal(null)}
+      />
     </div>
   );
 }

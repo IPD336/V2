@@ -4,10 +4,9 @@ import api from '../api/axios';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
 import { useSocket } from '../context/SocketContext';
-
-function initials(name = '') {
-  return name.split(' ').map((w) => w[0]).join('').toUpperCase().slice(0, 2);
-}
+import { initials } from '../utils';
+import { SkeletonCard } from '../components/Skeleton';
+import { MailIcon, SearchIcon, RocketIcon } from '../components/Icons';
 
 function CreateTeamModal({ onClose, onCreated }) {
   const { showToast } = useToast();
@@ -20,7 +19,7 @@ function CreateTeamModal({ onClose, onCreated }) {
     setLoading(true);
     try {
       const res = await api.post('/teams', form);
-      showToast('Team created! 🎉');
+      showToast('Team created!');
       onCreated(res.data);
       onClose();
     } catch (err) {
@@ -55,7 +54,7 @@ function CreateTeamModal({ onClose, onCreated }) {
               <option value={4}>4 People</option>
             </select>
           </div>
-          <button className="btn-modal-primary" type="submit" disabled={loading}>
+          <button className="btn-cosmos-primary" type="submit" disabled={loading}>
             {loading ? 'Creating…' : 'Create Team →'}
           </button>
         </form>
@@ -118,12 +117,16 @@ export default function Teams() {
   const [showCreate, setShowCreate] = useState(false);
 
   const loadOpen = async () => {
-    const res = await api.get('/teams');
-    setOpenTeams(res.data);
+    try {
+      const res = await api.get('/teams');
+      setOpenTeams(res.data);
+    } catch { showToast('Failed to load teams', 'error'); }
   };
   const loadMine = async () => {
-    const res = await api.get('/teams', { params: { mine: true } });
-    setMyTeams(res.data);
+    try {
+      const res = await api.get('/teams', { params: { mine: true } });
+      setMyTeams(res.data);
+    } catch { showToast('Failed to load your teams', 'error'); }
   };
 
   useEffect(() => {
@@ -132,12 +135,18 @@ export default function Teams() {
     markTypeAsRead('team_invite');
   }, []);
 
+  useEffect(() => {
+    const onFocus = () => { loadOpen(); loadMine(); };
+    window.addEventListener('focus', onFocus);
+    return () => window.removeEventListener('focus', onFocus);
+  }, []);
+
   const pendingInvites = myTeams.filter((t) =>
     t.members.some((m) => m.user?._id === me?._id && m.status === 'invited')
   );
 
   return (
-    <div className="page" style={{ background: 'var(--cream)' }}>
+    <div className="page bg-gradient-subtle page-fade-in">
       <div className="container">
         <div className="teams-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', paddingTop: 48, marginBottom: 32, flexWrap: 'wrap', gap: 24 }}>
           <div>
@@ -147,14 +156,14 @@ export default function Teams() {
               Form invite-only groups of 2–4. Define your purpose, invite your people, and close entries once you're full.
             </p>
           </div>
-          <button className="btn-accent" style={{ padding: '12px 24px', flexShrink: 0 }} onClick={() => setShowCreate(true)}>
+          <button className="btn-cosmos btn-cosmos-primary" style={{ padding: '12px 24px', flexShrink: 0 }} onClick={() => setShowCreate(true)}>
             + Create Team
           </button>
         </div>
 
         {pendingInvites.length > 0 && (
           <div style={{ background: 'var(--gold-light)', border: '1px solid var(--gold)', borderRadius: 12, padding: '16px 20px', marginBottom: 28, display: 'flex', alignItems: 'center', gap: 12 }}>
-            <span style={{ fontSize: 20 }}>📨</span>
+            <span style={{ fontSize: 20, display: 'flex', color: 'var(--gold)' }}><MailIcon size={20} /></span>
             <div>
               <strong style={{ color: 'var(--ink)' }}>You have {pendingInvites.length} pending team invite{pendingInvites.length > 1 ? 's' : ''}!</strong>
               <div style={{ fontSize: 12, color: 'var(--muted)', marginTop: 2 }}>Click "My Teams" tab to respond.</div>
@@ -171,14 +180,15 @@ export default function Teams() {
           </button>
         </div>
 
-        {loading ? <div className="spinner" /> : (
+        {loading ? <div className="cards-grid">{[1,2,3,4].map((n) => <SkeletonCard key={n} />)}</div> : (
           <div className="cards-grid">
             {tab === 'browse' && (
               openTeams.length === 0 ? (
                 <div className="empty-state" style={{ gridColumn: '1/-1' }}>
-                  <div className="empty-state-icon">👥</div>
+                  <div className="empty-state-icon"><RocketIcon size={32} /></div>
                   <h3>No open teams yet</h3>
-                  <p>Be the first to create one!</p>
+                  <p>There are no teams looking for members right now. Create one and invite the people you'd like to work with!</p>
+                  <button className="btn-accent" onClick={() => setShowCreate(true)}>Create Team →</button>
                 </div>
               ) : openTeams.map((t) => (
                 <TeamCard key={t._id} team={t} me={me} onClick={() => navigate(`/teams/${t._id}`)} />
@@ -187,10 +197,13 @@ export default function Teams() {
             {tab === 'mine' && (
               myTeams.length === 0 ? (
                 <div className="empty-state" style={{ gridColumn: '1/-1' }}>
-                  <div className="empty-state-icon">🤝</div>
-                  <h3>No teams yet</h3>
-                  <p>Create one or wait for an invite.</p>
-                  <button className="btn-accent" onClick={() => setShowCreate(true)}>Create Team</button>
+                  <div className="empty-state-icon"><SearchIcon size={32} /></div>
+                  <h3>You haven't joined any teams</h3>
+                  <p>Teams are invite-only. Create your own team or wait for someone to invite you! Check the Browse tab for open teams.</p>
+                  <div style={{ display: 'flex', gap: 12, justifyContent: 'center' }}>
+                  <button className="btn-cosmos-primary" onClick={() => setShowCreate(true)}>Create Team →</button>
+                    <button className="btn-ghost" onClick={() => setTab('browse')}>Browse Teams</button>
+                  </div>
                 </div>
               ) : myTeams.map((t) => (
                 <TeamCard key={t._id} team={t} me={me} onClick={() => navigate(`/teams/${t._id}`)} />

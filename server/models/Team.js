@@ -2,7 +2,7 @@ const mongoose = require('mongoose');
 
 const memberSchema = new mongoose.Schema({
   user: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
-  status: { type: String, enum: ['invited', 'accepted'], default: 'invited' },
+  status: { type: String, enum: ['invited', 'accepted', 'requested'], default: 'invited' },
   joinedAt: { type: Date },
 });
 

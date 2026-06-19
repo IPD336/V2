@@ -115,28 +115,73 @@ router.post('/:id/invite', auth, async (req, res) => {
   }
 });
 
-// PUT /api/teams/:id/respond  — invited user accepts or declines
+// POST /api/teams/:id/join  — user requests to join an open team
+router.post('/:id/join', auth, async (req, res) => {
+  try {
+    const team = await Team.findById(req.params.id);
+    if (!team) return res.status(404).json({ message: 'Team not found' });
+    if (team.status === 'closed') return res.status(400).json({ message: 'Team is full' });
+
+    const already = team.members.find((m) => m.user.toString() === req.user.id.toString());
+    if (already) return res.status(409).json({ message: already.status === 'requested' ? 'Join request already sent' : 'You are already a member of this team' });
+
+    team.members.push({ user: req.user.id, status: 'requested' });
+    await team.save();
+
+    // Notify creator
+    const creatorUser = await User.findById(team.creator);
+    const requester = await User.findById(req.user.id).select('name');
+    if (creatorUser && requester) {
+      const notif = {
+        type: 'team_invite',
+        message: `${requester.name} wants to join ${team.name}`,
+        relatedId: team._id,
+        createdAt: new Date()
+      };
+      creatorUser.notifications.push(notif);
+      await creatorUser.save();
+      socket.sendNotification(team.creator, creatorUser.notifications[creatorUser.notifications.length - 1]);
+    }
+
+    await team.populate('members.user', 'name avatarColor avatarUrl');
+    res.json(team);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
+// PUT /api/teams/:id/respond  — invited user accepts/declines, or creator accepts/declines join requests
 router.put('/:id/respond', auth, async (req, res) => {
   try {
-    const { action } = req.body; // 'accept' | 'decline'
+    const { action, userId } = req.body; // action: 'accept' | 'decline', userId: optional (for creator responding to join request)
     if (!['accept', 'decline'].includes(action))
       return res.status(400).json({ message: 'action must be accept or decline' });
 
     const team = await Team.findById(req.params.id);
     if (!team) return res.status(404).json({ message: 'Team not found' });
 
-    const memberEntry = team.members.find(
-      (m) => m.user.toString() === req.user.id.toString() && m.status === 'invited'
-    );
-    if (!memberEntry)
-      return res.status(404).json({ message: 'No pending invite found for you' });
+    let memberEntry;
+
+    if (userId && team.creator.toString() === req.user.id.toString()) {
+      // Creator responding to a join request
+      memberEntry = team.members.find(
+        (m) => m.user.toString() === userId && m.status === 'requested'
+      );
+      if (!memberEntry) return res.status(404).json({ message: 'No join request found for this user' });
+    } else {
+      // User responding to an invite
+      memberEntry = team.members.find(
+        (m) => m.user.toString() === req.user.id.toString() && m.status === 'invited'
+      );
+      if (!memberEntry) return res.status(404).json({ message: 'No pending invite found for you' });
+    }
 
     if (action === 'accept') {
       memberEntry.status = 'accepted';
       memberEntry.joinedAt = new Date();
     } else {
       // Remove from members list
-      team.members = team.members.filter((m) => m.user.toString() !== req.user.id.toString());
+      team.members = team.members.filter((m) => m._id !== memberEntry._id);
     }
 
     await team.save(); // pre-save hook auto-closes if full

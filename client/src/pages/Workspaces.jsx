@@ -3,6 +3,8 @@ import api from '../api/axios';
 import { useAuth } from '../context/AuthContext';
 import { useSocket } from '../context/SocketContext';
 import { useToast } from '../context/ToastContext';
+import Confetti from '../components/Confetti';
+import { RocketIcon, CheckIcon, SendIcon, TargetIcon } from '../components/Icons';
 
 export default function Workspaces() {
   const { user } = useAuth();
@@ -16,6 +18,7 @@ export default function Workspaces() {
   const [loading, setLoading] = useState(true);
   const scrollRef = useRef(null);
   const [showCompletionModal, setShowCompletionModal] = useState(false);
+  const [showConfetti, setShowConfetti] = useState(false);
   const [completedSkill, setCompletedSkill] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('Frontend');
   // Track which rooms have unread messages (Set of room IDs)
@@ -94,7 +97,7 @@ export default function Workspaces() {
   // Load message history when selection changes
   useEffect(() => {
     if (selected) {
-      api.get(`/messages/${selected.id}`).then(res => setMessages(res.data)).catch(() => { });
+      api.get(`/messages/${selected.id}`).then(res => setMessages(res.data)).catch(() => showToast('Failed to load messages', 'error'));
     }
   }, [selected]);
 
@@ -119,7 +122,7 @@ export default function Workspaces() {
     if (!selected || selected.type !== 'swap') return;
     try {
       await api.put(`/swaps/${selected.id}/complete`);
-      showToast('Completion request sent! 🏆');
+      showToast('Completion request sent!');
       
       // Refresh list to show pending state
       const res = await api.get('/swaps');
@@ -132,7 +135,9 @@ export default function Workspaces() {
   const handleConfirmComplete = async () => {
     try {
       await api.put(`/swaps/${selected.id}/confirm-complete`);
-      showToast('Swap confirmed as completed! 🎉');
+      showToast('Swap confirmed as completed!');
+      setShowConfetti(true);
+      setTimeout(() => setShowConfetti(false), 3000);
       
       const swap = activeSwaps.find(s => String(s._id) === String(selected.id));
       if (!swap) return;
@@ -164,7 +169,7 @@ export default function Workspaces() {
     try {
       const updatedSkills = [...(user.skillsOffered || []), { name: completedSkill, category: selectedCategory }];
       await api.put(`/users/${user._id}`, { skillsOffered: updatedSkills });
-      showToast(`${completedSkill} added to your offered skills! 🚀`);
+      showToast(`${completedSkill} added to your offered skills!`);
       setShowCompletionModal(false);
     } catch (err) {
       showToast('Failed to add skill', 'error');
@@ -224,16 +229,27 @@ export default function Workspaces() {
       : activeTeams.find(t => String(t._id) === String(selected.id))?.goals || [])
     : [];
 
-  if (loading) return <div className="spinner" />;
+  if (loading) return (
+    <div className="page bg-gradient-subtle page-fade-in" style={{ height: '100vh', display: 'flex', gap: 32, padding: '100px 40px' }}>
+      <div style={{ width: 260, flexShrink: 0 }}>
+        <div className="skeleton" style={{ width: '100%', height: 40, borderRadius: 8, marginBottom: 20 }} />
+        {[1,2,3].map((n) => <div key={n} className="skeleton" style={{ width: '100%', height: 52, borderRadius: 8, marginBottom: 8 }} />)}
+      </div>
+      <div style={{ flex: 1 }}>
+        <div className="skeleton" style={{ width: '60%', height: 32, borderRadius: 8, marginBottom: 16 }} />
+        <div className="skeleton" style={{ width: '100%', height: 200, borderRadius: 16, marginBottom: 12 }} />
+        <div className="skeleton" style={{ width: '100%', height: 120, borderRadius: 16 }} />
+      </div>
+    </div>
+  );
 
   return (
-    <div className="workspace-page" style={{
+    <div className="workspace-page page bg-gradient-subtle" style={{
       height: '100vh',
       display: 'flex',
       flexDirection: 'column',
       overflow: 'hidden',
       paddingTop: 68, // Match Navbar height
-      background: 'var(--cream)'
     }}>
       <div style={{ display: 'flex', flex: 1, overflow: 'hidden' }}>
 
@@ -340,7 +356,17 @@ export default function Workspaces() {
                   <button className="btn-ghost hide-desktop" style={{ padding: '6px 10px', flexShrink: 0 }} onClick={() => setSelected(null)}>←</button>
                   <div style={{ minWidth: 0 }}>
                     <div style={{ fontSize: 16, fontWeight: 700, color: 'var(--ink)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{selected.name}</div>
-                    <div style={{ fontSize: 11, color: 'var(--muted)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{selected.detail}</div>
+                      <div style={{ fontSize: 11, color: 'var(--muted)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{selected.detail}</div>
+                      {selected.type === 'swap' && (() => {
+                        const s = activeSwaps.find(sw => String(sw._id) === String(selected.id));
+                        if (!s) return null;
+                        return (
+                          <div style={{ fontSize: 10, color: 'var(--muted)', display: 'flex', gap: 8, marginTop: 2 }}>
+                            {s.schedule && <span>📅 {s.schedule}</span>}
+                            {s.format && <span>🎥 {s.format}</span>}
+                          </div>
+                        );
+                      })()}
                   </div>
                 </div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0 }}>
@@ -364,13 +390,13 @@ export default function Workspaces() {
                         <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--gold)', background: 'var(--gold-light)', padding: '4px 8px', borderRadius: 6 }}>Waiting...</div>
                       ) : (
                         <div style={{ display: 'flex', gap: 6 }}>
-                          <button className="btn-modal-primary" style={{ fontSize: 11, width: 'auto', padding: '5px 10px', marginTop: 0 }} onClick={handleConfirmComplete}>Confirm</button>
-                          <button className="btn-decline" style={{ fontSize: 11, padding: '5px 10px' }} onClick={handleDeclineComplete}>Not Yet</button>
+                          <button className="btn-cosmos-primary" style={{ fontSize: 11, width: 'auto', padding: '5px 10px', marginTop: 0 }} onClick={handleConfirmComplete}>Confirm</button>
+                          <button className="btn-cosmos-ghost" style={{ fontSize: 11, padding: '5px 10px' }} onClick={handleDeclineComplete}>Not Yet</button>
                         </div>
                       );
                     }
                     return (
-                      <button className="btn-modal-primary" style={{ fontSize: 12, width: 'auto', padding: '6px 12px', marginTop: 0, flexShrink: 0 }} onClick={handleComplete}>✓ Complete</button>
+                      <button className="btn-cosmos-primary" style={{ fontSize: 12, width: 'auto', padding: '6px 12px', marginTop: 0, flexShrink: 0 }} onClick={handleComplete}>✓ Complete</button>
                     );
                   })()}
                 </div>
@@ -429,16 +455,16 @@ export default function Workspaces() {
                     value={newMessage}
                     onChange={(e) => setNewMessage(e.target.value)}
                   />
-                  <button type="submit" className="btn-accent" style={{ width: 44, height: 44, borderRadius: '50%', padding: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                    ✈
+                  <button type="submit" style={{ width: 44, height: 44, borderRadius: '50%', padding: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, background: 'var(--accent)', color: 'white', border: 'none', cursor: 'pointer', transition: 'all .2s' }}>
+                    <SendIcon size={18} />
                   </button>
                 </form>
               </div>
             </>
           ) : (
             <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', color: 'var(--muted)', background: 'var(--cream)' }}>
-              <div style={{ width: 120, height: 120, background: 'var(--card-bg)', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 48, marginBottom: 24, boxShadow: 'var(--shadow)' }}>
-                🚀
+              <div style={{ width: 120, height: 120, background: 'var(--card-bg)', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 24, boxShadow: 'var(--shadow)' }}>
+                <RocketIcon size={48} />
               </div>
               <h3 style={{ fontSize: 24, fontWeight: 700, color: 'var(--ink)', marginBottom: 8 }}>Select a Workspace</h3>
               <p style={{ maxWidth: 320, textAlign: 'center' }}>Choose a swap or team from the sidebar to start sharing skills and collaborating!</p>
@@ -450,7 +476,7 @@ export default function Workspaces() {
         {selected && (
           <div style={{ width: 320, borderLeft: '1px solid var(--border)', background: 'var(--card-bg)', padding: 24, display: 'flex', flexDirection: 'column', flexShrink: 0 }} className="hide-mobile">
             <div style={{ flex: 1, overflowY: 'auto' }}>
-              <h4 style={{ fontSize: 11, textTransform: 'uppercase', letterSpacing: 2, color: 'var(--muted)', marginBottom: 16 }}>🎯 Collaborative Goals</h4>
+              <h4 style={{ fontSize: 11, textTransform: 'uppercase', letterSpacing: 2, color: 'var(--muted)', marginBottom: 16, display: 'flex', alignItems: 'center', gap: 6 }}><TargetIcon size={14} />Collaborative Goals</h4>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginBottom: 20 }}>
                 {currentGoals.map(goal => (
                   <div
@@ -504,7 +530,7 @@ export default function Workspaces() {
             {/* Goals header with back button */}
             <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '12px 16px', borderBottom: '1px solid var(--border)', background: 'var(--card-bg)', position: 'sticky', top: 0, zIndex: 1 }}>
               <button className="btn-ghost" style={{ padding: '6px 12px', fontSize: 12 }} onClick={() => setMobileTab('chat')}>← Chat</button>
-              <h4 style={{ fontSize: 13, fontWeight: 700, color: 'var(--ink)', margin: 0 }}>🎯 Goals</h4>
+              <h4 style={{ fontSize: 13, fontWeight: 700, color: 'var(--ink)', margin: 0, display: 'flex', alignItems: 'center', gap: 6 }}><TargetIcon size={16} />Goals</h4>
             </div>
             <div style={{ padding: 20, flex: 1 }}>
 
@@ -538,8 +564,8 @@ export default function Workspaces() {
       {/* Completion Modal */}
       {showCompletionModal && (
         <div className="modal-overlay active">
-          <div className="modal-content" style={{ maxWidth: 450, textAlign: 'center', padding: 40, background: 'var(--card-bg)', borderRadius: 20, boxShadow: 'var(--shadow-lg)', position: 'relative' }}>
-            <div style={{ fontSize: 64, marginBottom: 20 }}>🎉</div>
+          <div className="modal-content" style={{ maxWidth: 450, textAlign: 'center', padding: 40, background: 'var(--card-bg)', borderRadius: 16, boxShadow: 'var(--shadow-lg)', position: 'relative' }}>
+            <div style={{ marginBottom: 20 }}><CheckIcon size={64} style={{ color: 'var(--accent)' }} /></div>
             <h2 style={{ fontSize: 24, fontWeight: 700, marginBottom: 12, color: 'var(--ink)' }}>Congratulations!</h2>
             <p style={{ color: 'var(--muted)', lineHeight: 1.6, marginBottom: 32 }}>
               You've successfully completed your swap and learned <strong>{completedSkill}</strong>.
@@ -559,12 +585,14 @@ export default function Workspaces() {
             </div>
 
             <div style={{ display: 'flex', gap: 12 }}>
-              <button className="btn-modal-primary" style={{ marginTop: 0 }} onClick={handleAddSkill}>Yes, add it! 🚀</button>
+              <button className="btn-cosmos-primary" style={{ marginTop: 0 }} onClick={handleAddSkill}>Yes, add it!</button>
               <button className="btn-ghost" onClick={() => setShowCompletionModal(false)}>Not now</button>
             </div>
           </div>
         </div>
       )}
+
+      <Confetti active={showConfetti} />
     </div>
   );
 }

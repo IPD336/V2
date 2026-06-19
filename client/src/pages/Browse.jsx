@@ -1,20 +1,12 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '../api/axios';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
 import SwapRequestModal from '../components/SwapRequestModal';
-
-const CATEGORIES = ['All', 'Frontend', 'Backend', 'DevOps', 'Data Science', 'Mobile', 'AI/ML', 'Programming Languages'];
-const COLORS = { 0: '#C84B31', 1: '#3A6351', 2: '#3B4F8C', 3: '#B8902A', 4: '#7A5FA8', 5: '#2980b9' };
-
-function initials(name = '') {
-  return name.split(' ').map((w) => w[0]).join('').toUpperCase().slice(0, 2);
-}
-
-function stars(n) {
-  return '★'.repeat(Math.round(n)) + '☆'.repeat(5 - Math.round(n));
-}
+import { SkeletonCard } from '../components/Skeleton';
+import { COLORS, CATEGORIES, initials, stars } from '../utils';
+import { SearchIcon, PinIcon, ClockIcon, DiamondIcon, TrophyIcon } from '../components/Icons';
 
 function ProfileCard({ user, onSwap, onSave, saved }) {
   const navigate = useNavigate();
@@ -26,11 +18,22 @@ function ProfileCard({ user, onSwap, onSave, saved }) {
       <div className="card-body">
         <div className="card-avatar-wrap">
           <div className="card-avatar" style={{ background: user.avatarUrl ? `url(${user.avatarUrl}) center/cover` : color }}>
-            {!user.avatarUrl && initials(user.name)}
+            {user.avatarUrl ? <img src={user.avatarUrl} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: 12 }} loading="lazy" /> : initials(user.name)}
           </div>
-          {user.mutualMatch
-            ? <span className="card-badge badge-mutual">⇄ Mutual Match</span>
-            : <span className="card-badge badge-public">● Public</span>}
+          <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap' }}>
+            {user.mutualMatch && <span className="card-badge badge-mutual">⇄ Mutual</span>}
+            {user.matchScore > 0 ? (
+              <span className="card-badge" style={{
+                background: user.matchScore >= 80 ? 'rgba(200,75,49,0.12)' : user.matchScore >= 60 ? 'rgba(58,99,81,0.12)' : user.matchScore >= 40 ? 'rgba(185,144,42,0.12)' : 'rgba(122,114,104,0.12)',
+                color: user.matchScore >= 80 ? 'var(--accent)' : user.matchScore >= 60 ? 'var(--sage)' : user.matchScore >= 40 ? 'var(--gold)' : 'var(--muted)',
+                fontWeight: 800, fontSize: 10,
+              }}>
+                {user.matchScore}% Match
+              </span>
+            ) : (
+              <span className="card-badge badge-public">● Public</span>
+            )}
+          </div>
         </div>
         <div className="card-name" style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
           {user.name}
@@ -39,11 +42,11 @@ function ProfileCard({ user, onSwap, onSave, saved }) {
               background: user.league.color + '20', color: user.league.name === 'Diamond' ? '#00E5FF' : user.league.name === 'Platinum' ? '#8e9eab' : user.league.color,
               padding: '2px 8px', borderRadius: 12, fontSize: 10, fontWeight: 800, border: `1px solid ${user.league.color}`, display: 'flex', alignItems: 'center', gap: 4
             }}>
-              {user.league.name === 'Diamond' ? '💎' : user.league.name === 'Platinum' ? '✨' : user.league.name === 'Gold' ? '🏆' : user.league.name === 'Silver' ? '🥈' : '🥉'} {user.league.name}
+              {user.league.name === 'Diamond' ? <DiamondIcon size={12} /> : user.league.name === 'Gold' ? <TrophyIcon size={12} /> : null} {user.league.name}
             </span>
           )}
         </div>
-        {user.location && <div className="card-loc">📍 {user.location}</div>}
+        {user.location && <div className="card-loc"><PinIcon size={12} /> {user.location}</div>}
         <div className="card-rating">
           <span className="card-stars">{stars(user.rating || 0)}</span>
           <span className="card-score">{user.rating?.toFixed(1) || '—'}</span>
@@ -72,7 +75,7 @@ function ProfileCard({ user, onSwap, onSave, saved }) {
             </div>
           </>
         )}
-        <div className="avail-row">🕐 <strong>{user.availability}</strong></div>
+        <div className="avail-row"><ClockIcon size={12} /> <strong>{user.availability}</strong></div>
         <div className="card-actions">
           <button className="btn-swap" onClick={() => onSwap(user)}>Request Swap</button>
           <button className={`btn-icon ${saved ? 'saved' : ''}`} onClick={() => onSave(user._id)} title="Save">
@@ -92,26 +95,37 @@ export default function Browse() {
   const [recommendations, setRecommendations] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
+  const [debouncedSearch, setDebouncedSearch] = useState('');
+  const searchTimer = useRef(null);
   const [category, setCategory] = useState('All');
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [saved, setSaved] = useState(new Set(me?.savedProfiles || []));
   const [swapTarget, setSwapTarget] = useState(null);
 
+  useEffect(() => {
+    clearTimeout(searchTimer.current);
+    searchTimer.current = setTimeout(() => {
+      setDebouncedSearch(search);
+      setPage(1);
+    }, 300);
+    return () => clearTimeout(searchTimer.current);
+  }, [search]);
+
   const fetchUsers = useCallback(async () => {
     setLoading(true);
     try {
-      const res = await api.get('/users', { params: { search, category, page } });
+      const res = await api.get('/users', { params: { search: debouncedSearch, category, page } });
       setUsers(res.data.users.filter((u) => u._id !== me?._id));
       setTotalPages(res.data.pages);
     } catch { showToast('Failed to load users', 'error'); }
     finally { setLoading(false); }
-  }, [search, category, page]);
+  }, [debouncedSearch, category, page]);
 
   useEffect(() => { fetchUsers(); }, [fetchUsers]);
 
   useEffect(() => {
-    api.get('/users/recommendations').then((r) => setRecommendations(r.data)).catch(() => {});
+    api.get('/users/recommendations').then((r) => setRecommendations(r.data)).catch(() => showToast('Failed to load recommendations', 'error'));
   }, []);
 
   const handleSave = async (userId) => {
@@ -127,7 +141,7 @@ export default function Browse() {
   };
 
   return (
-    <div className="page" style={{ background: 'var(--cream)' }}>
+    <div className="page bg-gradient-subtle page-fade-in">
       <div className="container">
         <div className="page-header">
           <div className="section-label">Discover</div>
@@ -136,10 +150,10 @@ export default function Browse() {
 
         {/* Recommendations */}
         {recommendations.length > 0 && (
-          <div style={{ marginBottom: 48 }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 20 }}>
-              <span style={{ fontFamily: 'PT Mono, monospace', fontSize: 11, letterSpacing: 2, textTransform: 'uppercase', color: 'var(--muted)' }}>✦ For You</span>
-              <span className="hide-mobile" style={{ fontSize: 12, color: 'var(--muted)' }}>Matched to your skill goals</span>
+          <div style={{ marginBottom: 48, background: 'var(--accent-light)', borderRadius: 20, padding: '32px 28px', border: '1px solid rgba(200,75,49,0.10)' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 24 }}>
+              <span style={{ fontFamily: 'PT Mono, monospace', fontSize: 11, letterSpacing: 2, textTransform: 'uppercase', color: 'var(--accent)' }}>✦ For You</span>
+              <span className="hide-mobile" style={{ fontSize: 13, color: 'var(--muted)' }}>Matched to your skill goals</span>
             </div>
             <div className="cards-grid">
               {recommendations.map((u) => (
@@ -152,13 +166,13 @@ export default function Browse() {
         {/* Search & Filter */}
         <div style={{ marginBottom: 12 }}>
           <div style={{ position: 'relative', marginBottom: 16 }}>
-            <span style={{ position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)', color: 'var(--muted)', fontSize: 18 }}>⌕</span>
+            <span style={{ position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)', color: 'var(--muted)', display: 'flex', pointerEvents: 'none' }}><SearchIcon size={18} /></span>
             <input
               className="form-input"
               style={{ paddingLeft: 44, background: 'var(--card-bg)' }}
               placeholder="Search by skill — e.g. React, Python, Docker…"
               value={search}
-              onChange={(e) => { setSearch(e.target.value); setPage(1); }}
+              onChange={(e) => setSearch(e.target.value)}
             />
           </div>
           <div className="filter-row" style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 32 }}>
@@ -172,11 +186,15 @@ export default function Browse() {
           </div>
         </div>
 
-        {loading ? <div className="spinner" /> : (
+        {loading ? (
+          <div className="cards-grid">
+            {[1,2,3,4,5,6].map((n) => <SkeletonCard key={n} />)}
+          </div>
+        ) : (
           <>
             {users.length === 0 ? (
               <div className="empty-state">
-                <div className="empty-state-icon">🔍</div>
+                <div className="empty-state-icon"><SearchIcon size={32} /></div>
                 <h3>No matches found</h3>
                 <p>Try a different search term or category.</p>
               </div>
