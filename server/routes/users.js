@@ -78,7 +78,7 @@ router.get('/recommendations', auth, async (req, res) => {
       .map((u) => ({ user: u.toObject(), score: matchScore(me, u), mutualMatch: isMutualMatch(me, u) }))
       .filter((x) => x.score > 0)
       .sort((a, b) => b.score - a.score || b.user.rating - a.user.rating)
-      .slice(0, 6);
+      .slice(0, 3);
 
     res.json(scored.map((x) => ({ ...x.user, matchScore: x.score, mutualMatch: x.mutualMatch })));
   } catch (err) {

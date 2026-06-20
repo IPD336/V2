@@ -101,20 +101,34 @@ router.post('/github-verify', auth, async (req, res) => {
 
 router.get('/smart-recommendations', auth, async (req, res) => {
   try {
-    const me = await User.findById(req.user.id).select('skillsOffered skillsWanted');
+    const me = await User.findById(req.user.id).select('skillsOffered skillsWanted').lean();
     if (!me) return res.status(404).json({ message: 'User not found' });
+
+    if (!me.skillsOffered?.length && !me.skillsWanted?.length) {
+      return res.json([]);
+    }
+
+    const { matchScore } = require('../services/matchService');
 
     const candidates = await User.find({
       isPublic: { $ne: false },
       role: { $ne: 'admin' },
       _id: { $ne: req.user.id },
-    }).select('-passwordHash -savedProfiles').limit(15);
+    }).select('-passwordHash -savedProfiles').lean();
 
-    const explanations = await generateMatchExplanations(me, candidates);
+    const scored = candidates
+      .map((u) => ({ ...u, score: matchScore(me, u) }))
+      .filter((u) => u.score > 0)
+      .sort((a, b) => b.score - a.score || (b.rating || 0) - (a.rating || 0))
+      .slice(0, 5);
 
-    const smartRecommendations = candidates.map((candidate, i) => ({
-      ...candidate.toObject(),
-      aiMatchExplanation: explanations[i]
+    if (scored.length === 0) return res.json([]);
+
+    const explanations = await generateMatchExplanations(me, scored);
+
+    const smartRecommendations = scored.map((candidate, i) => ({
+      ...candidate,
+      aiMatchExplanation: explanations[i] || '',
     }));
 
     res.json(smartRecommendations);
