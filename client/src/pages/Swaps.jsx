@@ -49,7 +49,7 @@ function ReviewModal({ swap, me, onClose, onDone }) {
   return (
     <div className="modal-overlay active" onClick={(e) => e.target === e.currentTarget && onClose()}>
       <div className="modal">
-        <button className="modal-close" onClick={onClose}>✕</button>
+        <button className="modal-close" onClick={onClose} aria-label="Close">✕</button>
         <div className="modal-heading">Leave a Review</div>
         <div className="modal-sub">Your honest feedback helps the whole community grow.</div>
         <form onSubmit={submit}>
@@ -118,7 +118,7 @@ function ScheduleSwapModal({ swap, me, onClose, onDone }) {
   return (
     <div className="modal-overlay active" onClick={(e) => e.target === e.currentTarget && onClose()}>
       <div className="modal" style={{ maxWidth: 440 }}>
-        <button className="modal-close" onClick={onClose}>✕</button>
+        <button className="modal-close" onClick={onClose} aria-label="Close">✕</button>
         <div className="modal-heading" style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 22 }}>
           <CalendarIcon size={20} /> Schedule Session
         </div>
@@ -185,17 +185,10 @@ export default function Swaps() {
   useEffect(() => { 
     load(); 
     markTypeAsRead('swap_request');
-  }, []);
-
-  useEffect(() => {
     const interval = setInterval(load, 30000);
-    return () => clearInterval(interval);
-  }, []);
-
-  useEffect(() => {
     const onFocus = () => load();
     window.addEventListener('focus', onFocus);
-    return () => window.removeEventListener('focus', onFocus);
+    return () => { clearInterval(interval); window.removeEventListener('focus', onFocus); };
   }, []);
 
   const firstNonEmptyTab = (d) => {
@@ -404,7 +397,7 @@ export default function Swaps() {
                         </div>
                         {s.scheduledAt ? (
                           <div style={{ fontSize: 11, color: 'var(--accent)', fontWeight: 600, marginTop: 4, display: 'flex', alignItems: 'center', gap: 3 }}>
-                            <CalendarIcon size={12} />📅 {formatScheduled(s.scheduledAt)}
+                            <CalendarIcon size={12} /> {formatScheduled(s.scheduledAt)}
                           </div>
                         ) : s.schedule ? (
                           <div style={{ fontSize: 11, color: 'var(--muted)', marginTop: 4, display: 'flex', alignItems: 'center', gap: 3 }}><CalendarIcon size={12} />{s.schedule}</div>

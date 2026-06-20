@@ -29,3 +29,5 @@ client/.env
 Thumbs.db
 
 AGENTS.md
+agent/
+.agents/

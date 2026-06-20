@@ -72,7 +72,7 @@ function ScheduleModal({ swap, me, onClose, onDone }) {
   return (
     <div className="modal-overlay active" onClick={(e) => e.target === e.currentTarget && onClose()}>
       <div className="modal" style={{ maxWidth: 440 }}>
-        <button className="modal-close" onClick={onClose}>✕</button>
+        <button className="modal-close" onClick={onClose} aria-label="Close">✕</button>
         <div className="modal-heading" style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 22 }}>
           <CalendarIcon size={20} /> Schedule Session
         </div>

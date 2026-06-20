@@ -19,7 +19,8 @@ import {
   StarIcon,
   MedalIcon,
   ClockIcon,
-  WarningIcon
+  WarningIcon,
+  PinIcon
 } from '../components/Icons';
 
 function timeAgo(date) {
@@ -74,17 +75,12 @@ export default function Dashboard() {
       .finally(() => setLoading(false));
   };
 
-  useEffect(() => { loadDashboard(); }, []);
-
   useEffect(() => {
+    loadDashboard();
     const interval = setInterval(loadDashboard, 30000);
-    return () => clearInterval(interval);
-  }, []);
-
-  useEffect(() => {
     const onFocus = () => loadDashboard();
     window.addEventListener('focus', onFocus);
-    return () => window.removeEventListener('focus', onFocus);
+    return () => { clearInterval(interval); window.removeEventListener('focus', onFocus); };
   }, []);
 
   // Onboarding progress memo
@@ -424,7 +420,7 @@ export default function Dashboard() {
                           
                           <div style={{ fontWeight: 700, fontSize: 13, color: 'var(--ink)', marginTop: 8 }}>{rec.name}</div>
                           <div style={{ fontSize: 11, color: 'var(--muted)', marginTop: 2, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                            📍 {rec.location || 'Remote'}
+                            <PinIcon size={11} style={{ verticalAlign: 'middle', marginTop: -2 }} /> {rec.location || 'Remote'}
                           </div>
 
                           <div style={{ fontSize: 11, marginTop: 8 }}>

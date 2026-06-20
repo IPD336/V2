@@ -1,32 +1,32 @@
 const { GoogleGenerativeAI } = require('@google/generative-ai');
 
 let genAI = null;
+let model = null;
+
 if (process.env.GEMINI_API_KEY) {
   genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+  model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' });
 } else {
   console.warn("WARNING: GEMINI_API_KEY is not defined in environment variables. AI features will fallback to placeholders.");
 }
 
 async function getGeminiModel() {
-  if (!genAI) return null;
-  // Use gemini-2.5-flash since 1.0 and 1.5 have been deprecated for this API key's tier/region
-  return genAI.getGenerativeModel({ model: 'gemini-2.5-flash' });
+  return model;
 }
 
-// Proposals
 async function generateProposal(senderName, receiverName, skillOffered, skillWanted) {
-  const model = await getGeminiModel();
-  if (!model) {
+  const m = await getGeminiModel();
+  if (!m) {
     return `Hi ${receiverName}, I'd love to swap my skills in ${skillOffered} for your expertise in ${skillWanted}. Let me know if you are interested in collaborating!`;
   }
-  
-  const prompt = `Write a short, engaging, and professional 2-3 sentence skill swap proposal message. 
+
+  const prompt = `Write a short, engaging, and professional 2-3 sentence skill swap proposal message.
   Sender: ${senderName} (wants to offer/teach: ${skillOffered})
   Receiver: ${receiverName} (wants to learn/offers: ${skillWanted})
   Keep it friendly, collaborative, and concise. Write directly as ${senderName} to ${receiverName}. Do not include placeholders, quotes around the message, or subjects.`;
 
   try {
-    const result = await model.generateContent(prompt);
+    const result = await m.generateContent(prompt);
     return result.response.text().trim();
   } catch (err) {
     console.error("Gemini proposal generation error:", err);
@@ -34,10 +34,9 @@ async function generateProposal(senderName, receiverName, skillOffered, skillWan
   }
 }
 
-// Summarize reviews
 async function summarizeReviews(reviews) {
-  const model = await getGeminiModel();
-  if (!model || !reviews || reviews.length === 0) {
+  const m = await getGeminiModel();
+  if (!m || !reviews || reviews.length === 0) {
     return "This mentor consistently receives positive ratings and has successfully completed multiple skill exchanges.";
   }
 
@@ -47,7 +46,7 @@ async function summarizeReviews(reviews) {
 Reviews:\n${reviewTexts}`;
 
   try {
-    const result = await model.generateContent(prompt);
+    const result = await m.generateContent(prompt);
     return result.response.text().trim();
   } catch (err) {
     console.error("Gemini review summarization error:", err);
@@ -55,10 +54,9 @@ Reviews:\n${reviewTexts}`;
   }
 }
 
-// GitHub Skill Inference
 async function inferGithubSkills(repos) {
-  const model = await getGeminiModel();
-  if (!model || !repos || repos.length === 0) {
+  const m = await getGeminiModel();
+  if (!m || !repos || repos.length === 0) {
     return [
       { name: "JavaScript", category: "Development" },
       { name: "React", category: "Development" }
@@ -72,9 +70,8 @@ async function inferGithubSkills(repos) {
 Repositories:\n${repoSummary}`;
 
   try {
-    const result = await model.generateContent(prompt);
+    const result = await m.generateContent(prompt);
     let text = result.response.text().trim();
-    // clean up potential markdown formatting
     if (text.startsWith("```")) {
       text = text.replace(/^```(json)?/, "").replace(/```$/, "").trim();
     }
@@ -88,29 +85,39 @@ Repositories:\n${repoSummary}`;
   }
 }
 
-// Smart recommendation matches
-async function generateMatchExplanation(me, candidate) {
-  const model = await getGeminiModel();
-  if (!model) {
-    return "You have matching skill categories that could make for a great swap.";
+async function generateMatchExplanations(me, candidates) {
+  const m = await getGeminiModel();
+  if (!m) {
+    return candidates.map(() => "You have matching skill categories that could make for a great swap.");
   }
 
   const myOffered = me.skillsOffered.map(s => s.name).join(', ');
   const myWanted = me.skillsWanted.join(', ');
-  const candidateOffered = candidate.skillsOffered.map(s => s.name).join(', ');
-  const candidateWanted = candidate.skillsWanted.join(', ');
 
-  const prompt = `You are a matchmaker for a skill exchange platform. Explain in one short, catchy sentence (max 15 words) why this pair is a good match:
-  User A offers [${myOffered}] and wants [${myWanted}].
-  User B offers [${candidateOffered}] and wants [${candidateWanted}].
-  Be specific about what they can trade. Example: "You can teach React in exchange for Python!"`;
+  const candidateLines = candidates.map((c, i) => {
+    const cOffered = c.skillsOffered.map(s => s.name).join(', ');
+    const cWanted = c.skillsWanted.join(', ');
+    return `Candidate ${i}: ${c.name}. Offers [${cOffered}], wants [${cWanted}].`;
+  }).join('\n');
+
+  const prompt = `You are a matchmaker for a skill exchange platform. For each candidate below, write one short, catchy sentence (max 15 words) explaining why they are a good match for User A.
+User A offers [${myOffered}] and wants [${myWanted}].
+
+${candidateLines}
+
+Return your output strictly as a JSON array of strings, one per candidate in order. Do not include any explanation or markdown formatting.`;
 
   try {
-    const result = await model.generateContent(prompt);
-    return result.response.text().trim().replace(/^"|"$/g, ""); // strip quotes
+    const result = await m.generateContent(prompt);
+    let text = result.response.text().trim();
+    if (text.startsWith("```")) {
+      text = text.replace(/^```(json)?/, "").replace(/```$/, "").trim();
+    }
+    const explanations = JSON.parse(text);
+    return candidates.map((c, i) => explanations[i] || "You have matching skill categories that could make for a great swap.");
   } catch (err) {
     console.error("Gemini match explanation error:", err);
-    return "You have matching skill categories that could make for a great swap.";
+    return candidates.map(() => "You have matching skill categories that could make for a great swap.");
   }
 }
 
@@ -118,5 +125,5 @@ module.exports = {
   generateProposal,
   summarizeReviews,
   inferGithubSkills,
-  generateMatchExplanation
+  generateMatchExplanations,
 };
