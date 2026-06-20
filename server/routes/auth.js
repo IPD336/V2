@@ -16,7 +16,7 @@ router.post('/register', async (req, res) => {
     if (!name || !email || !password)
       return res.status(400).json({ message: 'Name, email and password are required' });
 
-    const exists = await User.findOne({ email });
+    const exists = await User.findOne({ email }).select('_id').lean();
     if (exists) return res.status(409).json({ message: 'Email already registered' });
 
     const passwordHash = await bcrypt.hash(password, 10);
@@ -37,7 +37,7 @@ router.post('/login', async (req, res) => {
     if (!email || !password)
       return res.status(400).json({ message: 'Email and password required' });
 
-    const user = await User.findOne({ email });
+    const user = await User.findOne({ email }).lean();
     if (!user) return res.status(401).json({ message: 'Invalid credentials' });
 
     const ok = await bcrypt.compare(password, user.passwordHash);
@@ -56,7 +56,7 @@ router.post('/login', async (req, res) => {
 
 router.get('/me', auth, async (req, res) => {
   try {
-    const user = await User.findById(req.user.id).select('-passwordHash');
+    const user = await User.findById(req.user.id).select('-passwordHash').lean();
     if (!user) return res.status(404).json({ message: 'User not found' });
     if (user.isBanned) {
       return res.status(403).json({ message: `Your account has been banned. Reason: ${user.banReason || 'No reason provided.'}` });
@@ -122,7 +122,7 @@ router.post('/reset-password/:token', async (req, res) => {
 });
 
 function sanitize(user) {
-  const u = user.toObject();
+  const u = user.toObject ? user.toObject() : { ...user };
   delete u.passwordHash;
   return u;
 }

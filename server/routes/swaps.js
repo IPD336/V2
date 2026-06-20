@@ -29,17 +29,17 @@ router.get('/', auth, async (req, res) => {
     const uid = req.user.id;
 
     const [incoming, outgoing, active, completed] = await Promise.all([
-      Swap.find({ receiver: uid, status: SWAP_STATUS.PENDING }).populate('sender', 'name avatarColor avatarUrl location'),
-      Swap.find({ sender: uid, status: SWAP_STATUS.PENDING }).populate('receiver', 'name avatarColor avatarUrl location'),
+      Swap.find({ receiver: uid, status: SWAP_STATUS.PENDING }).populate('sender', 'name avatarColor avatarUrl location').lean(),
+      Swap.find({ sender: uid, status: SWAP_STATUS.PENDING }).populate('receiver', 'name avatarColor avatarUrl location').lean(),
       Swap.find({
         $or: [{ sender: uid }, { receiver: uid }],
         status: { $in: [SWAP_STATUS.ACTIVE, SWAP_STATUS.PENDING_COMPLETION] },
       })
         .populate('sender', 'name avatarColor avatarUrl')
-        .populate('receiver', 'name avatarColor avatarUrl'),
+        .populate('receiver', 'name avatarColor avatarUrl').lean(),
       Swap.find({ $or: [{ sender: uid }, { receiver: uid }], status: SWAP_STATUS.COMPLETED })
         .populate('sender', 'name avatarColor avatarUrl')
-        .populate('receiver', 'name avatarColor avatarUrl'),
+        .populate('receiver', 'name avatarColor avatarUrl').lean(),
     ]);
     res.json({ incoming, outgoing, active, completed });
   } catch (err) {
@@ -55,7 +55,7 @@ router.post('/', auth, async (req, res) => {
     if (receiverId === req.user.id)
       return res.status(400).json({ message: 'Cannot swap with yourself' });
 
-    const dup = await Swap.findOne({ sender: req.user.id, receiver: receiverId, status: SWAP_STATUS.PENDING });
+    const dup = await Swap.findOne({ sender: req.user.id, receiver: receiverId, status: SWAP_STATUS.PENDING }).lean();
     if (dup) return res.status(409).json({ message: 'A pending swap request already exists' });
 
     const swap = await Swap.create({
@@ -250,7 +250,8 @@ router.get('/calendar', auth, async (req, res) => {
     })
       .populate('sender', 'name avatarColor avatarUrl')
       .populate('receiver', 'name avatarColor avatarUrl')
-      .sort({ scheduledAt: 1 });
+      .sort({ scheduledAt: 1 })
+      .lean();
 
     res.json(swaps);
   } catch (err) {
@@ -282,7 +283,8 @@ router.get('/user/:id', async (req, res) => {
       .populate('sender', 'name avatarColor avatarUrl')
       .populate('receiver', 'name avatarColor avatarUrl')
       .sort({ completedAt: -1 })
-      .limit(10);
+      .limit(10)
+      .lean();
     res.json(swaps);
   } catch (err) {
     res.status(500).json({ message: err.message });

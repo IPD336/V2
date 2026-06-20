@@ -13,7 +13,7 @@ async function enrichWithMatch(users, req) {
 
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    const meUser = await User.findById(decoded.id).select('skillsOffered skillsWanted');
+    const meUser = await User.findById(decoded.id).select('skillsOffered skillsWanted').lean();
     if (!meUser) return users.map(u => ({ ...u.toObject(), mutualMatch: false, matchScore: 0 }));
 
     return users.map((u) => {
@@ -65,7 +65,7 @@ router.get('/', async (req, res) => {
 
 router.get('/recommendations', auth, async (req, res) => {
   try {
-    const me = await User.findById(req.user.id).select('skillsOffered skillsWanted');
+    const me = await User.findById(req.user.id).select('skillsOffered skillsWanted').lean();
     if (!me) return res.status(404).json({ message: 'User not found' });
 
     const candidates = await User.find({

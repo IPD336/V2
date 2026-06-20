@@ -10,7 +10,7 @@ const router = express.Router();
 
 router.get('/', auth, async (req, res) => {
   try {
-    const { mine } = req.query;
+    const { mine, page = 1, limit = 20 } = req.query;
     let query = {};
 
     if (mine === 'true') {
@@ -24,12 +24,19 @@ router.get('/', auth, async (req, res) => {
       query = { status: TEAM_STATUS.OPEN };
     }
 
-    const teams = await Team.find(query)
-      .populate('creator', 'name avatarColor avatarUrl')
-      .populate('members.user', 'name avatarColor avatarUrl')
-      .sort({ createdAt: -1 });
+    const skip = (parseInt(page) - 1) * parseInt(limit);
+    const [teams, total] = await Promise.all([
+      Team.find(query)
+        .populate('creator', 'name avatarColor avatarUrl')
+        .populate('members.user', 'name avatarColor avatarUrl')
+        .sort({ createdAt: -1 })
+        .skip(skip)
+        .limit(parseInt(limit))
+        .lean(),
+      Team.countDocuments(query),
+    ]);
 
-    res.json(teams);
+    res.json({ teams, total, page: parseInt(page), pages: Math.ceil(total / parseInt(limit)) });
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
@@ -62,7 +69,8 @@ router.get('/:id', auth, async (req, res) => {
   try {
     const team = await Team.findById(req.params.id)
       .populate('creator', 'name avatarColor avatarUrl location')
-      .populate('members.user', 'name avatarColor avatarUrl location skillsOffered');
+      .populate('members.user', 'name avatarColor avatarUrl location skillsOffered')
+      .lean();
     if (!team) return res.status(404).json({ message: 'Team not found' });
     res.json(team);
   } catch (err) {
