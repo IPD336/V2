@@ -9,8 +9,8 @@ if (process.env.GEMINI_API_KEY) {
 
 async function getGeminiModel() {
   if (!genAI) return null;
-  // Try gemini-1.5-flash-latest, which is more universally recognized on v1beta
-  return genAI.getGenerativeModel({ model: 'gemini-1.5-flash-latest' });
+  // Try gemini-pro, which is the most universally available model
+  return genAI.getGenerativeModel({ model: 'gemini-pro' });
 }
 
 // Proposals
