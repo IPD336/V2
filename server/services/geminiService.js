@@ -9,14 +9,8 @@ if (process.env.GEMINI_API_KEY) {
 
 async function getGeminiModel() {
   if (!genAI) return null;
-  try {
-    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models?key=${process.env.GEMINI_API_KEY}`);
-    const data = await response.json();
-    console.log("AVAILABLE MODELS:", data.models?.map(m => m.name).join(', '));
-  } catch (e) {
-    console.error("Could not fetch model list:", e);
-  }
-  return genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
+  // Use gemini-2.5-flash since 1.0 and 1.5 have been deprecated for this API key's tier/region
+  return genAI.getGenerativeModel({ model: 'gemini-2.5-flash' });
 }
 
 // Proposals
