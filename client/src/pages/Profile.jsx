@@ -370,7 +370,7 @@ export default function Profile() {
         {showDeleteModal && (
           <div className="modal-overlay active" onClick={(e) => e.target === e.currentTarget && setShowDeleteModal(false)}>
             <div className="modal" style={{ maxWidth: 420 }}>
-              <button className="modal-close" onClick={() => setShowDeleteModal(false)}>✕</button>
+              <button className="modal-close" onClick={() => setShowDeleteModal(false)} aria-label="Close">✕</button>
               <div className="modal-heading" style={{ fontSize: 24 }}>Delete Account?</div>
               <div className="modal-sub">
                 This action <strong>cannot be undone</strong>. All your data, swaps, teams, and reviews will be permanently removed.
@@ -389,7 +389,7 @@ export default function Profile() {
         {showScanModal && (
           <div className="modal-overlay active" onClick={(e) => e.target === e.currentTarget && setShowScanModal(false)}>
             <div className="modal" style={{ maxWidth: 500 }}>
-              <button className="modal-close" onClick={() => setShowScanModal(false)}>✕</button>
+              <button className="modal-close" onClick={() => setShowScanModal(false)} aria-label="Close">✕</button>
               <div className="modal-heading" style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 24 }}>
                 <SparklesIcon size={20} /> AI Inferred Skills
               </div>

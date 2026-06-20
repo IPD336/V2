@@ -30,7 +30,7 @@ function CreateTeamModal({ onClose, onCreated }) {
   return (
     <div className="modal-overlay active" onClick={(e) => e.target === e.currentTarget && onClose()}>
       <div className="modal">
-        <button className="modal-close" onClick={onClose}>✕</button>
+        <button className="modal-close" onClick={onClose} aria-label="Close">✕</button>
         <div className="modal-heading">Create a Team</div>
         <div className="modal-sub">Define the purpose, set the size, invite who you want.</div>
         <form onSubmit={submit}>

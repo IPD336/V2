@@ -6,12 +6,11 @@ const {
   generateProposal,
   summarizeReviews,
   inferGithubSkills,
-  generateMatchExplanation
+  generateMatchExplanations
 } = require('../services/geminiService');
 
 const router = express.Router();
 
-// 1. Proposal Draft Message
 router.post('/draft-proposal', auth, async (req, res) => {
   try {
     const { receiverId, skillOffered, skillWanted } = req.body;
@@ -36,7 +35,6 @@ router.post('/draft-proposal', auth, async (req, res) => {
   }
 });
 
-// 2. Reviews Summary
 router.get('/reviews-summary/:userId', async (req, res) => {
   try {
     const reviews = await Review.find({ reviewee: req.params.userId }).select('rating learned feedback');
@@ -47,7 +45,6 @@ router.get('/reviews-summary/:userId', async (req, res) => {
   }
 });
 
-// 3. GitHub Skill Suggestion/Verification
 router.post('/github-verify', auth, async (req, res) => {
   try {
     const { githubUrl } = req.body;
@@ -55,17 +52,13 @@ router.post('/github-verify', auth, async (req, res) => {
       return res.status(400).json({ message: 'githubUrl is required' });
     }
 
-    // Extract username from URL or use as is
     let username = githubUrl.trim();
     if (username.includes('github.com/')) {
       username = username.split('github.com/')[1].split('/')[0].split('?')[0];
     }
 
-    // Call GitHub API to list public repositories
     const response = await fetch(`https://api.github.com/users/${username}/repos?per_page=30&sort=updated`, {
-      headers: {
-        'User-Agent': 'SkillSwap-AI-App'
-      }
+      headers: { 'User-Agent': 'SkillSwap-AI-App' }
     });
 
     let repoList = [];
@@ -80,7 +73,6 @@ router.post('/github-verify', auth, async (req, res) => {
         }));
       }
     } else {
-      // Fallback: If API is rate-limited (very common on Render shared IPs), scrape the HTML page
       const htmlResponse = await fetch(`https://github.com/${username}?tab=repositories`, {
         headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)' }
       });
@@ -94,7 +86,7 @@ router.post('/github-verify', auth, async (req, res) => {
         description: 'GitHub Repository',
         language: 'Code'
       }));
-      
+
       if (repoList.length === 0) {
          return res.status(400).json({ message: `No public repositories found for ${username}, or GitHub blocked the request.` });
       }
@@ -107,29 +99,24 @@ router.post('/github-verify', auth, async (req, res) => {
   }
 });
 
-// 4. Smart recommendations with Match Explanation
 router.get('/smart-recommendations', auth, async (req, res) => {
   try {
     const me = await User.findById(req.user.id).select('skillsOffered skillsWanted');
     if (!me) return res.status(404).json({ message: 'User not found' });
 
-    // Fetch up to 15 potential match candidates
     const candidates = await User.find({
       isPublic: { $ne: false },
       role: { $ne: 'admin' },
       _id: { $ne: req.user.id },
     }).select('-passwordHash -savedProfiles').limit(15);
 
-    // Filter down candidates that have match potential
-    const matchTasks = candidates.map(async (candidate) => {
-      const explanation = await generateMatchExplanation(me, candidate);
-      return {
-        ...candidate.toObject(),
-        aiMatchExplanation: explanation
-      };
-    });
+    const explanations = await generateMatchExplanations(me, candidates);
 
-    const smartRecommendations = await Promise.all(matchTasks);
+    const smartRecommendations = candidates.map((candidate, i) => ({
+      ...candidate.toObject(),
+      aiMatchExplanation: explanations[i]
+    }));
+
     res.json(smartRecommendations);
   } catch (err) {
     res.status(500).json({ message: err.message });

@@ -18,6 +18,8 @@ export default function AdminDashboard() {
   const [loading, setLoading] = useState(true);
   const [showDeleteModal, setShowDeleteModal] = useState(null);
   const [showResetModal, setShowResetModal] = useState(false);
+  const [banTarget, setBanTarget] = useState(null);
+  const [banReason, setBanReason] = useState('');
 
   useEffect(() => {
     if (user?.role !== 'admin') {
@@ -46,12 +48,26 @@ export default function AdminDashboard() {
   };
 
   const toggleBan = async (id, isBanned) => {
-    const reason = isBanned ? window.prompt('Enter ban reason:') : '';
-    if (isBanned && reason === null) return; // user cancelled
-
+    if (isBanned) {
+      setBanTarget(id);
+      setBanReason('');
+      return;
+    }
     try {
-      await api.put(`/admin/users/${id}/ban`, { isBanned, banReason: reason });
-      showToast(`User ${isBanned ? 'banned' : 'unbanned'} successfully`);
+      await api.put(`/admin/users/${id}/ban`, { isBanned, banReason: '' });
+      showToast('User unbanned successfully');
+      loadData();
+    } catch (err) {
+      showToast(err.response?.data?.message || 'Action failed', 'error');
+    }
+  };
+
+  const handleBanConfirm = async () => {
+    const id = banTarget;
+    setBanTarget(null);
+    try {
+      await api.put(`/admin/users/${id}/ban`, { isBanned: true, banReason });
+      showToast('User banned successfully');
       loadData();
     } catch (err) {
       showToast(err.response?.data?.message || 'Action failed', 'error');
@@ -331,6 +347,31 @@ export default function AdminDashboard() {
         onConfirm={handleSystemReset}
         onCancel={() => setShowResetModal(false)}
       />
+      {banTarget !== null && (
+        <div className="modal-overlay active" onClick={(e) => e.target === e.currentTarget && setBanTarget(null)}>
+          <div className="modal" style={{ maxWidth: 420 }}>
+            <button className="modal-close" onClick={() => setBanTarget(null)} aria-label="Close">✕</button>
+            <div className="modal-heading" style={{ fontSize: 22 }}>Ban User</div>
+            <div className="modal-sub">Provide a reason for the ban. This will be shown to the user.</div>
+            <div className="form-group">
+              <label className="form-label">Ban Reason</label>
+              <textarea
+                className="form-textarea"
+                placeholder="Enter reason for banning this user…"
+                value={banReason}
+                onChange={(e) => setBanReason(e.target.value)}
+                autoFocus
+              />
+            </div>
+            <div style={{ display: 'flex', gap: 12 }}>
+              <button className="btn-cosmos-ghost" style={{ flex: 1, padding: '13px', fontWeight: 700 }} onClick={() => setBanTarget(null)}>Cancel</button>
+              <button className="btn-cosmos-primary" style={{ flex: 1, padding: '13px', fontWeight: 700 }} onClick={handleBanConfirm} disabled={!banReason.trim()}>
+                Ban User
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

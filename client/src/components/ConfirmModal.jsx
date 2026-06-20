@@ -3,7 +3,7 @@ export default function ConfirmModal({ open, title, message, confirmLabel = 'Del
   return (
     <div className="modal-overlay active" onClick={(e) => e.target === e.currentTarget && !loading && onCancel()}>
       <div className="modal" style={{ maxWidth: 420 }}>
-        <button className="modal-close" onClick={onCancel} disabled={loading}>✕</button>
+        <button className="modal-close" onClick={onCancel} disabled={loading} aria-label="Close">✕</button>
         <div className="modal-heading" style={{ fontSize: 24 }}>{title}</div>
         <div className="modal-sub">{message}</div>
         <div style={{ display: 'flex', gap: 12 }}>
