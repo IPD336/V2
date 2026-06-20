@@ -119,13 +119,13 @@ export default function Teams() {
   const loadOpen = async () => {
     try {
       const res = await api.get('/teams');
-      setOpenTeams(res.data);
+      setOpenTeams(res.data.teams);
     } catch { showToast('Failed to load teams', 'error'); }
   };
   const loadMine = async () => {
     try {
       const res = await api.get('/teams', { params: { mine: true } });
-      setMyTeams(res.data);
+      setMyTeams(res.data.teams);
     } catch { showToast('Failed to load your teams', 'error'); }
   };
 

@@ -68,7 +68,7 @@ export default function Dashboard() {
     ])
       .then(([swaps, teams, recs]) => {
         setSwapData(swaps.data);
-        setTeamCount(teams.data.length || 0);
+        setTeamCount(teams.data.teams?.length || 0);
         setRecommendations(recs.data || []);
       })
       .catch(() => showToast('Failed to load dashboard', 'error'))
