@@ -1,25 +1,17 @@
-/* ── Current: Circular Swap ──
-   Two opposing curved arrows within a circle — skill exchange */
 export function LogoMark({ size = 32, style = {} }) {
   return (
-    <svg width={size} height={size} viewBox="0 0 32 32" style={style} aria-hidden="true">
-      <circle cx="16" cy="16" r="14" fill="var(--accent)" fillOpacity="0.08" stroke="var(--accent)" strokeWidth="1.8" />
-      <path d="M6 14 C6 4, 26 4, 26 14" stroke="var(--accent)" strokeWidth="1.8" strokeLinecap="round" fill="none" />
-      <path d="M26 14 L21 11 M26 14 L21 17" stroke="var(--accent)" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" fill="none" />
-      <path d="M26 18 C26 28, 6 28, 6 18" stroke="var(--accent)" strokeWidth="1.8" strokeLinecap="round" fill="none" />
-      <path d="M6 18 L11 15 M6 18 L11 21" stroke="var(--accent)" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" fill="none" />
-    </svg>
+    <img src="/logo.png" alt="" width={size} height={size} style={{ objectFit: 'cover', borderRadius: 6, ...style }} />
   );
 }
 
 export default function Logo({ showText = true, size = 32 }) {
   return (
-    <span style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}>
+    <span style={{ display: 'inline-flex', alignItems: 'center', gap: 10 }}>
       <LogoMark size={size} />
       {showText && (
         <span style={{
           fontFamily: 'PT Serif, serif',
-          fontSize: size >= 32 ? 22 : 18,
+          fontSize: size >= 40 ? 24 : size >= 32 ? 20 : 16,
           fontWeight: 700,
           letterSpacing: -0.5,
           color: 'inherit',

@@ -71,20 +71,14 @@ export default function Register() {
         background: 'rgba(var(--accent-rgb),0.08)',
       }} />
       {/* Logo watermark */}
-      <svg width="200" height="200" viewBox="0 0 32 32" fill="none" style={{
+      <img src="/logo.png" alt="" width={300} height={300} style={{
         position: 'absolute', right: '5%', bottom: '10%', zIndex: 0,
-        opacity: 0.04, pointerEvents: 'none',
-      }} aria-hidden="true">
-        <circle cx="16" cy="16" r="14" stroke="var(--accent)" strokeWidth="1.6" />
-        <path d="M9 14 C9 8, 23 8, 23 14" stroke="var(--accent)" strokeWidth="1.6" strokeLinecap="round" fill="none"/>
-        <path d="M23 14 L18 11 M23 14 L18 17" stroke="var(--accent)" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" fill="none"/>
-        <path d="M23 18 C23 24, 9 24, 9 18" stroke="var(--accent)" strokeWidth="1.6" strokeLinecap="round" fill="none"/>
-        <path d="M9 18 L14 21 M9 18 L14 15" stroke="var(--accent)" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" fill="none"/>
-      </svg>
+        opacity: 0.06, pointerEvents: 'none', objectFit: 'contain', borderRadius: 24,
+      }} />
 
       <div style={{ width: '100%', maxWidth: 420, padding: '0 20px', position: 'relative', zIndex: 1 }}>
         <div style={{ textAlign: 'center', marginBottom: 36 }}>
-          <Logo size={40} />
+          <Logo size={72} />
           <h1 style={{ fontFamily: 'PT Serif, serif', fontSize: 28, fontWeight: 600, letterSpacing: -1, color: 'var(--ink)', marginTop: 16, marginBottom: 8 }}>Create Account</h1>
           <p style={{ color: 'var(--muted)', fontSize: 13, margin: 0 }}>Join the community. List your skills, find your match.</p>
         </div>

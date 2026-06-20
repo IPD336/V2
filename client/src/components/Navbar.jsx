@@ -58,7 +58,7 @@ export default function Navbar() {
       <nav>
         <div className="nav-gradient-line" />
         <NavLink to={user ? '/dashboard' : '/'} className="logo" onClick={closeMobileMenu}>
-          <Logo size={32} />
+          <Logo size={60} />
         </NavLink>
 
         <div className="nav-actions">

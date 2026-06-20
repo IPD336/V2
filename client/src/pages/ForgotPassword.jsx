@@ -51,7 +51,7 @@ export default function ForgotPassword() {
 
       <div style={{ width: '100%', maxWidth: 420, padding: '0 20px', position: 'relative', zIndex: 1 }}>
         <div style={{ textAlign: 'center', marginBottom: 36 }}>
-          <Logo size={40} />
+          <Logo size={72} />
           <h1 style={{ fontFamily: 'PT Serif, serif', fontSize: 28, fontWeight: 600, letterSpacing: -1, color: 'var(--ink)', marginTop: 16, marginBottom: 8 }}>Reset Password</h1>
           <p style={{ color: 'var(--muted)', fontSize: 13, margin: 0 }}>Enter your email and we'll send you a reset link.</p>
         </div>
