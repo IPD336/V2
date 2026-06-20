@@ -376,9 +376,9 @@ export default function CalendarPage() {
         </div>
 
         {activeTab === 'calendar' ? (
-          <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) clamp(260px, 28%, 320px)', gap: 28, alignItems: 'start' }}>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 28, alignItems: 'flex-start' }}>
             {/* Left: Calendar */}
-            <div>
+            <div style={{ flex: '1 1 400px', minWidth: 0 }}>
               {/* Calendar Card */}
               <div style={{ background: 'var(--card-bg)', borderRadius: 20, border: '1px solid var(--border)', overflow: 'hidden', boxShadow: 'var(--shadow)' }}>
                 {/* Month Navigation */}
@@ -450,7 +450,7 @@ export default function CalendarPage() {
             </div>
 
             {/* Right: Upcoming + Unscheduled */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+            <div style={{ flex: '1 1 280px', display: 'flex', flexDirection: 'column', gap: 20 }}>
               {/* Upcoming Sessions */}
               <div style={{ background: 'var(--card-bg)', borderRadius: 16, border: '1px solid var(--border)', padding: 24 }}>
                 <div style={{ fontFamily: 'PT Mono, monospace', fontSize: 11, letterSpacing: 2, textTransform: 'uppercase', color: 'var(--muted)', marginBottom: 16 }}>Upcoming</div>
@@ -491,8 +491,8 @@ export default function CalendarPage() {
           </div>
         ) : (
           /* History Tab */
-          <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) clamp(240px, 26%, 320px)', gap: 28, alignItems: 'start' }}>
-            <div>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 28, alignItems: 'flex-start' }}>
+            <div style={{ flex: '1 1 400px', minWidth: 0 }}>
               <div style={{ background: 'var(--card-bg)', borderRadius: 16, border: '1px solid var(--border)', padding: 28 }}>
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 24 }}>
                   <h2 style={{ fontFamily: 'PT Serif, serif', fontSize: 22, fontWeight: 600, color: 'var(--ink)', margin: 0 }}>Swap History</h2>
@@ -502,7 +502,7 @@ export default function CalendarPage() {
               </div>
             </div>
             {/* Stats sidebar */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+            <div style={{ flex: '1 1 240px', display: 'flex', flexDirection: 'column', gap: 16 }}>
               <div style={{ background: 'var(--card-bg)', borderRadius: 16, border: '1px solid var(--border)', padding: 24 }}>
                 <div style={{ fontFamily: 'PT Mono, monospace', fontSize: 11, letterSpacing: 2, textTransform: 'uppercase', color: 'var(--muted)', marginBottom: 20 }}>Stats</div>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
