@@ -9,7 +9,8 @@ if (process.env.GEMINI_API_KEY) {
 
 async function getGeminiModel() {
   if (!genAI) return null;
-  return genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
+  // Try gemini-1.5-flash-latest, which is more universally recognized on v1beta
+  return genAI.getGenerativeModel({ model: 'gemini-1.5-flash-latest' });
 }
 
 // Proposals
