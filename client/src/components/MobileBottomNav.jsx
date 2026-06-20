@@ -7,9 +7,6 @@ const tabs = [
   { to: '/browse', label: 'Browse', icon: SearchIcon },
   { to: '/swaps', label: 'Swaps', icon: SwapIcon },
   { to: '/calendar', label: 'Calendar', icon: CalendarIcon },
-  { to: '/workspaces', label: 'Work', icon: WorkspaceIcon },
-  { to: '/teams', label: 'Teams', icon: TeamsIcon },
-  { to: '/leaderboard', label: 'Rank', icon: TrophyIcon },
   { to: '/profile', label: 'Profile', icon: ProfileIcon },
 ];
 
