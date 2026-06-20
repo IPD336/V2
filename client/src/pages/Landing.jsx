@@ -119,7 +119,7 @@ export default function Landing() {
 
             {/* CTA buttons */}
             <Reveal delay={360}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 20 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 20, flexWrap: 'wrap' }}>
                 <button
                   className="btn-cosmos btn-cosmos-primary"
                   onClick={() => navigate('/register')}
