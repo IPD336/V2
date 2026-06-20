@@ -7,8 +7,7 @@ module.exports = async function auth(req, res, next) {
   if (!token) return res.status(401).json({ message: 'No token, access denied' });
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    const user = await User.findById(decoded.id);
-    
+    const user = await User.findById(decoded.id).select('_id role isBanned banReason');
     if (!user) return res.status(401).json({ message: 'User not found' });
     if (user.isBanned) return res.status(403).json({ message: 'Your account has been suspended.', reason: user.banReason });
 
