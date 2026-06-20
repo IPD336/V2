@@ -163,7 +163,7 @@ export default function Navbar() {
                 )}
               </div>
 
-              <div ref={avatarRef} className="hide-mobile nav-dropdown-wrap">
+              <div ref={avatarRef} className="nav-dropdown-wrap">
                 <button
                   onClick={() => { setAvatarOpen(!avatarOpen); setMoreOpen(false); setNotifOpen(false); }}
                   className="nav-avatar-btn"
@@ -183,6 +183,18 @@ export default function Navbar() {
                     <NavLink to="/profile" onClick={() => setAvatarOpen(false)} className="nav-dropdown-item nav-dropdown-item-border">
                       <span className="nav-dropdown-icon"><ProfileIcon size={16} /></span>
                       Profile
+                    </NavLink>
+                    <NavLink to="/workspaces" onClick={() => setAvatarOpen(false)} className="nav-dropdown-item hide-desktop">
+                      <span className="nav-dropdown-icon"><WorkspaceIcon size={16} /></span>
+                      Workspaces
+                    </NavLink>
+                    <NavLink to="/teams" onClick={() => setAvatarOpen(false)} className="nav-dropdown-item hide-desktop">
+                      <span className="nav-dropdown-icon"><TeamsIcon size={16} /></span>
+                      Teams
+                    </NavLink>
+                    <NavLink to="/leaderboard" onClick={() => setAvatarOpen(false)} className="nav-dropdown-item hide-desktop">
+                      <span className="nav-dropdown-icon"><TrophyIcon size={16} /></span>
+                      Leaderboard
                     </NavLink>
                     <button onClick={handleLogout} className="nav-dropdown-item nav-dropdown-logout">
                       <span className="nav-dropdown-icon"><LogoutIcon size={16} /></span>
@@ -207,9 +219,11 @@ export default function Navbar() {
             </>
           )}
 
-          <button className="mobile-menu-btn" onClick={toggleMobileMenu}>
-            {mobileMenuOpen ? '✕' : '☰'}
-          </button>
+          {!user && (
+            <button className="mobile-menu-btn" onClick={toggleMobileMenu}>
+              {mobileMenuOpen ? '✕' : '☰'}
+            </button>
+          )}
         </div>
       </nav>
 
