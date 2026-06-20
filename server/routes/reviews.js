@@ -15,7 +15,7 @@ router.post('/', auth, async (req, res) => {
     if (!swapId || !rating)
       return res.status(400).json({ message: 'swapId and rating are required' });
 
-    const swap = await Swap.findById(swapId);
+    const swap = await Swap.findById(swapId).lean();
     if (!swap) return res.status(404).json({ message: 'Swap not found' });
     if (swap.status !== SWAP_STATUS.COMPLETED)
       return res.status(400).json({ message: 'Swap must be completed first' });
@@ -26,7 +26,7 @@ router.post('/', auth, async (req, res) => {
     const revieweeId =
       swap.sender.toString() === req.user.id.toString() ? swap.receiver : swap.sender;
 
-    const exists = await Review.findOne({ swap: swapId, reviewer: req.user.id.toString() });
+    const exists = await Review.findOne({ swap: swapId, reviewer: req.user.id.toString() }).lean();
     if (exists) return res.status(409).json({ message: 'Already reviewed this swap' });
 
     const review = await Review.create({
@@ -63,7 +63,8 @@ router.get('/user/:id', async (req, res) => {
   try {
     const reviews = await Review.find({ reviewee: req.params.id })
       .populate('reviewer', 'name avatarColor avatarUrl')
-      .sort({ createdAt: -1 });
+      .sort({ createdAt: -1 })
+      .lean();
     res.json(reviews);
   } catch (err) {
     res.status(500).json({ message: err.message });

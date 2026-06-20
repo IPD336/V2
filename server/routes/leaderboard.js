@@ -9,7 +9,7 @@ const router = express.Router();
 router.get('/', auth, async (req, res) => {
   try {
     await updateAllLeagues(); // Ensure leagues are up to date
-    const allUsers = await User.find({ isPublic: { $ne: false }, role: { $ne: 'admin' }, isBanned: false })
+    const allUsers = await User.find({ isPublic: { $ne: false }, role: { $ne: 'admin' }, isBanned: { $ne: true } })
       .select('name avatarColor avatarUrl rating reviewCount skillsOffered league _id');
 
     // Calculate score

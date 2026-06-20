@@ -19,7 +19,7 @@ router.get('/stats', async (req, res) => {
     const totalSwaps = await Swap.countDocuments();
     const completedSwaps = await Swap.countDocuments({ status: 'completed' });
 
-    const users = await User.find({ role: 'user' });
+    const users = await User.find({ role: 'user' }).select('skillsOffered league rating reviewCount name').lean();
 
     const skillFreq = {};
     users.forEach(u => {
@@ -61,10 +61,18 @@ router.get('/stats', async (req, res) => {
 
 router.get('/users', async (req, res) => {
   try {
-    const users = await User.find()
-      .select('name email role isBanned createdAt rating reviewCount')
-      .sort({ createdAt: -1 });
-    res.json(users);
+    const { page = 1, limit = 50 } = req.query;
+    const skip = (parseInt(page) - 1) * parseInt(limit);
+    const [users, total] = await Promise.all([
+      User.find()
+        .select('name email role isBanned createdAt rating reviewCount')
+        .sort({ createdAt: -1 })
+        .skip(skip)
+        .limit(parseInt(limit))
+        .lean(),
+      User.countDocuments(),
+    ]);
+    res.json({ users, total, page: parseInt(page), pages: Math.ceil(total / parseInt(limit)) });
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
@@ -94,10 +102,18 @@ router.put('/users/:id/ban', async (req, res) => {
 
 router.get('/teams', async (req, res) => {
   try {
-    const teams = await Team.find()
-      .populate('creator', 'name email')
-      .sort({ createdAt: -1 });
-    res.json(teams);
+    const { page = 1, limit = 50 } = req.query;
+    const skip = (parseInt(page) - 1) * parseInt(limit);
+    const [teams, total] = await Promise.all([
+      Team.find()
+        .populate('creator', 'name email')
+        .sort({ createdAt: -1 })
+        .skip(skip)
+        .limit(parseInt(limit))
+        .lean(),
+      Team.countDocuments(),
+    ]);
+    res.json({ teams, total, page: parseInt(page), pages: Math.ceil(total / parseInt(limit)) });
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
