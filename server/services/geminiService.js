@@ -9,8 +9,14 @@ if (process.env.GEMINI_API_KEY) {
 
 async function getGeminiModel() {
   if (!genAI) return null;
-  // Try gemini-pro, which is the most universally available model
-  return genAI.getGenerativeModel({ model: 'gemini-pro' });
+  try {
+    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models?key=${process.env.GEMINI_API_KEY}`);
+    const data = await response.json();
+    console.log("AVAILABLE MODELS:", data.models?.map(m => m.name).join(', '));
+  } catch (e) {
+    console.error("Could not fetch model list:", e);
+  }
+  return genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
 }
 
 // Proposals
