@@ -3,6 +3,10 @@
   "private": true,
   "version": "0.0.0",
   "type": "module",
+  "supportedArchitectures": {
+    "os": ["win32", "linux"],
+    "cpu": ["x64", "arm64"]
+  },
   "scripts": {
     "dev": "vite",
     "build": "vite build",

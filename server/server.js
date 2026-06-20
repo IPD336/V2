@@ -23,7 +23,7 @@ const app = express();
 const server = http.createServer(app);
 socket.init(server);
 
-const CORS_ORIGIN = process.env.CORS_ORIGIN || 'http://localhost:5173';
+const CORS_ORIGIN = process.env.CORS_ORIGIN || 'http://localhost:5173,https://skillswapv2.vercel.app';
 
 app.use(helmet());
 app.use(cors({
