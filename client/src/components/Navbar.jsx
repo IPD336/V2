@@ -209,11 +209,13 @@ export default function Navbar() {
               <div className={`nav-links ${mobileMenuOpen ? 'mobile-active' : ''}`}>
                 <NavLink to="/" onClick={closeMobileMenu}>Home</NavLink>
                 <a href="/#how" onClick={closeMobileMenu}>How It Works</a>
+                <NavLink to="/login" onClick={closeMobileMenu} className="hide-desktop">Sign In</NavLink>
+                <NavLink to="/register" onClick={closeMobileMenu} className="hide-desktop">Get Started</NavLink>
               </div>
-              <NavLink to="/login" onClick={closeMobileMenu}>
+              <NavLink to="/login" onClick={closeMobileMenu} className="hide-mobile">
                 <button className="btn-cosmos btn-cosmos-ghost nav-signin-btn">Sign In</button>
               </NavLink>
-              <NavLink to="/register" onClick={closeMobileMenu}>
+              <NavLink to="/register" onClick={closeMobileMenu} className="hide-mobile">
                 <button className="btn-cosmos btn-cosmos-primary nav-getstarted-btn">Get Started</button>
               </NavLink>
             </>

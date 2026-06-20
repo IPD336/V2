@@ -7,7 +7,6 @@ const tabs = [
   { to: '/browse', label: 'Browse', icon: SearchIcon },
   { to: '/swaps', label: 'Swaps', icon: SwapIcon },
   { to: '/calendar', label: 'Calendar', icon: CalendarIcon },
-  { to: '/profile', label: 'Profile', icon: ProfileIcon },
 ];
 
 export default function MobileBottomNav() {
