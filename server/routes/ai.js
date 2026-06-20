@@ -68,20 +68,37 @@ router.post('/github-verify', auth, async (req, res) => {
       }
     });
 
-    if (!response.ok) {
-      return res.status(400).json({ message: 'Could not fetch GitHub repositories. Check your username.' });
-    }
+    let repoList = [];
 
-    const repos = await response.json();
-    if (!Array.isArray(repos)) {
-      return res.status(400).json({ message: 'Failed to retrieve repository data.' });
+    if (response.ok) {
+      const repos = await response.json();
+      if (Array.isArray(repos)) {
+        repoList = repos.map(r => ({
+          name: r.name,
+          description: r.description,
+          language: r.language
+        }));
+      }
+    } else {
+      // Fallback: If API is rate-limited (very common on Render shared IPs), scrape the HTML page
+      const htmlResponse = await fetch(`https://github.com/${username}?tab=repositories`, {
+        headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)' }
+      });
+      if (!htmlResponse.ok) {
+         return res.status(400).json({ message: 'Could not fetch GitHub profile. Please check the username.' });
+      }
+      const html = await htmlResponse.text();
+      const repoMatches = [...html.matchAll(/itemprop="name codeRepository"[^>]*>\s*([^<\n]+)\s*<\/a>/g)];
+      repoList = repoMatches.slice(0, 20).map((match) => ({
+        name: match[1].trim(),
+        description: 'GitHub Repository',
+        language: 'Code'
+      }));
+      
+      if (repoList.length === 0) {
+         return res.status(400).json({ message: `No public repositories found for ${username}, or GitHub blocked the request.` });
+      }
     }
-
-    const repoList = repos.map(r => ({
-      name: r.name,
-      description: r.description,
-      language: r.language
-    }));
 
     const suggestedSkills = await inferGithubSkills(repoList);
     res.json({ skills: suggestedSkills });
