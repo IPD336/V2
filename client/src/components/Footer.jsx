@@ -19,7 +19,7 @@ export default function Footer() {
           <div style={{
             color: 'var(--section-text)',
           }}>
-            <Logo />
+            <Logo size={60} />
           </div>
           <div style={{ display: 'flex', gap: 28, flexWrap: 'wrap' }} role="navigation">
             {links.map((label) => (

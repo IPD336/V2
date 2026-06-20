@@ -57,16 +57,11 @@ export default function Landing() {
           </mask>
         </svg>
         {/* Decorative large logo watermark */}
-        <svg width="300" height="300" viewBox="0 0 32 32" fill="none" style={{
-          position: 'absolute', right: '8%', top: '15%', zIndex: 0,
-          opacity: 0.06, pointerEvents: 'none',
-        }} aria-hidden="true">
-          <circle cx="16" cy="16" r="14" stroke="var(--accent)" strokeWidth="1.6" />
-          <path d="M9 14 C9 8, 23 8, 23 14" stroke="var(--accent)" strokeWidth="1.6" strokeLinecap="round" fill="none"/>
-          <path d="M23 14 L18 11 M23 14 L18 17" stroke="var(--accent)" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" fill="none"/>
-          <path d="M23 18 C23 24, 9 24, 9 18" stroke="var(--accent)" strokeWidth="1.6" strokeLinecap="round" fill="none"/>
-          <path d="M9 18 L14 21 M9 18 L14 15" stroke="var(--accent)" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" fill="none"/>
-        </svg>
+        <img src="/logo.png" alt="" width={400} height={400} style={{
+          position: 'absolute', right: '8%', top: '10%', zIndex: 0,
+          opacity: 0.08, pointerEvents: 'none', objectFit: 'contain',
+          borderRadius: 32,
+        }} />
 
         <div style={{
           position: 'relative', zIndex: 1, width: '100%',
