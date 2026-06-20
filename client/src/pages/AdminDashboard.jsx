@@ -38,8 +38,8 @@ export default function AdminDashboard() {
         api.get('/admin/teams')
       ]);
       setStats(statsRes.data);
-      setUsers(usersRes.data);
-      setTeams(teamsRes.data);
+      setUsers(usersRes.data.users);
+      setTeams(teamsRes.data.teams);
     } catch (err) {
       showToast('Failed to load admin data', 'error');
     } finally {

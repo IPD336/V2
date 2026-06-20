@@ -36,7 +36,7 @@ export default function Workspaces() {
           api.get('/teams?mine=true')
         ]);
         setActiveSwaps(swapRes.data.active);
-        setActiveTeams(teamRes.data.filter(t => t.status === 'open' || t.status === 'closed'));
+        setActiveTeams(teamRes.data.teams.filter(t => t.status === 'open' || t.status === 'closed'));
         setLoading(false);
       } catch (err) {
         showToast('Failed to load workspaces', 'error');
