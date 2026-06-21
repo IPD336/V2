@@ -128,6 +128,16 @@ export function SocketProvider({ children }) {
     }
   };
 
+  const dismissNotification = async (id) => {
+    try {
+      await api.put(`/notifications/${id}/read`);
+      setNotifications(prev => prev.filter(n => n._id !== id));
+      setUnreadCount(prev => Math.max(0, prev - 1));
+    } catch (err) {
+      showToast('Failed to dismiss notification', 'error');
+    }
+  };
+
   const markAllAsRead = async () => {
     try {
       await api.put('/notifications/read-all');
@@ -139,7 +149,7 @@ export function SocketProvider({ children }) {
   };
 
   return (
-    <SocketContext.Provider value={{ socket, notifications, unreadCount, onlineUsers, isUserOnline, markAsRead, markAllAsRead, markTypeAsRead, emitTyping, emitStopTyping, emitTypingDebounced }}>
+    <SocketContext.Provider value={{ socket, notifications, unreadCount, onlineUsers, isUserOnline, markAsRead, markAllAsRead, markTypeAsRead, dismissNotification, emitTyping, emitStopTyping, emitTypingDebounced }}>
       {children}
     </SocketContext.Provider>
   );
