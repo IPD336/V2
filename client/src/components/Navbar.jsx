@@ -19,7 +19,7 @@ const moreLinks = [
 export default function Navbar() {
   const { user, logout } = useAuth();
   const { theme, toggleTheme } = useTheme();
-  const { notifications, unreadCount, markAsRead, markAllAsRead } = useSocket() || { notifications: [], unreadCount: 0, markAsRead: () => {}, markAllAsRead: () => {} };
+  const { notifications, unreadCount, markAsRead, markAllAsRead, dismissNotification } = useSocket() || { notifications: [], unreadCount: 0, markAsRead: () => {}, markAllAsRead: () => {} };
   const navigate = useNavigate();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [notifOpen, setNotifOpen] = useState(false);
@@ -46,7 +46,7 @@ export default function Navbar() {
   }, []);
 
   const handleNotifClick = (n) => {
-    markAsRead(n._id);
+    dismissNotification(n._id);
     setNotifOpen(false);
     setMobileMenuOpen(false);
     if (n.type === 'swap_request') navigate('/swaps');
