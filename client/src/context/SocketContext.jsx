@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useState } from 'react';
+import { createContext, useContext, useEffect, useState, useCallback, useRef } from 'react';
 import { io } from 'socket.io-client';
 import { useAuth } from './AuthContext';
 import { useToast } from './ToastContext';
@@ -14,6 +14,11 @@ export function SocketProvider({ children }) {
   const [socket, setSocket] = useState(null);
   const [notifications, setNotifications] = useState([]);
   const [unreadCount, setUnreadCount] = useState(0);
+  const [onlineUsers, setOnlineUsers] = useState(new Set());
+  const typingRef = useRef({}); // room -> timeout
+
+  // Derived helper
+  const isUserOnline = useCallback((userId) => onlineUsers.has(userId?.toString()), [onlineUsers]);
 
   useEffect(() => {
     if (user) {
@@ -42,6 +47,24 @@ export function SocketProvider({ children }) {
       console.log('Connected to real-time server');
     });
 
+    // Presence
+    newSocket.on('online_users', (ids) => {
+      setOnlineUsers(new Set(ids));
+    });
+
+    newSocket.on('user_online', (userId) => {
+      setOnlineUsers(prev => new Set([...prev, userId]));
+    });
+
+    newSocket.on('user_offline', (userId) => {
+      setOnlineUsers(prev => {
+        const next = new Set(prev);
+        next.delete(userId);
+        return next;
+      });
+    });
+
+    // Notifications
     newSocket.on('new_notification', (notif) => {
       setNotifications(prev => [notif, ...prev]);
       setUnreadCount(prev => prev + 1);
@@ -56,6 +79,27 @@ export function SocketProvider({ children }) {
 
     return () => newSocket.disconnect();
   }, [user]);
+
+  // Typing emission helpers
+  const emitTyping = useCallback((roomId) => {
+    if (!socket) return;
+    socket.emit('typing', roomId);
+  }, [socket]);
+
+  const emitStopTyping = useCallback((roomId) => {
+    if (!socket) return;
+    socket.emit('stop_typing', roomId);
+  }, [socket]);
+
+  const emitTypingDebounced = useCallback((roomId) => {
+    if (!socket) return;
+    socket.emit('typing', roomId);
+    if (typingRef.current[roomId]) clearTimeout(typingRef.current[roomId]);
+    typingRef.current[roomId] = setTimeout(() => {
+      socket.emit('stop_typing', roomId);
+      delete typingRef.current[roomId];
+    }, 2000);
+  }, [socket]);
 
   const markAsRead = async (id) => {
     try {
@@ -95,7 +139,7 @@ export function SocketProvider({ children }) {
   };
 
   return (
-    <SocketContext.Provider value={{ socket, notifications, unreadCount, markAsRead, markAllAsRead, markTypeAsRead }}>
+    <SocketContext.Provider value={{ socket, notifications, unreadCount, onlineUsers, isUserOnline, markAsRead, markAllAsRead, markTypeAsRead, emitTyping, emitStopTyping, emitTypingDebounced }}>
       {children}
     </SocketContext.Provider>
   );

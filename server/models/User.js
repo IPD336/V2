@@ -61,6 +61,21 @@ const userSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
+userSchema.pre('validate', function () {
+  if (this.badges != null) {
+    if (typeof this.badges === 'string') {
+      this.badges = [{ id: this.badges, earnedAt: new Date() }];
+    } else if (Array.isArray(this.badges)) {
+      let changed = false;
+      this.badges = this.badges.map(b => {
+        if (typeof b === 'string') { changed = true; return { id: b, earnedAt: new Date() }; }
+        return b;
+      });
+      if (changed) this.markModified('badges');
+    }
+  }
+});
+
 userSchema.index({ isPublic: 1, role: 1 });
 userSchema.index({ 'skillsOffered.name': 1 });
 userSchema.index({ 'skillsOffered.category': 1 });

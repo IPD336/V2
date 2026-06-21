@@ -9,6 +9,7 @@ import Spinner from './components/Spinner';
 import Navbar from './components/Navbar';
 import MobileBottomNav from './components/MobileBottomNav';
 import OnboardingModal from './components/OnboardingModal';
+import CommandPalette from './components/CommandPalette';
 import Footer from './components/Footer';
 import Landing from './pages/Landing';
 import Login from './pages/Login';
@@ -27,6 +28,7 @@ const UserProfile = lazy(() => import('./pages/UserProfile'));
 const Leaderboard = lazy(() => import('./pages/Leaderboard'));
 const AdminDashboard = lazy(() => import('./pages/AdminDashboard'));
 const Workspaces = lazy(() => import('./pages/Workspaces'));
+const Badges = lazy(() => import('./pages/Badges'));
 const NotFound = lazy(() => import('./pages/NotFound'));
 
 import './index.css';
@@ -63,6 +65,7 @@ function AppRoutes() {
         <Route path="/teams" element={<ProtectedRoute><Suspense fallback={<Spinner />}><Teams /></Suspense></ProtectedRoute>} />
         <Route path="/teams/:id" element={<ProtectedRoute><Suspense fallback={<Spinner />}><TeamDetail /></Suspense></ProtectedRoute>} />
         <Route path="/leaderboard" element={<ProtectedRoute><Suspense fallback={<Spinner />}><Leaderboard /></Suspense></ProtectedRoute>} />
+        <Route path="/badges" element={<ProtectedRoute><Suspense fallback={<Spinner />}><Badges /></Suspense></ProtectedRoute>} />
         <Route path="/profile" element={<ProtectedRoute><Suspense fallback={<Spinner />}><Profile /></Suspense></ProtectedRoute>} />
         <Route path="/profile/:id" element={<ProtectedRoute><Suspense fallback={<Spinner />}><UserProfile /></Suspense></ProtectedRoute>} />
         <Route path="/admin" element={<ProtectedRoute><Suspense fallback={<Spinner />}><AdminDashboard /></Suspense></ProtectedRoute>} />
@@ -85,6 +88,7 @@ export default function App() {
           <ToastProvider>
             <SocketProvider>
               <Navbar />
+              <CommandPalette />
               <ErrorBoundary>
                 <AppRoutes />
               </ErrorBoundary>

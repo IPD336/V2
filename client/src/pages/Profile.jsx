@@ -258,16 +258,17 @@ export default function Profile() {
             <h2 style={{ fontSize: 18, marginBottom: 24, display: 'flex', alignItems: 'center', gap: 8 }}><MedalIcon size={18} /> Achievements</h2>
             <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap' }}>
               {me.badges.map((badge, idx) => {
+                const badgeId = typeof badge === 'string' ? badge : badge.id;
                 let icon = <StarIcon size={20} />;
                 let desc = '';
-                if (badge === 'Early Bird') { icon = <StarIcon size={20} />; desc = 'Completed first swap'; }
-                if (badge === 'Super Mentor') { icon = <StarIcon size={20} />; desc = '10+ five-star reviews'; }
-                if (badge === 'Team Player') { icon = <HandshakeIcon size={20} />; desc = 'Completed a team project'; }
+                if (badgeId === 'Early Bird') { icon = <StarIcon size={20} />; desc = 'Completed first swap'; }
+                if (badgeId === 'Super Mentor') { icon = <StarIcon size={20} />; desc = '10+ five-star reviews'; }
+                if (badgeId === 'Team Player') { icon = <HandshakeIcon size={20} />; desc = 'Completed a team project'; }
                 return (
                   <div key={idx} style={{ background: 'var(--gold-light)', border: '1px solid var(--gold)', padding: '12px 16px', borderRadius: 12, display: 'flex', alignItems: 'center', gap: 12 }}>
                     <div style={{ fontSize: 24, display: 'flex', color: 'var(--gold)' }}>{icon}</div>
                     <div>
-                      <div style={{ fontWeight: 700, color: 'var(--ink)', fontSize: 14 }}>{badge}</div>
+                      <div style={{ fontWeight: 700, color: 'var(--ink)', fontSize: 14 }}>{badgeId}</div>
                       <div style={{ fontSize: 11, color: 'var(--muted)' }}>{desc}</div>
                     </div>
                   </div>
