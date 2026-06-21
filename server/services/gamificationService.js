@@ -21,12 +21,34 @@ function xpProgress(totalXp) {
   return { level, current, needed, totalXp };
 }
 
+function fixBadges(user) {
+  if (user.badges == null) return;
+  if (typeof user.badges === 'string') {
+    user.badges = [{ id: user.badges, earnedAt: new Date() }];
+    user.markModified('badges');
+    return;
+  }
+  if (Array.isArray(user.badges)) {
+    let changed = false;
+    user.badges = user.badges.map(b => {
+      if (typeof b === 'string' || b instanceof String || (b && typeof b === 'object' && typeof b.id === 'undefined' && typeof b.earnedAt === 'undefined')) {
+        changed = true;
+        const val = (typeof b === 'string' || b instanceof String) ? b.toString() : String(b);
+        return { id: val, earnedAt: new Date() };
+      }
+      return b;
+    });
+    if (changed) user.markModified('badges');
+  }
+}
+
 async function awardXp(userId, amount) {
   const user = await User.findById(userId);
   if (!user) return;
 
   user.xp = (user.xp || 0) + amount;
   user.level = calcLevel(user.xp);
+  fixBadges(user);
   await user.save();
 }
 
@@ -43,6 +65,7 @@ async function addBadge(userId, badgeId) {
     user.level = calcLevel(user.xp);
   }
 
+  fixBadges(user);
   await user.save();
 
   await createNotification(
@@ -78,6 +101,7 @@ async function trackDailyStreak(userId) {
   user.streak = { current: currentStreak, longest: longestStreak, lastActiveDate: today };
   user.xp = (user.xp || 0) + XP_REWARDS.DAILY_LOGIN;
   user.level = calcLevel(user.xp);
+  fixBadges(user);
   await user.save();
 
   if (currentStreak >= 3) await addBadge(userId, BADGES.STREAK_3);
@@ -138,10 +162,11 @@ async function getGamificationState(userId) {
   const progress = xpProgress(user.xp || 0);
 
   const allBadges = Object.values(BADGE_DETAILS);
-  const earnedIds = new Set((user.badges || []).map(b => b.id));
+  const rawBadges = Array.isArray(user.badges) ? user.badges : [];
+  const earnedIds = new Set(rawBadges.map(b => typeof b === 'string' ? b : b.id));
 
   const badgeWithMeta = allBadges.map(detail => {
-    const earned = user.badges?.find(b => b.id === detail.id);
+    const earned = rawBadges.find(b => typeof b === 'string' ? b === detail.id : b.id === detail.id);
     return {
       ...detail,
       earned: !!earned,

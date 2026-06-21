@@ -3,12 +3,13 @@ import { useNavigate } from 'react-router-dom';
 import api from '../api/axios';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
+import { useSocket } from '../context/SocketContext';
 import SwapRequestModal from '../components/SwapRequestModal';
 import { SkeletonCard } from '../components/Skeleton';
 import { COLORS, CATEGORIES, initials, stars } from '../utils';
 import { SearchIcon, PinIcon, ClockIcon, DiamondIcon, TrophyIcon, SparklesIcon } from '../components/Icons';
 
-function ProfileCard({ user, onSwap, onSave, saved }) {
+function ProfileCard({ user, onSwap, onSave, saved, isOnline }) {
   const navigate = useNavigate();
   const color = user.avatarColor || COLORS[0];
 
@@ -17,8 +18,9 @@ function ProfileCard({ user, onSwap, onSave, saved }) {
       <div className="card-banner" style={{ background: `linear-gradient(135deg, ${color}, ${color}aa)` }} />
       <div className="card-body">
         <div className="card-avatar-wrap">
-          <div className="card-avatar" style={{ background: user.avatarUrl ? `url(${user.avatarUrl}) center/cover` : color }}>
+          <div className="card-avatar" style={{ background: user.avatarUrl ? `url(${user.avatarUrl}) center/cover` : color, position: 'relative' }}>
             {user.avatarUrl ? <img src={user.avatarUrl} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: 12 }} loading="lazy" /> : initials(user.name)}
+            {isOnline && <span className="presence-dot" style={{ position: 'absolute', bottom: 2, right: 2, width: 10, height: 10, border: '2px solid var(--card-bg)' }} />}
           </div>
           <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap' }}>
             {user.mutualMatch && <span className="card-badge badge-mutual">⇄ Mutual</span>}
@@ -97,6 +99,7 @@ function ProfileCard({ user, onSwap, onSave, saved }) {
 export default function Browse() {
   const { user: me } = useAuth();
   const { showToast } = useToast();
+  const { isUserOnline } = useSocket();
   const [users, setUsers] = useState([]);
   const [recommendations, setRecommendations] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -169,7 +172,7 @@ export default function Browse() {
             </div>
             <div className="cards-grid">
               {recommendations.map((u) => (
-                <ProfileCard key={u._id} user={u} onSwap={setSwapTarget} onSave={handleSave} saved={saved.has(u._id)} />
+                <ProfileCard key={u._id} user={u} onSwap={setSwapTarget} onSave={handleSave} saved={saved.has(u._id)} isOnline={isUserOnline(u._id)} />
               ))}
             </div>
           </div>
@@ -213,7 +216,7 @@ export default function Browse() {
             ) : (
               <div className="cards-grid">
                 {users.map((u) => (
-                  <ProfileCard key={u._id} user={u} onSwap={setSwapTarget} onSave={handleSave} saved={saved.has(u._id)} />
+                  <ProfileCard key={u._id} user={u} onSwap={setSwapTarget} onSave={handleSave} saved={saved.has(u._id)} isOnline={isUserOnline(u._id)} />
                 ))}
               </div>
             )}

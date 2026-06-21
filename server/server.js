@@ -74,10 +74,35 @@ if (!MONGO_URI) {
   process.exit(1);
 }
 
+async function migrateCorruptedBadges() {
+  try {
+    const db = mongoose.connection.db;
+    if (!db) return;
+    const users = db.collection('users');
+    const cursor = users.find({ badges: { $exists: true, $ne: [] } });
+    let fixed = 0;
+    while (await cursor.hasNext()) {
+      const doc = await cursor.next();
+      if (!doc.badges || !Array.isArray(doc.badges)) continue;
+      const hasStrings = doc.badges.some(b => typeof b === 'string');
+      if (!hasStrings) continue;
+      const fixedBadges = doc.badges.map(b =>
+        typeof b === 'string' ? { id: b, earnedAt: new Date() } : b
+      );
+      await users.updateOne({ _id: doc._id }, { $set: { badges: fixedBadges } });
+      fixed++;
+    }
+    if (fixed > 0) console.log(`Migration: fixed ${fixed} user(s) with corrupted badges`);
+  } catch (err) {
+    console.error('Migration error (non-fatal):', err.message);
+  }
+}
+
 mongoose
   .connect(MONGO_URI)
-  .then(() => {
+  .then(async () => {
     console.log('MongoDB connected');
+    await migrateCorruptedBadges();
     server.listen(PORT, () => console.log(`Server running on http://localhost:${PORT}`));
   })
   .catch((err) => {

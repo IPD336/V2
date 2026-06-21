@@ -6,13 +6,14 @@ import { useSocket } from '../context/SocketContext';
 import { initials } from '../utils';
 import Logo from './Logo';
 import { BellIcon } from './Logo';
-import { MoonIcon, SunIcon, WorkspaceIcon, TeamsIcon, TrophyIcon, ProfileIcon, LogoutIcon, SwapIcon, HandshakeIcon, CalendarIcon } from './Icons';
+import { MoonIcon, SunIcon, WorkspaceIcon, TeamsIcon, TrophyIcon, ProfileIcon, LogoutIcon, SwapIcon, HandshakeIcon, CalendarIcon, MedalIcon } from './Icons';
 
 const moreLinks = [
   { to: '/calendar', label: 'Calendar', icon: 'calendar' },
   { to: '/workspaces', label: 'Workspaces', icon: 'workspace' },
   { to: '/teams', label: 'Teams', icon: 'teams' },
   { to: '/leaderboard', label: 'Leaderboard', icon: 'trophy' },
+  { to: '/badges', label: 'Badges', icon: 'medal' },
 ];
 
 export default function Navbar() {
@@ -114,7 +115,7 @@ export default function Navbar() {
                         className="nav-dropdown-item"
                       >
                         <span className="nav-dropdown-icon">
-                          {l.icon === 'calendar' ? <CalendarIcon size={16} /> : l.icon === 'workspace' ? <WorkspaceIcon size={16} /> : l.icon === 'teams' ? <TeamsIcon size={16} /> : <TrophyIcon size={16} />}
+                          {l.icon === 'calendar' ? <CalendarIcon size={16} /> : l.icon === 'workspace' ? <WorkspaceIcon size={16} /> : l.icon === 'teams' ? <TeamsIcon size={16} /> : l.icon === 'medal' ? <MedalIcon size={16} /> : <TrophyIcon size={16} />}
                         </span>
                         {l.label}
                       </NavLink>
@@ -195,6 +196,10 @@ export default function Navbar() {
                     <NavLink to="/leaderboard" onClick={() => setAvatarOpen(false)} className="nav-dropdown-item hide-desktop">
                       <span className="nav-dropdown-icon"><TrophyIcon size={16} /></span>
                       Leaderboard
+                    </NavLink>
+                    <NavLink to="/badges" onClick={() => setAvatarOpen(false)} className="nav-dropdown-item hide-desktop">
+                      <span className="nav-dropdown-icon"><MedalIcon size={16} /></span>
+                      Badges
                     </NavLink>
                     <button onClick={handleLogout} className="nav-dropdown-item nav-dropdown-logout">
                       <span className="nav-dropdown-icon"><LogoutIcon size={16} /></span>

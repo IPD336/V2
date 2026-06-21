@@ -8,7 +8,7 @@ import { RocketIcon, CheckIcon, SendIcon, TargetIcon } from '../components/Icons
 
 export default function Workspaces() {
   const { user } = useAuth();
-  const { socket } = useSocket();
+  const { socket, isUserOnline, emitTypingDebounced } = useSocket();
   const { showToast } = useToast();
   const [activeSwaps, setActiveSwaps] = useState([]);
   const [activeTeams, setActiveTeams] = useState([]);
@@ -23,6 +23,8 @@ export default function Workspaces() {
   const [selectedCategory, setSelectedCategory] = useState('Frontend');
   // Track which rooms have unread messages (Set of room IDs)
   const [unreadRooms, setUnreadRooms] = useState(new Set());
+  // Typing indicator state: { userId: name, ... } for current room
+  const [typingUsers, setTypingUsers] = useState({});
   // Mobile tab: 'chat' | 'goals'
   const [mobileTab, setMobileTab] = useState('chat');
   const CATEGORIES = ['Frontend', 'Backend', 'DevOps', 'Data Science', 'Mobile', 'AI/ML', 'Programming Languages'];
@@ -74,6 +76,12 @@ export default function Workspaces() {
           if (prev.find(m => m._id === msg._id)) return prev;
           return [...prev, msg];
         });
+        // Clear typing indicator for the sender
+        setTypingUsers(prev => {
+          const next = { ...prev };
+          delete next[msg.sender._id];
+          return next;
+        });
       }
     };
 
@@ -85,12 +93,35 @@ export default function Workspaces() {
       }
     };
 
+    const handleTyping = ({ userId, room }) => {
+      if (String(room) === String(selected.id) && userId !== user._id) {
+        const partner = selected.otherUser;
+        const name = partner?._id === userId || partner?._id?.toString() === userId ? partner.name : 'Someone';
+        setTypingUsers(prev => ({ ...prev, [userId]: name }));
+      }
+    };
+
+    const handleStopTyping = ({ userId, room }) => {
+      if (String(room) === String(selected.id)) {
+        setTypingUsers(prev => {
+          const next = { ...prev };
+          delete next[userId];
+          return next;
+        });
+      }
+    };
+
     socket.on('new_message', handleNewMessage);
     socket.on('goal_updated', handleGoalUpdated);
+    socket.on('user_typing', handleTyping);
+    socket.on('user_stop_typing', handleStopTyping);
 
     return () => {
       socket.off('new_message', handleNewMessage);
       socket.off('goal_updated', handleGoalUpdated);
+      socket.off('user_typing', handleTyping);
+      socket.off('user_stop_typing', handleStopTyping);
+      setTypingUsers({});
     };
   }, [socket, selected]);
 
@@ -287,8 +318,9 @@ export default function Workspaces() {
                       }}
                     >
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                        <div style={{ fontWeight: 600, fontSize: 14, color: 'var(--ink)' }}>
+                        <div style={{ fontWeight: 600, fontSize: 14, color: 'var(--ink)', display: 'flex', alignItems: 'center', gap: 6 }}>
                           {s.sender._id === user._id ? s.receiver.name : s.sender.name}
+                          {isUserOnline(s.sender._id === user._id ? s.receiver._id : s.sender._id) && <span className="presence-dot" />}
                         </div>
                         {unreadRooms.has(String(s._id)) && <div className="workspace-unread-dot" />}
                       </div>
@@ -352,10 +384,13 @@ export default function Workspaces() {
             <>
               {/* Header */}
               <div style={{ padding: '12px 16px', borderBottom: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'var(--card-bg)', gap: 8 }}>
-                <div style={{ minWidth: 0, display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <div style={{ minWidth: 0, display: 'flex', alignItems: 'center', gap: 8 }}>
                   <button className="btn-ghost hide-desktop" style={{ padding: '6px 10px', flexShrink: 0 }} onClick={() => setSelected(null)}>←</button>
                   <div style={{ minWidth: 0 }}>
-                    <div style={{ fontSize: 16, fontWeight: 700, color: 'var(--ink)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{selected.name}</div>
+                    <div style={{ fontSize: 16, fontWeight: 700, color: 'var(--ink)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', display: 'flex', alignItems: 'center', gap: 8 }}>
+                      {selected.name}
+                      {selected.otherUser && isUserOnline(selected.otherUser._id) && <span className="presence-dot" />}
+                    </div>
                       <div style={{ fontSize: 11, color: 'var(--muted)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{selected.detail}</div>
                       {selected.type === 'swap' && (() => {
                         const s = activeSwaps.find(sw => String(sw._id) === String(selected.id));
@@ -442,6 +477,12 @@ export default function Workspaces() {
                     );
                   })
                 )}
+                {/* Typing indicator */}
+                {Object.keys(typingUsers).length > 0 && (
+                  <div style={{ fontSize: 12, color: 'var(--muted)', fontStyle: 'italic', padding: '0 4px', marginTop: -8 }}>
+                    {Object.values(typingUsers).join(', ')} typing{Object.keys(typingUsers).length > 1 ? '' : 's'}…
+                  </div>
+                )}
                 <div ref={scrollRef} />
               </div>
 
@@ -453,7 +494,10 @@ export default function Workspaces() {
                     placeholder="Type a message…"
                     style={{ borderRadius: 24, paddingLeft: 20, background: 'var(--cream)' }}
                     value={newMessage}
-                    onChange={(e) => setNewMessage(e.target.value)}
+                    onChange={(e) => {
+                      setNewMessage(e.target.value);
+                      if (selected) emitTypingDebounced(selected.id);
+                    }}
                   />
                   <button type="submit" style={{ width: 44, height: 44, borderRadius: '50%', padding: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, background: 'var(--accent)', color: 'white', border: 'none', cursor: 'pointer', transition: 'all .2s' }}>
                     <SendIcon size={18} />
