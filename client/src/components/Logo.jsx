@@ -2,7 +2,7 @@ import { useTheme } from '../context/ThemeContext';
 
 export function LogoMark({ size = 32, style = {} }) {
   const { theme } = useTheme();
-  const src = theme === 'dark' ? '/logo white.png' : '/logo.png';
+  const src = theme === 'light' ? '/logo-white.png' : '/logo.png';
   return (
     <img src={src} alt="" width={size} height={size} style={{ objectFit: 'cover', borderRadius: 6, ...style }} />
   );
