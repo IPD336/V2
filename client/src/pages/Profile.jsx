@@ -4,7 +4,7 @@ import api from '../api/axios';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
 import { AVAIL_OPTIONS, CATEGORIES_NOALL as CATEGORIES } from '../utils';
-import { BADGE_DETAILS, BadgeIcon } from '../utils/badges';
+import { BADGE_DETAILS, BadgeIcon } from '../utils/badges.jsx';
 import { PinIcon, DiamondIcon, TrophyIcon, StarIcon, MedalIcon, CameraIcon, SparklesIcon } from '../components/Icons';
 
 function StructuredSkillInput({ skills, onChange, colorClass = '' }) {
