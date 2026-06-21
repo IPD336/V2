@@ -5,6 +5,7 @@ import { ToastProvider } from './context/ToastContext';
 import { ThemeProvider } from './context/ThemeContext';
 import { SocketProvider } from './context/SocketContext';
 import ErrorBoundary from './components/ErrorBoundary';
+import Spinner from './components/Spinner';
 import Navbar from './components/Navbar';
 import MobileBottomNav from './components/MobileBottomNav';
 import OnboardingModal from './components/OnboardingModal';
@@ -32,7 +33,7 @@ import './index.css';
 
 function ProtectedRoute({ children }) {
   const { user, loading } = useAuth();
-  if (loading) return <div className="spinner" />;
+  if (loading) return <Spinner />;
   return user ? children : <Navigate to="/login" replace />;
 }
 
@@ -54,18 +55,18 @@ function AppRoutes() {
         <Route path="/register" element={user ? <Navigate to={user.role === 'admin' ? '/admin' : '/dashboard'} /> : <Register />} />
         <Route path="/forgot-password" element={<ForgotPassword />} />
         <Route path="/reset-password/:token" element={<ResetPassword />} />
-        <Route path="/dashboard" element={<ProtectedRoute><Suspense fallback={<div className="spinner" />}><Dashboard /></Suspense></ProtectedRoute>} />
-        <Route path="/browse" element={<ProtectedRoute><Suspense fallback={<div className="spinner" />}><Browse /></Suspense></ProtectedRoute>} />
-        <Route path="/workspaces" element={<ProtectedRoute><Suspense fallback={<div className="spinner" />}><Workspaces /></Suspense></ProtectedRoute>} />
-        <Route path="/swaps" element={<ProtectedRoute><Suspense fallback={<div className="spinner" />}><Swaps /></Suspense></ProtectedRoute>} />
-        <Route path="/calendar" element={<ProtectedRoute><Suspense fallback={<div className="spinner" />}><CalendarPage /></Suspense></ProtectedRoute>} />
-        <Route path="/teams" element={<ProtectedRoute><Suspense fallback={<div className="spinner" />}><Teams /></Suspense></ProtectedRoute>} />
-        <Route path="/teams/:id" element={<ProtectedRoute><Suspense fallback={<div className="spinner" />}><TeamDetail /></Suspense></ProtectedRoute>} />
-        <Route path="/leaderboard" element={<ProtectedRoute><Suspense fallback={<div className="spinner" />}><Leaderboard /></Suspense></ProtectedRoute>} />
-        <Route path="/profile" element={<ProtectedRoute><Suspense fallback={<div className="spinner" />}><Profile /></Suspense></ProtectedRoute>} />
-        <Route path="/profile/:id" element={<ProtectedRoute><Suspense fallback={<div className="spinner" />}><UserProfile /></Suspense></ProtectedRoute>} />
-        <Route path="/admin" element={<ProtectedRoute><Suspense fallback={<div className="spinner" />}><AdminDashboard /></Suspense></ProtectedRoute>} />
-        <Route path="*" element={<Suspense fallback={<div className="spinner" />}><NotFound /></Suspense>} />
+        <Route path="/dashboard" element={<ProtectedRoute><Suspense fallback={<Spinner />}><Dashboard /></Suspense></ProtectedRoute>} />
+        <Route path="/browse" element={<ProtectedRoute><Suspense fallback={<Spinner />}><Browse /></Suspense></ProtectedRoute>} />
+        <Route path="/workspaces" element={<ProtectedRoute><Suspense fallback={<Spinner />}><Workspaces /></Suspense></ProtectedRoute>} />
+        <Route path="/swaps" element={<ProtectedRoute><Suspense fallback={<Spinner />}><Swaps /></Suspense></ProtectedRoute>} />
+        <Route path="/calendar" element={<ProtectedRoute><Suspense fallback={<Spinner />}><CalendarPage /></Suspense></ProtectedRoute>} />
+        <Route path="/teams" element={<ProtectedRoute><Suspense fallback={<Spinner />}><Teams /></Suspense></ProtectedRoute>} />
+        <Route path="/teams/:id" element={<ProtectedRoute><Suspense fallback={<Spinner />}><TeamDetail /></Suspense></ProtectedRoute>} />
+        <Route path="/leaderboard" element={<ProtectedRoute><Suspense fallback={<Spinner />}><Leaderboard /></Suspense></ProtectedRoute>} />
+        <Route path="/profile" element={<ProtectedRoute><Suspense fallback={<Spinner />}><Profile /></Suspense></ProtectedRoute>} />
+        <Route path="/profile/:id" element={<ProtectedRoute><Suspense fallback={<Spinner />}><UserProfile /></Suspense></ProtectedRoute>} />
+        <Route path="/admin" element={<ProtectedRoute><Suspense fallback={<Spinner />}><AdminDashboard /></Suspense></ProtectedRoute>} />
+        <Route path="*" element={<Suspense fallback={<Spinner />}><NotFound /></Suspense>} />
       </Routes>
       {!user && <Footer />}
       {user && user.role !== 'admin' && <MobileBottomNav />}

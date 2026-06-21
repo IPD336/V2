@@ -20,8 +20,23 @@ import {
   MedalIcon,
   ClockIcon,
   WarningIcon,
-  PinIcon
+  PinIcon,
+  TargetIcon,
+  DiamondIcon,
+  HandshakeIcon
 } from '../components/Icons';
+
+const badgeIcons = {
+  RocketIcon, HandshakeIcon, StarIcon, SwapIcon, TargetIcon,
+  DiamondIcon, SparklesIcon, CheckIcon, TrophyIcon, MedalIcon,
+  PinIcon, SendIcon, SearchIcon, WorkspaceIcon,
+};
+
+function BadgeIcon({ name, size = 20 }) {
+  const Icon = badgeIcons[name];
+  if (!Icon) return <span style={{ fontSize: size }}>•</span>;
+  return <Icon size={size} />;
+}
 
 function timeAgo(date) {
   const diff = Date.now() - new Date(date);
@@ -56,6 +71,7 @@ export default function Dashboard() {
   const [swapData, setSwapData] = useState({ incoming: [], outgoing: [], active: [], completed: [] });
   const [teamCount, setTeamCount] = useState(0);
   const [recommendations, setRecommendations] = useState([]);
+  const [gamification, setGamification] = useState(null);
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState({});
 
@@ -63,13 +79,15 @@ export default function Dashboard() {
     Promise.all([
       api.get('/swaps'),
       api.get('/teams'),
-      api.get('/users/recommendations').catch(() => ({ data: [] })),
+      api.get('/users/recommendations').catch(() => ({ data: { recommendations: [] } })),
+      api.get('/gamification').catch(() => null),
       refreshUser().catch(() => null),
     ])
-      .then(([swaps, teams, recs]) => {
+      .then(([swaps, teams, recs, gami]) => {
         setSwapData(swaps.data);
         setTeamCount(teams.data.teams?.length || 0);
-        setRecommendations(recs.data || []);
+        setRecommendations(recs.data?.recommendations || []);
+        if (gami) setGamification(gami.data);
       })
       .catch(() => showToast('Failed to load dashboard', 'error'))
       .finally(() => setLoading(false));
@@ -487,10 +505,28 @@ export default function Dashboard() {
             {/* RIGHT COLUMN: Profile & Stats Sidebar */}
             <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
               
-              {/* Gamification/League display */}
+              {/* XP & Level progress card */}
               <div className="dashboard-card" style={{ padding: 20 }}>
-                <h3 style={{ fontFamily: 'PT Serif, serif', fontSize: 15, fontWeight: 600, color: 'var(--ink)', margin: '0 0 16px 0' }}>Your Rank</h3>
-                
+                <h3 style={{ fontFamily: 'PT Serif, serif', fontSize: 15, fontWeight: 600, color: 'var(--ink)', margin: '0 0 16px 0', display: 'flex', alignItems: 'center', gap: 6 }}>
+                  <SparklesIcon size={16} /> Level {gamification?.level || 1}
+                </h3>
+
+                {gamification && (
+                  <div style={{ marginBottom: 16 }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 11, color: 'var(--muted)', marginBottom: 6 }}>
+                      <span>{gamification.xpCurrent} / {gamification.xpNeeded} XP</span>
+                      <span>{gamification.xp} total XP</span>
+                    </div>
+                    <div style={{ height: 8, background: 'var(--border)', borderRadius: 4, overflow: 'hidden' }}>
+                      <div style={{
+                        height: '100%', width: `${Math.min(100, (gamification.xpCurrent / gamification.xpNeeded) * 100)}%`,
+                        background: 'linear-gradient(90deg, var(--accent), #8B5CF6)',
+                        borderRadius: 4, transition: 'width .5s ease',
+                      }} />
+                    </div>
+                  </div>
+                )}
+
                 <div className="league-badge-display" style={{ borderLeft: `4px solid ${user?.league?.color || '#CD7F32'}`, margin: 0 }}>
                   <TrophyIcon size={24} style={{ color: user?.league?.color || '#CD7F32' }} />
                   <div>
@@ -498,6 +534,17 @@ export default function Dashboard() {
                     <div style={{ fontSize: 15, fontWeight: 800, color: 'var(--ink)' }}>{user?.league?.name || 'Bronze'} League</div>
                   </div>
                 </div>
+
+                {/* Streak display */}
+                {gamification?.streak && (
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 12, padding: '10px 12px', background: 'var(--warm)', borderRadius: 10, border: '1px solid var(--border)' }}>
+                    <span style={{ fontSize: 18 }}>🔥</span>
+                    <div>
+                      <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--ink)' }}>{gamification.streak.current} day streak</div>
+                      <div style={{ fontSize: 10, color: 'var(--muted)' }}>Longest: {gamification.streak.longest} days</div>
+                    </div>
+                  </div>
+                )}
 
                 {/* Rating & completed stats */}
                 <div style={{ display: 'flex', gap: 10, marginTop: 16 }}>
@@ -516,22 +563,35 @@ export default function Dashboard() {
                 </div>
               </div>
 
-              {/* Earned Badges block */}
+              {/* Badges block with progress */}
               <div className="dashboard-card" style={{ padding: 20 }}>
                 <h3 style={{ fontFamily: 'PT Serif, serif', fontSize: 15, fontWeight: 600, color: 'var(--ink)', margin: '0 0 16px 0', display: 'flex', alignItems: 'center', gap: 6 }}>
-                  <MedalIcon size={16} /> Earned Badges
+                  <MedalIcon size={16} /> Badges
                 </h3>
-                {(!user?.badges || user.badges.length === 0) ? (
+                {(!gamification?.badges || gamification.badges.length === 0) ? (
                   <div style={{ fontSize: 11, color: 'var(--muted)', lineHeight: 1.4 }}>
                     No badges earned yet. Complete swaps or join teams to earn your first badge!
                   </div>
                 ) : (
-                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
-                    {user.badges.map((b, i) => (
-                      <span key={i} className="badge-capsule" title={`Earned Badge: ${b}`}>
-                        <MedalIcon size={11} style={{ color: 'var(--accent)' }} />
-                        {b}
-                      </span>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                    {gamification.badges.map((b, i) => (
+                      <div key={i} style={{
+                        display: 'flex', alignItems: 'center', gap: 10, padding: '8px 10px',
+                        background: b.earned ? 'var(--accent-light)' : 'transparent',
+                        borderRadius: 10, opacity: b.earned ? 1 : 0.5,
+                        border: b.earned ? '1px solid rgba(var(--accent-rgb),0.2)' : '1px solid var(--border)',
+                      }}>
+                        <BadgeIcon name={b.icon} size={20} />
+                        <div style={{ flex: 1, minWidth: 0 }}>
+                          <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--ink)' }}>
+                            {b.name}
+                            {b.earned && <span style={{ fontSize: 10, color: 'var(--accent)', marginLeft: 6 }}>✓</span>}
+                          </div>
+                          <div style={{ fontSize: 10, color: 'var(--muted)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                            {b.description}
+                          </div>
+                        </div>
+                      </div>
                     ))}
                   </div>
                 )}

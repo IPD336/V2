@@ -324,7 +324,7 @@ export default function CalendarPage() {
         api.get('/swaps/calendar', { params: { year, month: month + 1 } }),
         api.get('/swaps'),
       ]);
-      setCalEvents(calRes.data);
+      setCalEvents(calRes.data.swaps);
       const { incoming, outgoing, active, completed } = swapsRes.data;
       setAllSwaps([...incoming, ...outgoing, ...active, ...completed]);
     } catch {

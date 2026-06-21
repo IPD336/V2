@@ -4,10 +4,47 @@ const User = require('../models/User');
 const auth = require('../middleware/auth');
 const socket = require('../socket');
 const { createNotification } = require('../services/notificationService');
-const { checkEarlyBird } = require('../services/badgeService');
-const { SWAP_STATUS, STALE_SWAP_HOURS } = require('../constants');
+const { awardXp, checkSwapBadges, checkRequestBadges } = require('../services/gamificationService');
+const { SWAP_STATUS, STALE_SWAP_HOURS, SWAP_FORMATS } = require('../constants');
+const { validate, objectId, z } = require('../utils/validation');
 
 const router = express.Router();
+
+const createSwapSchema = z.object({
+  body: z.object({
+    receiverId: objectId,
+    skillOffered: z.string().min(1, 'Skill offered is required').max(100),
+    skillWanted: z.string().min(1, 'Skill wanted is required').max(100),
+    message: z.string().max(500).optional(),
+    schedule: z.string().max(200).optional(),
+    format: z.enum(SWAP_FORMATS).optional(),
+    scheduledAt: z.string().optional(),
+    scheduledEndAt: z.string().optional(),
+  }),
+});
+
+const scheduleSchema = z.object({
+  body: z.object({
+    scheduledAt: z.string().min(1, 'scheduledAt is required'),
+    scheduledEndAt: z.string().optional(),
+  }),
+  params: z.object({
+    id: objectId,
+  }),
+});
+
+const idParamSchema = z.object({
+  params: z.object({
+    id: objectId,
+  }),
+});
+
+const calendarQuerySchema = z.object({
+  query: z.object({
+    year: z.coerce.number().int().optional(),
+    month: z.coerce.number().int().min(1).max(12).optional(),
+  }),
+});
 
 async function autoCompleteStaleSwaps() {
   const staleHours = STALE_SWAP_HOURS;
@@ -41,22 +78,20 @@ router.get('/', auth, async (req, res) => {
         .populate('sender', 'name avatarColor avatarUrl')
         .populate('receiver', 'name avatarColor avatarUrl').lean(),
     ]);
-    res.json({ incoming, outgoing, active, completed });
+    res.respond({ incoming, outgoing, active, completed });
   } catch (err) {
-    res.status(500).json({ message: err.message });
+    res.fail(err.message, 500);
   }
 });
 
-router.post('/', auth, async (req, res) => {
+router.post('/', auth, validate(createSwapSchema), async (req, res) => {
   try {
     const { receiverId, skillOffered, skillWanted, message, schedule, format, scheduledAt, scheduledEndAt } = req.body;
-    if (!receiverId || !skillOffered || !skillWanted)
-      return res.status(400).json({ message: 'receiverId, skillOffered and skillWanted required' });
     if (receiverId === req.user.id)
-      return res.status(400).json({ message: 'Cannot swap with yourself' });
+      return res.fail('Cannot swap with yourself', 400);
 
     const dup = await Swap.findOne({ sender: req.user.id, receiver: receiverId, status: SWAP_STATUS.PENDING }).lean();
-    if (dup) return res.status(409).json({ message: 'A pending swap request already exists' });
+    if (dup) return res.fail('A pending swap request already exists', 409);
 
     const swap = await Swap.create({
       sender: req.user.id, receiver: receiverId,
@@ -75,50 +110,56 @@ router.post('/', auth, async (req, res) => {
       );
     }
 
-    res.status(201).json(swap);
+    await Promise.all([
+      awardXp(req.user.id, 10),
+      checkRequestBadges(req.user.id),
+    ]);
+
+    res.respond(swap, 201);
   } catch (err) {
-    res.status(500).json({ message: err.message });
+    res.fail(err.message, 500);
   }
 });
 
-router.put('/:id/accept', auth, async (req, res) => {
+router.put('/:id/accept', auth, validate(idParamSchema), async (req, res) => {
   try {
     const swap = await Swap.findById(req.params.id);
-    if (!swap) return res.status(404).json({ message: 'Swap not found' });
+    if (!swap) return res.fail('Swap not found', 404);
     if (swap.receiver.toString() !== req.user.id.toString())
-      return res.status(403).json({ message: 'Not authorised' });
+      return res.fail('Not authorised', 403);
     if (swap.status !== SWAP_STATUS.PENDING)
-      return res.status(400).json({ message: 'Swap is not pending' });
+      return res.fail('Swap is not pending', 400);
     swap.status = SWAP_STATUS.ACTIVE;
     await swap.save();
-    res.json(swap);
+    await awardXp(req.user.id, 15);
+    res.respond(swap);
   } catch (err) {
-    res.status(500).json({ message: err.message });
+    res.fail(err.message, 500);
   }
 });
 
-router.put('/:id/decline', auth, async (req, res) => {
+router.put('/:id/decline', auth, validate(idParamSchema), async (req, res) => {
   try {
     const swap = await Swap.findById(req.params.id);
-    if (!swap) return res.status(404).json({ message: 'Swap not found' });
+    if (!swap) return res.fail('Swap not found', 404);
     if (swap.receiver.toString() !== req.user.id.toString())
-      return res.status(403).json({ message: 'Not authorised' });
+      return res.fail('Not authorised', 403);
     swap.status = SWAP_STATUS.DECLINED;
     await swap.save();
-    res.json(swap);
+    res.respond(swap);
   } catch (err) {
-    res.status(500).json({ message: err.message });
+    res.fail(err.message, 500);
   }
 });
 
-router.put('/:id/complete', auth, async (req, res) => {
+router.put('/:id/complete', auth, validate(idParamSchema), async (req, res) => {
   try {
     const swap = await Swap.findById(req.params.id);
-    if (!swap) return res.status(404).json({ message: 'Swap not found' });
+    if (!swap) return res.fail('Swap not found', 404);
     const isParty = [swap.sender.toString(), swap.receiver.toString()].includes(req.user.id.toString());
-    if (!isParty) return res.status(403).json({ message: 'Not authorised' });
+    if (!isParty) return res.fail('Not authorised', 403);
     if (swap.status !== SWAP_STATUS.ACTIVE)
-      return res.status(400).json({ message: 'Swap must be active to complete' });
+      return res.fail('Swap must be active to complete', 400);
 
     swap.status = SWAP_STATUS.PENDING_COMPLETION;
     swap.completedBy = [req.user.id];
@@ -136,20 +177,20 @@ router.put('/:id/complete', auth, async (req, res) => {
       );
     }
 
-    res.json(swap);
+    res.respond(swap);
   } catch (err) {
-    res.status(500).json({ message: err.message });
+    res.fail(err.message, 500);
   }
 });
 
-router.put('/:id/confirm-complete', auth, async (req, res) => {
+router.put('/:id/confirm-complete', auth, validate(idParamSchema), async (req, res) => {
   try {
     const swap = await Swap.findById(req.params.id);
-    if (!swap) return res.status(404).json({ message: 'Swap not found' });
+    if (!swap) return res.fail('Swap not found', 404);
     const isParty = [swap.sender.toString(), swap.receiver.toString()].includes(req.user.id.toString());
-    if (!isParty) return res.status(403).json({ message: 'Not authorised' });
+    if (!isParty) return res.fail('Not authorised', 403);
     if (swap.status !== SWAP_STATUS.PENDING_COMPLETION)
-      return res.status(400).json({ message: 'No completion request pending' });
+      return res.fail('No completion request pending', 400);
 
     if (!swap.completedBy.includes(req.user.id)) {
       swap.completedBy.push(req.user.id);
@@ -159,21 +200,25 @@ router.put('/:id/confirm-complete', auth, async (req, res) => {
     swap.completedAt = new Date();
     await swap.save();
 
-    await checkEarlyBird(swap.sender);
-    await checkEarlyBird(swap.receiver);
+    await Promise.all([
+      awardXp(swap.sender, 100),
+      awardXp(swap.receiver, 100),
+      checkSwapBadges(swap.sender),
+      checkSwapBadges(swap.receiver),
+    ]);
 
-    res.json(swap);
+    res.respond(swap);
   } catch (err) {
-    res.status(500).json({ message: err.message });
+    res.fail(err.message, 500);
   }
 });
 
-router.put('/:id/decline-complete', auth, async (req, res) => {
+router.put('/:id/decline-complete', auth, validate(idParamSchema), async (req, res) => {
   try {
     const swap = await Swap.findById(req.params.id);
-    if (!swap) return res.status(404).json({ message: 'Swap not found' });
+    if (!swap) return res.fail('Swap not found', 404);
     const isParty = [swap.sender.toString(), swap.receiver.toString()].includes(req.user.id.toString());
-    if (!isParty) return res.status(403).json({ message: 'Not authorised' });
+    if (!isParty) return res.fail('Not authorised', 403);
 
     swap.status = SWAP_STATUS.ACTIVE;
     swap.completedBy = [];
@@ -189,30 +234,27 @@ router.put('/:id/decline-complete', auth, async (req, res) => {
       createdAt: new Date()
     });
 
-    res.json(swap);
+    res.respond(swap);
   } catch (err) {
-    res.status(500).json({ message: err.message });
+    res.fail(err.message, 500);
   }
 });
 
-// Schedule a session date/time for an active swap
-router.put('/:id/schedule', auth, async (req, res) => {
+router.put('/:id/schedule', auth, validate(scheduleSchema), async (req, res) => {
   try {
     const swap = await Swap.findById(req.params.id);
-    if (!swap) return res.status(404).json({ message: 'Swap not found' });
+    if (!swap) return res.fail('Swap not found', 404);
     const isParty = [swap.sender.toString(), swap.receiver.toString()].includes(req.user.id.toString());
-    if (!isParty) return res.status(403).json({ message: 'Not authorised' });
+    if (!isParty) return res.fail('Not authorised', 403);
     if (![SWAP_STATUS.PENDING, SWAP_STATUS.ACTIVE].includes(swap.status))
-      return res.status(400).json({ message: 'Can only schedule pending or active swaps' });
+      return res.fail('Can only schedule pending or active swaps', 400);
 
     const { scheduledAt, scheduledEndAt } = req.body;
-    if (!scheduledAt) return res.status(400).json({ message: 'scheduledAt is required' });
 
     swap.scheduledAt = new Date(scheduledAt);
     swap.scheduledEndAt = scheduledEndAt ? new Date(scheduledEndAt) : new Date(new Date(scheduledAt).getTime() + 60 * 60 * 1000);
     await swap.save();
 
-    // Notify the other party
     const otherId = swap.sender.toString() === req.user.id.toString() ? swap.receiver : swap.sender;
     const me = await User.findById(req.user.id).select('name');
     if (me) {
@@ -224,21 +266,20 @@ router.put('/:id/schedule', auth, async (req, res) => {
       );
     }
 
-    res.json(swap);
+    res.respond(swap);
   } catch (err) {
-    res.status(500).json({ message: err.message });
+    res.fail(err.message, 500);
   }
 });
 
-// Calendar endpoint — all user swaps that have a scheduled date
-router.get('/calendar', auth, async (req, res) => {
+router.get('/calendar', auth, validate(calendarQuerySchema), async (req, res) => {
   try {
     const uid = req.user.id;
     const { year, month } = req.query;
     let dateFilter = {};
     if (year && month) {
-      const start = new Date(parseInt(year), parseInt(month) - 1, 1);
-      const end = new Date(parseInt(year), parseInt(month), 0, 23, 59, 59);
+      const start = new Date(year, month - 1, 1);
+      const end = new Date(year, month, 0, 23, 59, 59);
       dateFilter = { scheduledAt: { $gte: start, $lte: end } };
     } else {
       dateFilter = { scheduledAt: { $ne: null } };
@@ -253,28 +294,28 @@ router.get('/calendar', auth, async (req, res) => {
       .sort({ scheduledAt: 1 })
       .lean();
 
-    res.json(swaps);
+    res.respond({ swaps });
   } catch (err) {
-    res.status(500).json({ message: err.message });
+    res.fail(err.message, 500);
   }
 });
 
-router.delete('/:id', auth, async (req, res) => {
+router.delete('/:id', auth, validate(idParamSchema), async (req, res) => {
   try {
     const swap = await Swap.findById(req.params.id);
-    if (!swap) return res.status(404).json({ message: 'Swap not found' });
+    if (!swap) return res.fail('Swap not found', 404);
     if (swap.sender.toString() !== req.user.id.toString())
-      return res.status(403).json({ message: 'Only the sender can delete a pending request' });
+      return res.fail('Only the sender can delete a pending request', 403);
     if (swap.status !== SWAP_STATUS.PENDING)
-      return res.status(400).json({ message: 'Can only delete pending swaps' });
+      return res.fail('Can only delete pending swaps', 400);
     await swap.deleteOne();
-    res.json({ message: 'Deleted' });
+    res.respond({ message: 'Deleted' });
   } catch (err) {
-    res.status(500).json({ message: err.message });
+    res.fail(err.message, 500);
   }
 });
 
-router.get('/user/:id', async (req, res) => {
+router.get('/user/:id', validate(idParamSchema), async (req, res) => {
   try {
     const swaps = await Swap.find({
       $or: [{ sender: req.params.id }, { receiver: req.params.id }],
@@ -285,18 +326,18 @@ router.get('/user/:id', async (req, res) => {
       .sort({ completedAt: -1 })
       .limit(10)
       .lean();
-    res.json(swaps);
+    res.respond({ swaps });
   } catch (err) {
-    res.status(500).json({ message: err.message });
+    res.fail(err.message, 500);
   }
 });
 
 router.post('/auto-complete-stale', auth, async (req, res) => {
   try {
     await autoCompleteStaleSwaps();
-    res.json({ message: 'Stale swaps auto-completed' });
+    res.respond({ message: 'Stale swaps auto-completed' });
   } catch (err) {
-    res.status(500).json({ message: err.message });
+    res.fail(err.message, 500);
   }
 });
 

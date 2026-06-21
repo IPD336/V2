@@ -132,10 +132,10 @@ export default function Browse() {
 
   useEffect(() => {
     api.get('/ai/smart-recommendations')
-      .then((r) => setRecommendations(r.data))
+      .then((r) => setRecommendations(r.data.recommendations))
       .catch(() => {
         api.get('/users/recommendations')
-          .then((r) => setRecommendations(r.data))
+          .then((r) => setRecommendations(r.data.recommendations))
           .catch(() => showToast('Failed to load recommendations', 'error'));
       });
   }, []);

@@ -7,6 +7,17 @@ const skillSchema = new mongoose.Schema({
   credentialUrl: { type: String, default: '' },
 });
 
+const badgeSchema = new mongoose.Schema({
+  id: { type: String, required: true },
+  earnedAt: { type: Date, default: Date.now },
+}, { _id: false });
+
+const streakSchema = new mongoose.Schema({
+  current: { type: Number, default: 0 },
+  longest: { type: Number, default: 0 },
+  lastActiveDate: { type: String, default: '' },
+}, { _id: false });
+
 const userSchema = new mongoose.Schema(
   {
     name: { type: String, required: true, trim: true },
@@ -40,7 +51,10 @@ const userSchema = new mongoose.Schema(
       name: { type: String, default: 'Bronze' },
       color: { type: String, default: '#CD7F32' }
     },
-    badges: [{ type: String }],
+    badges: [badgeSchema],
+    xp: { type: Number, default: 0 },
+    level: { type: Number, default: 1 },
+    streak: { type: streakSchema, default: () => ({}) },
     resetPasswordToken: { type: String, default: '' },
     resetPasswordExpires: { type: Date, default: null },
   },

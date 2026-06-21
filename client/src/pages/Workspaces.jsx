@@ -97,7 +97,7 @@ export default function Workspaces() {
   // Load message history when selection changes
   useEffect(() => {
     if (selected) {
-      api.get(`/messages/${selected.id}`).then(res => setMessages(res.data)).catch(() => showToast('Failed to load messages', 'error'));
+      api.get(`/messages/${selected.id}`).then(res => setMessages(res.data.messages)).catch(() => showToast('Failed to load messages', 'error'));
     }
   }, [selected]);
 

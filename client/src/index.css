@@ -284,8 +284,13 @@ nav { position: fixed; top: 0; left: 0; right: 0; z-index: 100; display: flex; a
 
 /* ── SPINNER ── */
 .spinner { display: flex; justify-content: center; align-items: center; padding: 80px; }
-.spinner::after { content: ''; width: 36px; height: 36px; border: 3px solid var(--border); border-top-color: var(--accent); border-radius: 50%; animation: spin .7s linear infinite; }
+.spinner::after { content: ''; width: var(--spinner-size, 36px); height: var(--spinner-size, 36px); border: 3px solid var(--border); border-top-color: var(--accent); border-radius: 50%; animation: spin .7s linear infinite; }
 @keyframes spin { to { transform: rotate(360deg); } }
+
+/* ── LOADING OVERLAY ── */
+.loading-overlay { position: fixed; inset: 0; z-index: 9999; background: var(--bg); display: flex; justify-content: center; align-items: center; }
+.loading-overlay-content { text-align: center; }
+.loading-overlay-message { margin-top: 16px; color: var(--muted); font-size: 14px; }
 
 /* ── RESPONSIVE ── */
 .mobile-only-flex { display: none !important; }
