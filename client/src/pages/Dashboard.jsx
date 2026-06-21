@@ -1,5 +1,6 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
 import api from '../api/axios';
@@ -67,39 +68,33 @@ const quickActions = [
 export default function Dashboard() {
   const { user, refreshUser } = useAuth();
   const { showToast } = useToast();
+  const queryClient = useQueryClient();
   const navigate = useNavigate();
-  const [swapData, setSwapData] = useState({ incoming: [], outgoing: [], active: [], completed: [] });
-  const [teamCount, setTeamCount] = useState(0);
-  const [recommendations, setRecommendations] = useState([]);
-  const [gamification, setGamification] = useState(null);
-  const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState({});
 
-  const loadDashboard = () => {
-    Promise.all([
-      api.get('/swaps'),
-      api.get('/teams'),
-      api.get('/users/recommendations').catch(() => ({ data: { recommendations: [] } })),
-      api.get('/gamification').catch(() => null),
-      refreshUser().catch(() => null),
-    ])
-      .then(([swaps, teams, recs, gami]) => {
-        setSwapData(swaps.data);
-        setTeamCount(teams.data.teams?.length || 0);
-        setRecommendations(recs.data?.recommendations || []);
-        if (gami) setGamification(gami.data);
-      })
-      .catch(() => showToast('Failed to load dashboard', 'error'))
-      .finally(() => setLoading(false));
-  };
+  const { data: dbData, isLoading } = useQuery({
+    queryKey: ['dashboard'],
+    queryFn: async () => {
+      const [swaps, teams, recs, gami] = await Promise.all([
+        api.get('/swaps'),
+        api.get('/teams'),
+        api.get('/users/recommendations').catch(() => ({ data: { recommendations: [] } })),
+        api.get('/gamification').catch(() => null),
+      ]);
+      refreshUser().catch(() => null);
+      return {
+        swapData: swaps.data,
+        teamCount: teams.data.teams?.length || 0,
+        recommendations: recs.data?.recommendations || [],
+        gamification: gami?.data || null,
+      };
+    },
+    refetchInterval: 30_000,
+    refetchOnWindowFocus: true,
+    placeholderData: { swapData: { incoming: [], outgoing: [], active: [], completed: [] }, teamCount: 0, recommendations: [], gamification: null },
+  });
 
-  useEffect(() => {
-    loadDashboard();
-    const interval = setInterval(loadDashboard, 30000);
-    const onFocus = () => loadDashboard();
-    window.addEventListener('focus', onFocus);
-    return () => { clearInterval(interval); window.removeEventListener('focus', onFocus); };
-  }, []);
+  const { swapData, teamCount, recommendations, gamification } = dbData;
 
   // Onboarding progress memo
   const onboardingSteps = useMemo(() => {
@@ -201,7 +196,7 @@ export default function Dashboard() {
     try {
       await api.put(`/swaps/${id}/accept`);
       showToast('Swap request accepted! 🎉');
-      loadDashboard();
+      queryClient.invalidateQueries({ queryKey: ['dashboard'] });
     } catch (err) {
       showToast(err.response?.data?.message || 'Failed to accept', 'error');
     } finally {
@@ -214,7 +209,7 @@ export default function Dashboard() {
     try {
       await api.put(`/swaps/${id}/decline`);
       showToast('Swap request declined');
-      loadDashboard();
+      queryClient.invalidateQueries({ queryKey: ['dashboard'] });
     } catch (err) {
       showToast('Failed to decline request', 'error');
     } finally {
@@ -227,7 +222,7 @@ export default function Dashboard() {
     try {
       await api.put(`/swaps/${id}/confirm-complete`);
       showToast('Swap confirmed as completed! 🎓');
-      loadDashboard();
+      queryClient.invalidateQueries({ queryKey: ['dashboard'] });
     } catch (err) {
       showToast('Failed to confirm completion', 'error');
     } finally {
@@ -254,7 +249,7 @@ export default function Dashboard() {
           </div>
         </div>
 
-        {loading ? (
+        {isLoading ? (
           <div className="cards-grid" style={{ marginTop: 32 }}>
             {[1,2,3,4].map((n) => <SkeletonCard key={n} />)}
           </div>

@@ -1,5 +1,6 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, memo } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import api from '../api/axios';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
@@ -63,7 +64,7 @@ function CreateTeamModal({ onClose, onCreated }) {
   );
 }
 
-function TeamCard({ team, onClick, me }) {
+const TeamCard = memo(function TeamCard({ team, onClick, me }) {
   const accepted = team.members.filter((m) => m.status === 'accepted');
   const slots = Array.from({ length: team.maxSize });
 
@@ -103,43 +104,31 @@ function TeamCard({ team, onClick, me }) {
       </div>
     </div>
   );
-}
+});
 
 export default function Teams() {
   const { user: me } = useAuth();
-  const { showToast } = useToast();
   const { markTypeAsRead } = useSocket();
+  const queryClient = useQueryClient();
   const navigate = useNavigate();
   const [tab, setTab] = useState('browse');
-  const [openTeams, setOpenTeams] = useState([]);
-  const [myTeams, setMyTeams] = useState([]);
-  const [loading, setLoading] = useState(true);
   const [showCreate, setShowCreate] = useState(false);
 
-  const loadOpen = async () => {
-    try {
-      const res = await api.get('/teams');
-      setOpenTeams(res.data.teams);
-    } catch { showToast('Failed to load teams', 'error'); }
-  };
-  const loadMine = async () => {
-    try {
-      const res = await api.get('/teams', { params: { mine: true } });
-      setMyTeams(res.data.teams);
-    } catch { showToast('Failed to load your teams', 'error'); }
-  };
-
   useEffect(() => {
-    setLoading(true);
-    Promise.all([loadOpen(), loadMine()]).finally(() => setLoading(false));
     markTypeAsRead('team_invite');
   }, []);
 
-  useEffect(() => {
-    const onFocus = () => { loadOpen(); loadMine(); };
-    window.addEventListener('focus', onFocus);
-    return () => window.removeEventListener('focus', onFocus);
-  }, []);
+  const { data: openTeams = [] } = useQuery({
+    queryKey: ['teams', 'open'],
+    queryFn: () => api.get('/teams').then(r => r.data.teams),
+    refetchOnWindowFocus: true,
+  });
+
+  const { data: myTeams = [], isLoading } = useQuery({
+    queryKey: ['teams', 'mine'],
+    queryFn: () => api.get('/teams', { params: { mine: true } }).then(r => r.data.teams),
+    refetchOnWindowFocus: true,
+  });
 
   const pendingInvites = myTeams.filter((t) =>
     t.members.some((m) => m.user?._id === me?._id && m.status === 'invited')
@@ -180,7 +169,7 @@ export default function Teams() {
           </button>
         </div>
 
-        {loading ? <div className="cards-grid">{[1,2,3,4].map((n) => <SkeletonCard key={n} />)}</div> : (
+        {isLoading ? <div className="cards-grid">{[1,2,3,4].map((n) => <SkeletonCard key={n} />)}</div> : (
           <div className="cards-grid">
             {tab === 'browse' && (
               openTeams.length === 0 ? (
@@ -216,7 +205,7 @@ export default function Teams() {
       {showCreate && (
         <CreateTeamModal
           onClose={() => setShowCreate(false)}
-          onCreated={(t) => { setMyTeams((p) => [t, ...p]); setTab('mine'); }}
+          onCreated={() => { queryClient.invalidateQueries({ queryKey: ['teams'] }); setTab('mine'); }}
         />
       )}
     </div>

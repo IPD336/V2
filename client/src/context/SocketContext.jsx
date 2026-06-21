@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useState, useCallback, useRef } from 'react';
+import { createContext, useContext, useEffect, useState, useCallback, useRef, useMemo } from 'react';
 import { io } from 'socket.io-client';
 import { useAuth } from './AuthContext';
 import { useToast } from './ToastContext';
@@ -148,8 +148,10 @@ export function SocketProvider({ children }) {
     }
   };
 
+  const ctx = useMemo(() => ({ socket, notifications, unreadCount, onlineUsers, isUserOnline, markAsRead, markAllAsRead, markTypeAsRead, dismissNotification, emitTyping, emitStopTyping, emitTypingDebounced }), [socket, notifications, unreadCount, onlineUsers, isUserOnline, markAsRead, markAllAsRead, markTypeAsRead, dismissNotification, emitTyping, emitStopTyping, emitTypingDebounced]);
+
   return (
-    <SocketContext.Provider value={{ socket, notifications, unreadCount, onlineUsers, isUserOnline, markAsRead, markAllAsRead, markTypeAsRead, dismissNotification, emitTyping, emitStopTyping, emitTypingDebounced }}>
+    <SocketContext.Provider value={ctx}>
       {children}
     </SocketContext.Provider>
   );

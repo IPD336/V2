@@ -1,5 +1,6 @@
 import { useState, useEffect, lazy, Suspense } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { ToastProvider } from './context/ToastContext';
 import { ThemeProvider } from './context/ThemeContext';
@@ -10,8 +11,9 @@ import Navbar from './components/Navbar';
 import MobileBottomNav from './components/MobileBottomNav';
 import OnboardingModal from './components/OnboardingModal';
 import CommandPalette from './components/CommandPalette';
+import KeyboardShortcutsModal from './components/KeyboardShortcutsModal';
 import Footer from './components/Footer';
-import Landing from './pages/Landing';
+const Landing = lazy(() => import('./pages/Landing'));
 import Login from './pages/Login';
 import Register from './pages/Register';
 import ForgotPassword from './pages/ForgotPassword';
@@ -52,7 +54,7 @@ function AppRoutes() {
   return (
     <>
       <Routes>
-        <Route path="/" element={<Landing />} />
+        <Route path="/" element={<Suspense fallback={<Spinner />}><Landing /></Suspense>} />
         <Route path="/login" element={user ? <Navigate to={user.role === 'admin' ? '/admin' : '/dashboard'} /> : <Login />} />
         <Route path="/register" element={user ? <Navigate to={user.role === 'admin' ? '/admin' : '/dashboard'} /> : <Register />} />
         <Route path="/forgot-password" element={<ForgotPassword />} />
@@ -80,15 +82,19 @@ function AppRoutes() {
   );
 }
 
+const queryClient = new QueryClient({ defaultOptions: { queries: { staleTime: 30_000, retry: 1 } } });
+
 export default function App() {
   return (
     <BrowserRouter>
+      <QueryClientProvider client={queryClient}>
       <ThemeProvider>
         <AuthProvider>
           <ToastProvider>
             <SocketProvider>
               <Navbar />
               <CommandPalette />
+              <KeyboardShortcutsModal />
               <ErrorBoundary>
                 <AppRoutes />
               </ErrorBoundary>
@@ -96,6 +102,7 @@ export default function App() {
           </ToastProvider>
         </AuthProvider>
       </ThemeProvider>
+      </QueryClientProvider>
     </BrowserRouter>
   );
 }
