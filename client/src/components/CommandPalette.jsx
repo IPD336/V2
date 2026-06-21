@@ -18,8 +18,6 @@ export default function CommandPalette() {
   const navigate = useNavigate();
   const { user, logout } = useAuth();
 
-  if (!user) return null;
-
   const pages = [
     { id: 'dashboard', label: 'Dashboard', path: '/dashboard', icon: 'home' },
     { id: 'browse', label: 'Browse', path: '/browse', icon: 'search' },
@@ -61,22 +59,24 @@ export default function CommandPalette() {
 
   useEffect(() => {
     const handler = (e) => {
+      if (!user) return;
       if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
         e.preventDefault();
         setOpen(p => !p);
       }
       if (e.key === 'Escape') setOpen(false);
     };
-    const toggleHandler = () => setOpen(p => !p);
+    const toggleHandler = () => {
+      if (!user) return;
+      setOpen(p => !p);
+    };
     window.addEventListener('keydown', handler);
     window.addEventListener('opencode:toggle-palette', toggleHandler);
     return () => {
       window.removeEventListener('keydown', handler);
       window.removeEventListener('opencode:toggle-palette', toggleHandler);
     };
-  }, []);
-
-  if (!user) return null;
+  }, [user]);
 
   useEffect(() => {
     if (open) {
@@ -104,6 +104,8 @@ export default function CommandPalette() {
       if (filtered[activeIdx]) execute(filtered[activeIdx]);
     }
   };
+
+  if (!user) return null;
 
   if (!open) return null;
 
