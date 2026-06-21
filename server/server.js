@@ -7,6 +7,7 @@ const rateLimit = require('express-rate-limit');
 
 const http = require('http');
 const socket = require('./socket');
+const respondMiddleware = require('./utils/respond');
 
 const authRoutes = require('./routes/auth');
 const userRoutes = require('./routes/users');
@@ -18,6 +19,7 @@ const leaderboardRoutes = require('./routes/leaderboard');
 const notificationRoutes = require('./routes/notifications');
 const messageRoutes = require('./routes/messages');
 const aiRoutes = require('./routes/ai');
+const gamificationRoutes = require('./routes/gamification');
 
 const app = express();
 const server = http.createServer(app);
@@ -31,11 +33,12 @@ app.use(cors({
   credentials: true,
 }));
 app.use(express.json());
+app.use(respondMiddleware);
 
 const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
   max: 20,
-  message: { message: 'Too many attempts, please try again later' },
+  message: { success: false, message: 'Too many attempts, please try again later' },
   standardHeaders: true,
   legacyHeaders: false,
 });
@@ -54,12 +57,13 @@ app.use('/api/leaderboard', leaderboardRoutes);
 app.use('/api/notifications', notificationRoutes);
 app.use('/api/messages', messageRoutes);
 app.use('/api/ai', aiRoutes);
+app.use('/api/gamification', gamificationRoutes);
 
-app.get('/api/health', (_, res) => res.json({ status: 'ok', time: new Date().toISOString() }));
+app.get('/api/health', (_, res) => res.respond({ status: 'ok', time: new Date().toISOString() }));
 
 app.use((err, req, res, next) => {
   console.error(err.stack);
-  res.status(500).json({ message: 'Internal server error' });
+  res.fail('Internal server error', 500);
 });
 
 const PORT = process.env.PORT || 5000;

@@ -18,8 +18,8 @@ export function SocketProvider({ children }) {
   useEffect(() => {
     if (user) {
       api.get('/notifications').then(res => {
-        setNotifications(res.data);
-        setUnreadCount(res.data.filter(n => !n.read).length);
+        setNotifications(res.data.notifications);
+        setUnreadCount(res.data.notifications.filter(n => !n.read).length);
       }).catch(() => showToast('Failed to load notifications', 'error'));
     }
   }, [user]);

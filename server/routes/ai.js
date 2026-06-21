@@ -8,30 +8,42 @@ const {
   inferGithubSkills,
   generateMatchExplanations
 } = require('../services/geminiService');
+const { validate, objectId, z } = require('../utils/validation');
 
 const router = express.Router();
 
-router.post('/draft-proposal', auth, async (req, res) => {
+const draftProposalSchema = z.object({
+  body: z.object({
+    receiverId: objectId,
+    skillOffered: z.string().min(1).max(100),
+    skillWanted: z.string().min(1).max(100),
+  }),
+});
+
+const githubVerifySchema = z.object({
+  body: z.object({
+    githubUrl: z.string().min(1, 'githubUrl is required'),
+  }),
+});
+
+router.post('/draft-proposal', auth, validate(draftProposalSchema), async (req, res) => {
   try {
     const { receiverId, skillOffered, skillWanted } = req.body;
-    if (!receiverId || !skillOffered || !skillWanted) {
-      return res.status(400).json({ message: 'receiverId, skillOffered, and skillWanted are required' });
-    }
 
     const receiver = await User.findById(receiverId).select('name');
     if (!receiver) {
-      return res.status(404).json({ message: 'Receiver user not found' });
+      return res.fail('Receiver user not found', 404);
     }
 
     const me = await User.findById(req.user.id).select('name');
     if (!me) {
-      return res.status(404).json({ message: 'Current user not found' });
+      return res.fail('Current user not found', 404);
     }
 
     const draft = await generateProposal(me.name, receiver.name, skillOffered, skillWanted);
-    res.json({ draft });
+    res.respond({ draft });
   } catch (err) {
-    res.status(500).json({ message: err.message });
+    res.fail(err.message, 500);
   }
 });
 
@@ -39,18 +51,15 @@ router.get('/reviews-summary/:userId', async (req, res) => {
   try {
     const reviews = await Review.find({ reviewee: req.params.userId }).select('rating learned feedback');
     const summary = await summarizeReviews(reviews);
-    res.json({ summary });
+    res.respond({ summary });
   } catch (err) {
-    res.status(500).json({ message: err.message });
+    res.fail(err.message, 500);
   }
 });
 
-router.post('/github-verify', auth, async (req, res) => {
+router.post('/github-verify', auth, validate(githubVerifySchema), async (req, res) => {
   try {
     const { githubUrl } = req.body;
-    if (!githubUrl) {
-      return res.status(400).json({ message: 'githubUrl is required' });
-    }
 
     let username = githubUrl.trim();
     if (username.includes('github.com/')) {
@@ -77,7 +86,7 @@ router.post('/github-verify', auth, async (req, res) => {
         headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)' }
       });
       if (!htmlResponse.ok) {
-         return res.status(400).json({ message: 'Could not fetch GitHub profile. Please check the username.' });
+         return res.fail('Could not fetch GitHub profile. Please check the username.', 400);
       }
       const html = await htmlResponse.text();
       const repoMatches = [...html.matchAll(/itemprop="name codeRepository"[^>]*>\s*([^<\n]+)\s*<\/a>/g)];
@@ -88,24 +97,24 @@ router.post('/github-verify', auth, async (req, res) => {
       }));
 
       if (repoList.length === 0) {
-         return res.status(400).json({ message: `No public repositories found for ${username}, or GitHub blocked the request.` });
+         return res.fail(`No public repositories found for ${username}, or GitHub blocked the request.`, 400);
       }
     }
 
     const suggestedSkills = await inferGithubSkills(repoList);
-    res.json({ skills: suggestedSkills });
+    res.respond({ skills: suggestedSkills });
   } catch (err) {
-    res.status(500).json({ message: err.message });
+    res.fail(err.message, 500);
   }
 });
 
 router.get('/smart-recommendations', auth, async (req, res) => {
   try {
     const me = await User.findById(req.user.id).select('skillsOffered skillsWanted').lean();
-    if (!me) return res.status(404).json({ message: 'User not found' });
+    if (!me) return res.fail('User not found', 404);
 
     if (!me.skillsOffered?.length && !me.skillsWanted?.length) {
-      return res.json([]);
+      return res.respond({ recommendations: [] });
     }
 
     const { matchScore } = require('../services/matchService');
@@ -122,7 +131,7 @@ router.get('/smart-recommendations', auth, async (req, res) => {
       .sort((a, b) => b.score - a.score || (b.rating || 0) - (a.rating || 0))
       .slice(0, 5);
 
-    if (scored.length === 0) return res.json([]);
+    if (scored.length === 0) return res.respond({ recommendations: [] });
 
     const explanations = await generateMatchExplanations(me, scored);
 
@@ -131,9 +140,9 @@ router.get('/smart-recommendations', auth, async (req, res) => {
       aiMatchExplanation: explanations[i] || '',
     }));
 
-    res.json(smartRecommendations);
+    res.respond({ recommendations: smartRecommendations });
   } catch (err) {
-    res.status(500).json({ message: err.message });
+    res.fail(err.message, 500);
   }
 });
 

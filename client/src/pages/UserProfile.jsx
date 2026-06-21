@@ -37,8 +37,8 @@ export default function UserProfile() {
           api.get(`/swaps/user/${id}`),
         ]);
         setUser(uRes.data);
-        setReviews(rRes.data);
-        setSwapHistory(sRes.data);
+        setReviews(rRes.data.reviews);
+        setSwapHistory(sRes.data.swaps);
         setSaved(me?.savedProfiles?.includes(id));
         
         if (rRes.data.length > 0) {

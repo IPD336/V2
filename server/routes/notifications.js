@@ -1,8 +1,15 @@
 const express = require('express');
 const Notification = require('../models/Notification');
 const auth = require('../middleware/auth');
+const { validate, objectId, z } = require('../utils/validation');
 
 const router = express.Router();
+
+const idParamSchema = z.object({
+  params: z.object({
+    id: objectId,
+  }),
+});
 
 router.get('/', auth, async (req, res) => {
   try {
@@ -10,9 +17,9 @@ router.get('/', auth, async (req, res) => {
       .sort({ createdAt: -1 })
       .limit(100)
       .lean();
-    res.json(notifications);
+    res.respond({ notifications });
   } catch (err) {
-    res.status(500).json({ message: err.message });
+    res.fail(err.message, 500);
   }
 });
 
@@ -22,23 +29,23 @@ router.put('/read-all', auth, async (req, res) => {
       { user: req.user.id, read: false },
       { $set: { read: true } }
     );
-    res.json({ message: 'All notifications marked as read' });
+    res.respond({ message: 'All notifications marked as read' });
   } catch (err) {
-    res.status(500).json({ message: err.message });
+    res.fail(err.message, 500);
   }
 });
 
-router.put('/:id/read', auth, async (req, res) => {
+router.put('/:id/read', auth, validate(idParamSchema), async (req, res) => {
   try {
     const notif = await Notification.findOneAndUpdate(
       { _id: req.params.id, user: req.user.id, read: false },
       { $set: { read: true } },
       { new: true }
     );
-    if (!notif) return res.status(404).json({ message: 'Notification not found' });
-    res.json({ message: 'Notification marked as read' });
+    if (!notif) return res.fail('Notification not found', 404);
+    res.respond({ message: 'Notification marked as read' });
   } catch (err) {
-    res.status(500).json({ message: err.message });
+    res.fail(err.message, 500);
   }
 });
 

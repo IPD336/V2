@@ -3,14 +3,59 @@ const Team = require('../models/Team');
 const User = require('../models/User');
 const auth = require('../middleware/auth');
 const { createNotification } = require('../services/notificationService');
-const { checkTeamPlayer } = require('../services/badgeService');
-const { TEAM_STATUS, MEMBER_STATUS } = require('../constants');
+const { awardXp, checkTeamBadges } = require('../services/gamificationService');
+const { TEAM_STATUS, MEMBER_STATUS, TEAM_MAX_SIZES } = require('../constants');
+const { validate, objectId, z } = require('../utils/validation');
 
 const router = express.Router();
 
-router.get('/', auth, async (req, res) => {
+const createTeamSchema = z.object({
+  body: z.object({
+    name: z.string().min(1, 'Team name is required').max(100),
+    description: z.string().max(500).optional(),
+    purpose: z.string().max(500).optional(),
+    maxSize: z.coerce.number().int().refine((v) => TEAM_MAX_SIZES.includes(v), {
+      message: 'maxSize must be 2, 3, or 4',
+    }),
+  }),
+});
+
+const teamQuerySchema = z.object({
+  query: z.object({
+    mine: z.string().optional(),
+    page: z.coerce.number().int().min(1).default(1),
+    limit: z.coerce.number().int().min(1).max(100).default(20),
+  }),
+});
+
+const respondSchema = z.object({
+  body: z.object({
+    action: z.enum(['accept', 'decline']),
+    userId: objectId.optional(),
+  }),
+  params: z.object({
+    id: objectId,
+  }),
+});
+
+const idParamSchema = z.object({
+  params: z.object({
+    id: objectId,
+  }),
+});
+
+const inviteSchema = z.object({
+  body: z.object({
+    userId: objectId,
+  }),
+  params: z.object({
+    id: objectId,
+  }),
+});
+
+router.get('/', auth, validate(teamQuerySchema), async (req, res) => {
   try {
-    const { mine, page = 1, limit = 20 } = req.query;
+    const { mine, page, limit } = req.query;
     let query = {};
 
     if (mine === 'true') {
@@ -24,77 +69,76 @@ router.get('/', auth, async (req, res) => {
       query = { status: TEAM_STATUS.OPEN };
     }
 
-    const skip = (parseInt(page) - 1) * parseInt(limit);
+    const skip = (page - 1) * limit;
     const [teams, total] = await Promise.all([
       Team.find(query)
         .populate('creator', 'name avatarColor avatarUrl')
         .populate('members.user', 'name avatarColor avatarUrl')
         .sort({ createdAt: -1 })
         .skip(skip)
-        .limit(parseInt(limit))
+        .limit(limit)
         .lean(),
       Team.countDocuments(query),
     ]);
 
-    res.json({ teams, total, page: parseInt(page), pages: Math.ceil(total / parseInt(limit)) });
+    res.respond({ teams, total, page, pages: Math.ceil(total / limit) });
   } catch (err) {
-    res.status(500).json({ message: err.message });
+    res.fail(err.message, 500);
   }
 });
 
-router.post('/', auth, async (req, res) => {
+router.post('/', auth, validate(createTeamSchema), async (req, res) => {
   try {
     const { name, description, purpose, maxSize } = req.body;
-    if (!name || !maxSize)
-      return res.status(400).json({ message: 'name and maxSize are required' });
-    if (![2, 3, 4].includes(Number(maxSize)))
-      return res.status(400).json({ message: 'maxSize must be 2, 3, or 4' });
 
     const team = await Team.create({
       name, description, purpose,
-      maxSize: Number(maxSize),
+      maxSize,
       creator: req.user.id.toString(),
       members: [{ user: req.user.id.toString(), status: MEMBER_STATUS.ACCEPTED, joinedAt: new Date() }],
     });
 
-    await team.populate('creator', 'name avatarColor avatarUrl');
-    await team.populate('members.user', 'name avatarColor avatarUrl');
-    res.status(201).json(team);
+    await Promise.all([
+      team.populate('creator', 'name avatarColor avatarUrl'),
+      team.populate('members.user', 'name avatarColor avatarUrl'),
+      awardXp(req.user.id, 50),
+      checkTeamBadges(req.user.id, 'creator'),
+    ]);
+    res.respond(team, 201);
   } catch (err) {
-    res.status(500).json({ message: err.message });
+    res.fail(err.message, 500);
   }
 });
 
-router.get('/:id', auth, async (req, res) => {
+router.get('/:id', auth, validate(idParamSchema), async (req, res) => {
   try {
     const team = await Team.findById(req.params.id)
       .populate('creator', 'name avatarColor avatarUrl location')
       .populate('members.user', 'name avatarColor avatarUrl location skillsOffered')
       .lean();
-    if (!team) return res.status(404).json({ message: 'Team not found' });
-    res.json(team);
+    if (!team) return res.fail('Team not found', 404);
+    res.respond(team);
   } catch (err) {
-    res.status(500).json({ message: err.message });
+    res.fail(err.message, 500);
   }
 });
 
-router.post('/:id/invite', auth, async (req, res) => {
+router.post('/:id/invite', auth, validate(inviteSchema), async (req, res) => {
   try {
     const team = await Team.findById(req.params.id);
-    if (!team) return res.status(404).json({ message: 'Team not found' });
+    if (!team) return res.fail('Team not found', 404);
     if (team.creator.toString() !== req.user.id.toString())
-      return res.status(403).json({ message: 'Only the creator can invite members' });
+      return res.fail('Only the creator can invite members', 403);
     if (team.status === TEAM_STATUS.CLOSED)
-      return res.status(400).json({ message: 'Team is full and closed' });
+      return res.fail('Team is full and closed', 400);
 
     const { userId } = req.body;
-    if (!userId) return res.status(400).json({ message: 'userId required' });
 
     const already = team.members.find((m) => m.user.toString() === userId);
-    if (already) return res.status(409).json({ message: 'User already invited or a member' });
+    if (already) return res.fail('User already invited or a member', 409);
 
     const invitee = await User.findById(userId);
-    if (!invitee) return res.status(404).json({ message: 'User not found' });
+    if (!invitee) return res.fail('User not found', 404);
 
     team.members.push({ user: userId, status: MEMBER_STATUS.INVITED });
     await team.save();
@@ -110,20 +154,20 @@ router.post('/:id/invite', auth, async (req, res) => {
     }
 
     await team.populate('members.user', 'name avatarColor avatarUrl');
-    res.json(team);
+    res.respond(team);
   } catch (err) {
-    res.status(500).json({ message: err.message });
+    res.fail(err.message, 500);
   }
 });
 
-router.post('/:id/join', auth, async (req, res) => {
+router.post('/:id/join', auth, validate(idParamSchema), async (req, res) => {
   try {
     const team = await Team.findById(req.params.id);
-    if (!team) return res.status(404).json({ message: 'Team not found' });
-    if (team.status === TEAM_STATUS.CLOSED) return res.status(400).json({ message: 'Team is full' });
+    if (!team) return res.fail('Team not found', 404);
+    if (team.status === TEAM_STATUS.CLOSED) return res.fail('Team is full', 400);
 
     const already = team.members.find((m) => m.user.toString() === req.user.id.toString());
-    if (already) return res.status(409).json({ message: already.status === MEMBER_STATUS.REQUESTED ? 'Join request already sent' : 'You are already a member of this team' });
+    if (already) return res.fail(already.status === MEMBER_STATUS.REQUESTED ? 'Join request already sent' : 'You are already a member of this team', 409);
 
     team.members.push({ user: req.user.id, status: MEMBER_STATUS.REQUESTED });
     await team.save();
@@ -139,20 +183,18 @@ router.post('/:id/join', auth, async (req, res) => {
     }
 
     await team.populate('members.user', 'name avatarColor avatarUrl');
-    res.json(team);
+    res.respond(team);
   } catch (err) {
-    res.status(500).json({ message: err.message });
+    res.fail(err.message, 500);
   }
 });
 
-router.put('/:id/respond', auth, async (req, res) => {
+router.put('/:id/respond', auth, validate(respondSchema), async (req, res) => {
   try {
     const { action, userId } = req.body;
-    if (!['accept', 'decline'].includes(action))
-      return res.status(400).json({ message: 'action must be accept or decline' });
 
     const team = await Team.findById(req.params.id);
-    if (!team) return res.status(404).json({ message: 'Team not found' });
+    if (!team) return res.fail('Team not found', 404);
 
     let memberEntry;
 
@@ -160,12 +202,12 @@ router.put('/:id/respond', auth, async (req, res) => {
       memberEntry = team.members.find(
         (m) => m.user.toString() === userId && m.status === MEMBER_STATUS.REQUESTED
       );
-      if (!memberEntry) return res.status(404).json({ message: 'No join request found for this user' });
+      if (!memberEntry) return res.fail('No join request found for this user', 404);
     } else {
       memberEntry = team.members.find(
         (m) => m.user.toString() === req.user.id.toString() && m.status === MEMBER_STATUS.INVITED
       );
-      if (!memberEntry) return res.status(404).json({ message: 'No pending invite found for you' });
+      if (!memberEntry) return res.fail('No pending invite found for you', 404);
     }
 
     if (action === 'accept') {
@@ -177,31 +219,32 @@ router.put('/:id/respond', auth, async (req, res) => {
 
     await team.save();
 
-    if (team.status === TEAM_STATUS.CLOSED) {
-      const acceptedMembers = team.members.filter(m => m.status === MEMBER_STATUS.ACCEPTED);
-      for (const m of acceptedMembers) {
-        await checkTeamPlayer(m.user);
-      }
+    if (action === 'accept') {
+      const acceptedUserId = userId || req.user.id;
+      await Promise.all([
+        awardXp(acceptedUserId, 30),
+        checkTeamBadges(acceptedUserId, 'member'),
+      ]);
     }
 
     await team.populate('creator', 'name avatarColor avatarUrl');
     await team.populate('members.user', 'name avatarColor avatarUrl');
-    res.json(team);
+    res.respond(team);
   } catch (err) {
-    res.status(500).json({ message: err.message });
+    res.fail(err.message, 500);
   }
 });
 
-router.delete('/:id', auth, async (req, res) => {
+router.delete('/:id', auth, validate(idParamSchema), async (req, res) => {
   try {
     const team = await Team.findById(req.params.id);
-    if (!team) return res.status(404).json({ message: 'Team not found' });
+    if (!team) return res.fail('Team not found', 404);
     if (team.creator.toString() !== req.user.id.toString())
-      return res.status(403).json({ message: 'Only the creator can delete the team' });
+      return res.fail('Only the creator can delete the team', 403);
     await team.deleteOne();
-    res.json({ message: 'Team deleted' });
+    res.respond({ message: 'Team deleted' });
   } catch (err) {
-    res.status(500).json({ message: err.message });
+    res.fail(err.message, 500);
   }
 });
 
