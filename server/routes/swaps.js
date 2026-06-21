@@ -49,16 +49,10 @@ const calendarQuerySchema = z.object({
 async function autoCompleteStaleSwaps() {
   const staleHours = STALE_SWAP_HOURS;
   const cutoff = new Date(Date.now() - staleHours * 60 * 60 * 1000);
-  const staleSwaps = await Swap.find({
-    status: SWAP_STATUS.PENDING_COMPLETION,
-    completionRequestedAt: { $lt: cutoff },
-  });
-
-  for (const s of staleSwaps) {
-    s.status = SWAP_STATUS.COMPLETED;
-    s.completedAt = new Date();
-    await s.save();
-  }
+  await Swap.updateMany(
+    { status: SWAP_STATUS.PENDING_COMPLETION, completionRequestedAt: { $lt: cutoff } },
+    { $set: { status: SWAP_STATUS.COMPLETED, completedAt: new Date() } }
+  );
 }
 
 router.get('/', auth, async (req, res) => {

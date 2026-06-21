@@ -3,6 +3,7 @@ const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
 const helmet = require('helmet');
+const compression = require('compression');
 const rateLimit = require('express-rate-limit');
 
 const http = require('http');
@@ -32,6 +33,7 @@ app.use(cors({
   origin: CORS_ORIGIN.split(',').map(s => s.trim()),
   credentials: true,
 }));
+app.use(compression());
 app.use(express.json());
 app.use(respondMiddleware);
 

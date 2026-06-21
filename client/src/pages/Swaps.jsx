@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import api from '../api/axios';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
@@ -26,7 +27,7 @@ function initials(name = '') {
   return name.split(' ').map((w) => w[0]).join('').toUpperCase().slice(0, 2);
 }
 
-function ReviewModal({ swap, me, onClose, onDone }) {
+function ReviewModal({ swap, onClose, onDone }) {
   const { showToast } = useToast();
   const [rating, setRating] = useState(5);
   const [learned, setLearned] = useState('');
@@ -164,32 +165,27 @@ export default function Swaps() {
   const { showToast } = useToast();
   const { markTypeAsRead } = useSocket();
   const navigate = useNavigate();
-  const [data, setData] = useState({ incoming: [], outgoing: [], active: [], completed: [] });
+  const queryClient = useQueryClient();
   const [tab, setTab] = useState('incoming');
-  const [loading, setLoading] = useState(true);
   const [reviewSwap, setReviewSwap] = useState(null);
   const [showDeleteModal, setShowDeleteModal] = useState(null);
   const [showCompleteModal, setShowCompleteModal] = useState(null);
   const [showDeclineCompleteModal, setShowDeclineCompleteModal] = useState(null);
   const [scheduleSwap, setScheduleSwap] = useState(null);
 
-  const load = async () => {
-    setLoading(true);
-    try {
-      const res = await api.get('/swaps');
-      setData(res.data);
-    } catch { showToast('Failed to load swaps', 'error'); }
-    finally { setLoading(false); }
-  };
+  const { data, isLoading } = useQuery({
+    queryKey: ['swaps'],
+    queryFn: () => api.get('/swaps').then(r => r.data),
+    refetchInterval: 30_000,
+    refetchOnWindowFocus: true,
+    placeholderData: { incoming: [], outgoing: [], active: [], completed: [] },
+  });
 
-  useEffect(() => { 
-    load(); 
+  useEffect(() => {
     markTypeAsRead('swap_request');
-    const interval = setInterval(load, 30000);
-    const onFocus = () => load();
-    window.addEventListener('focus', onFocus);
-    return () => { clearInterval(interval); window.removeEventListener('focus', onFocus); };
   }, []);
+
+  const invalidate = () => queryClient.invalidateQueries({ queryKey: ['swaps'] });
 
   const firstNonEmptyTab = (d) => {
     const order = ['active', 'incoming', 'outgoing', 'completed'];
@@ -200,7 +196,7 @@ export default function Swaps() {
     try {
       await api.put(`/swaps/${id}/accept`);
       showToast('Swap accepted!');
-      await load();
+      await invalidate();
       setTab('active');
     } catch { showToast('Failed to accept swap', 'error'); }
   };
@@ -208,7 +204,7 @@ export default function Swaps() {
     try {
       await api.put(`/swaps/${id}/decline`);
       showToast('Swap declined', 'error');
-      await load();
+      await invalidate();
       setTab(firstNonEmptyTab(data));
     } catch { showToast('Failed to decline swap', 'error'); }
   };
@@ -218,7 +214,7 @@ export default function Swaps() {
     try {
       await api.delete(`/swaps/${id}`);
       showToast('Request deleted');
-      await load();
+      await invalidate();
       setTab(firstNonEmptyTab(data));
     } catch { showToast('Failed to delete request', 'error'); }
   };
@@ -227,14 +223,14 @@ export default function Swaps() {
     try {
       await api.put(`/swaps/${id}/complete`);
       showToast('Swap marked complete!');
-      await load();
+      await invalidate();
     } catch { showToast('Failed to mark complete', 'error'); }
   };
   const confirmComplete = async (id) => {
     try {
       await api.put(`/swaps/${id}/confirm-complete`);
       showToast('Swap confirmed!');
-      await load();
+      await invalidate();
     } catch { showToast('Failed to confirm completion', 'error'); }
   };
   const handleDeclineComplete = async () => {
@@ -243,7 +239,7 @@ export default function Swaps() {
     try {
       await api.put(`/swaps/${id}/decline-complete`);
       showToast('Completion request declined');
-      await load();
+      await invalidate();
     } catch { showToast('Failed to decline completion', 'error'); }
   };
 
@@ -294,7 +290,7 @@ export default function Swaps() {
               ))}
             </div>
 
-            {loading ? <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>{[1,2,3,4].map((n) => <SkeletonRow key={n} />)}</div> : (
+            {isLoading ? <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>{[1,2,3,4].map((n) => <SkeletonRow key={n} />)}</div> : (
               <div className="swap-list">
                 {data[tab].length === 0 && (
                   <div className="empty-state">
@@ -469,7 +465,7 @@ export default function Swaps() {
       </div>
 
       {reviewSwap && (
-        <ReviewModal swap={reviewSwap} me={me} onClose={() => setReviewSwap(null)} onDone={load} />
+        <ReviewModal swap={reviewSwap} onClose={() => setReviewSwap(null)} onDone={() => queryClient.invalidateQueries({ queryKey: ['swaps'] })} />
       )}
       <ConfirmModal
         open={showDeleteModal !== null}
@@ -500,7 +496,7 @@ export default function Swaps() {
           swap={scheduleSwap}
           me={me}
           onClose={() => setScheduleSwap(null)}
-          onDone={load}
+          onDone={() => queryClient.invalidateQueries({ queryKey: ['swaps'] })}
         />
       )}
     </div>

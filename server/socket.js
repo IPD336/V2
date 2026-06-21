@@ -52,8 +52,8 @@ module.exports = {
         const { room, content, type = 'text' } = data;
         try {
           const msg = await Message.create({ room, sender: socket.userId, content, type });
-          const populatedMsg = await Message.findById(msg._id).populate('sender', 'name avatarUrl avatarColor');
-          io.to(room).emit('new_message', populatedMsg);
+          await msg.populate('sender', 'name avatarUrl avatarColor');
+          io.to(room).emit('new_message', msg);
         } catch (err) {
           console.error('Error saving message:', err);
         }

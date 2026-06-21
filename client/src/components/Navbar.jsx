@@ -6,7 +6,7 @@ import { useSocket } from '../context/SocketContext';
 import { initials } from '../utils';
 import Logo from './Logo';
 import { BellIcon } from './Logo';
-import { MoonIcon, SunIcon, WorkspaceIcon, TeamsIcon, TrophyIcon, ProfileIcon, LogoutIcon, SwapIcon, HandshakeIcon, CalendarIcon, MedalIcon } from './Icons';
+import { MoonIcon, SunIcon, WorkspaceIcon, TeamsIcon, TrophyIcon, ProfileIcon, LogoutIcon, SwapIcon, HandshakeIcon, CalendarIcon, MedalIcon, SearchIcon, CommandIcon } from './Icons';
 
 const moreLinks = [
   { to: '/calendar', label: 'Calendar', icon: 'calendar' },
@@ -74,6 +74,30 @@ export default function Navbar() {
 
           {user ? (
             <>
+              <button
+                className="nav-search-btn hide-mobile"
+                onClick={() => window.dispatchEvent(new CustomEvent('opencode:toggle-palette'))}
+                aria-label="Open command palette"
+                title="Search pages & commands"
+              >
+                <SearchIcon size={14} />
+                <span className="nav-search-text">Search…</span>
+              </button>
+
+              <button
+                className="nav-icon-btn hide-mobile"
+                onClick={e => {
+                  const rect = e.currentTarget.getBoundingClientRect();
+                  window.dispatchEvent(new CustomEvent('opencode:toggle-shortcuts', {
+                    detail: { x: rect.left, y: rect.bottom, width: rect.width },
+                  }));
+                }}
+                aria-label="Keyboard shortcuts"
+                title="Show keyboard shortcuts"
+              >
+                <CommandIcon size={16} />
+              </button>
+
               <div className={`nav-links ${mobileMenuOpen ? 'mobile-active' : ''}`}>
                 {user?.role === 'admin' ? (
                   <NavLink to="/admin" className={({ isActive }) => isActive ? 'active' : ''} onClick={closeMobileMenu} style={{ color: 'var(--accent)' }}>Admin Dashboard</NavLink>

@@ -106,7 +106,7 @@ router.get('/', validate(browseQuerySchema), async (req, res) => {
       const [total, users] = await Promise.all([
         User.countDocuments(query),
         User.find(query)
-          .select('-passwordHash -savedProfiles')
+          .select('name avatarColor avatarUrl skillsOffered skillsWanted location rating league')
           .skip(skip)
           .limit(limit)
           .sort({ rating: -1, createdAt: -1 })
@@ -132,7 +132,7 @@ router.get('/recommendations', auth, async (req, res) => {
       isPublic: { $ne: false },
       role: { $ne: 'admin' },
       _id: { $ne: req.user.id },
-    }).select('-passwordHash -savedProfiles');
+    }).select('name avatarColor avatarUrl skillsOffered skillsWanted location rating league').lean();
 
     const scored = candidates
       .map((u) => ({ user: u.toObject(), score: matchScore(me, u), mutualMatch: isMutualMatch(me, u) }))
@@ -148,7 +148,7 @@ router.get('/recommendations', auth, async (req, res) => {
 
 router.get('/:id', validate(idParamSchema), async (req, res) => {
   try {
-    const user = await User.findById(req.params.id).select('-passwordHash');
+    const user = await User.findById(req.params.id).select('-passwordHash -resetPasswordToken -resetPasswordExpires -savedProfiles -isBanned -banReason').lean();
     if (!user) return res.fail('User not found', 404);
     const enriched = await enrichWithMatch([user], req);
     res.respond(enriched[0]);

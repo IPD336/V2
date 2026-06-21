@@ -1,5 +1,6 @@
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback, useRef, memo } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useQuery } from '@tanstack/react-query';
 import api from '../api/axios';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
@@ -9,7 +10,7 @@ import { SkeletonCard } from '../components/Skeleton';
 import { COLORS, CATEGORIES, initials, stars } from '../utils';
 import { SearchIcon, PinIcon, ClockIcon, DiamondIcon, TrophyIcon, SparklesIcon } from '../components/Icons';
 
-function ProfileCard({ user, onSwap, onSave, saved, isOnline }) {
+const ProfileCard = memo(function ProfileCard({ user, onSwap, onSave, saved, isOnline }) {
   const navigate = useNavigate();
   const color = user.avatarColor || COLORS[0];
 
@@ -94,21 +95,17 @@ function ProfileCard({ user, onSwap, onSave, saved, isOnline }) {
       </div>
     </div>
   );
-}
+});
 
 export default function Browse() {
   const { user: me } = useAuth();
   const { showToast } = useToast();
   const { isUserOnline } = useSocket();
-  const [users, setUsers] = useState([]);
-  const [recommendations, setRecommendations] = useState([]);
-  const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [debouncedSearch, setDebouncedSearch] = useState('');
   const searchTimer = useRef(null);
   const [category, setCategory] = useState('All');
   const [page, setPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(1);
   const [saved, setSaved] = useState(new Set(me?.savedProfiles || []));
   const [swapTarget, setSwapTarget] = useState(null);
 
@@ -121,29 +118,31 @@ export default function Browse() {
     return () => clearTimeout(searchTimer.current);
   }, [search]);
 
-  const fetchUsers = useCallback(async () => {
-    setLoading(true);
-    try {
-      const res = await api.get('/users', { params: { search: debouncedSearch, category, page } });
-      setUsers(res.data.users.filter((u) => u._id !== me?._id));
-      setTotalPages(res.data.pages);
-    } catch { showToast('Failed to load users', 'error'); }
-    finally { setLoading(false); }
-  }, [debouncedSearch, category, page]);
+  const { data: browseData, isLoading } = useQuery({
+    queryKey: ['users', debouncedSearch, category, page],
+    queryFn: () => api.get('/users', { params: { search: debouncedSearch, category, page } }).then(r => r.data),
+    placeholderData: { users: [], total: 0, pages: 1 },
+  });
 
-  useEffect(() => { fetchUsers(); }, [fetchUsers]);
+  const { data: recs } = useQuery({
+    queryKey: ['recommendations'],
+    queryFn: async () => {
+      try {
+        const r = await api.get('/ai/smart-recommendations');
+        return r.data.recommendations;
+      } catch {
+        const r = await api.get('/users/recommendations');
+        return r.data.recommendations;
+      }
+    },
+    staleTime: 60_000,
+  });
 
-  useEffect(() => {
-    api.get('/ai/smart-recommendations')
-      .then((r) => setRecommendations(r.data.recommendations))
-      .catch(() => {
-        api.get('/users/recommendations')
-          .then((r) => setRecommendations(r.data.recommendations))
-          .catch(() => showToast('Failed to load recommendations', 'error'));
-      });
-  }, []);
+  const users = (browseData.users || []).filter((u) => u._id !== me?._id);
+  const totalPages = browseData.pages;
+  const recommendations = recs || [];
 
-  const handleSave = async (userId) => {
+  const handleSave = useCallback(async (userId) => {
     try {
       const res = await api.post(`/users/${userId}/save`);
       setSaved((prev) => {
@@ -153,7 +152,7 @@ export default function Browse() {
       });
       showToast(res.data.saved ? 'Saved to favourites ★' : 'Removed from favourites');
     } catch { showToast('Could not save', 'error'); }
-  };
+  }, []);
 
   return (
     <div className="page bg-gradient-subtle page-fade-in">
@@ -201,7 +200,7 @@ export default function Browse() {
           </div>
         </div>
 
-        {loading ? (
+        {isLoading ? (
           <div className="cards-grid">
             {[1,2,3,4,5,6].map((n) => <SkeletonCard key={n} />)}
           </div>
