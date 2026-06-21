@@ -1,6 +1,7 @@
 function respondMiddleware(req, res, next) {
   res.respond = (data, status = 200) => {
-    res.status(status).json({ success: true, ...data });
+    const obj = typeof data?.toObject === 'function' ? data.toObject() : data;
+    res.status(status).json({ success: true, ...obj });
   };
 
   res.respondArray = (items, name = 'data') => {
