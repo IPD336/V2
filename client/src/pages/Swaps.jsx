@@ -338,7 +338,7 @@ export default function Swaps() {
                         </div>
                         {s.schedule && <div style={{ fontSize: 11, color: 'var(--muted)', marginTop: 4, display: 'flex', alignItems: 'center', gap: 3 }}><CalendarIcon size={12} />{s.schedule}</div>}
                         {s.format && <div style={{ fontSize: 11, color: 'var(--muted)', display: 'flex', alignItems: 'center', gap: 3 }}><VideoIcon size={12} />{s.format}</div>}
-                        {s.message && <div style={{ fontSize: 11, color: 'var(--muted)', fontStyle: 'italic', marginTop: 2, maxWidth: '100%', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>" {s.message}"</div>}
+                        {s.message && <div style={{ fontSize: 11, color: 'var(--muted)', fontStyle: 'italic', marginTop: 2, wordBreak: 'break-word', overflowWrap: 'break-word' }}>" {s.message}"</div>}
                       </div>
                       <div className="swap-time hide-mobile">{timeAgo(s.createdAt)}</div>
                       <div className="swap-actions">
@@ -367,7 +367,7 @@ export default function Swaps() {
                         </div>
                         {s.schedule && <div style={{ fontSize: 11, color: 'var(--muted)', marginTop: 4, display: 'flex', alignItems: 'center', gap: 3 }}><CalendarIcon size={12} />{s.schedule}</div>}
                         {s.format && <div style={{ fontSize: 11, color: 'var(--muted)', display: 'flex', alignItems: 'center', gap: 3 }}><VideoIcon size={12} />{s.format}</div>}
-                        {s.message && <div style={{ fontSize: 11, color: 'var(--muted)', fontStyle: 'italic', marginTop: 2, maxWidth: '100%', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>" {s.message}"</div>}
+                        {s.message && <div style={{ fontSize: 11, color: 'var(--muted)', fontStyle: 'italic', marginTop: 2, wordBreak: 'break-word', overflowWrap: 'break-word' }}>" {s.message}"</div>}
                       </div>
                       <div className="swap-time hide-mobile"><span className="status-badge status-pending">Pending</span></div>
                       <div className="swap-actions">

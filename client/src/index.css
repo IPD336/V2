@@ -189,7 +189,7 @@ nav { position: fixed; top: 0; left: 0; right: 0; z-index: 100; display: flex; a
 .swap-card { background: var(--card-bg); border-radius: 12px; padding: 16px 18px; display: flex; align-items: center; gap: 14px; border: 1px solid var(--border); transition: box-shadow .2s; }
 .swap-card:hover { box-shadow: var(--shadow); }
 .swap-ava { width: 42px; height: 42px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 14px; color: white; flex-shrink: 0; }
-.swap-meta { flex: 1; }
+.swap-meta { flex: 1; min-width: 0; }
 .swap-name { font-size: 13px; font-weight: 700; margin-bottom: 3px; }
 .swap-skill-row { font-size: 11px; color: var(--muted); display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
 .swap-skill-tag { background: var(--accent-light); color: var(--accent); padding: 2px 8px; border-radius: 4px; font-weight: 600; }

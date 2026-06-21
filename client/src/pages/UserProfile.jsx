@@ -64,7 +64,7 @@ export default function UserProfile() {
         setSaved(me?.savedProfiles?.includes(id));
         if (gRes) setGamification(gRes.data);
 
-        if (rRes.data.length > 0) {
+        if (rRes.data.reviews?.length > 0) {
           setAiSummaryLoading(true);
           api.get(`/ai/reviews-summary/${id}`)
             .then(res => setAiSummary(res.data.summary))
