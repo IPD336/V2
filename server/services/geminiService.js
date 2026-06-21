@@ -37,11 +37,11 @@ async function generateProposal(senderName, receiverName, skillOffered, skillWan
 async function summarizeReviews(reviews) {
   const m = await getGeminiModel();
   if (!m || !reviews || reviews.length === 0) {
-    return "This mentor consistently receives positive ratings and has successfully completed multiple skill exchanges.";
+    return "No detailed reviews available to summarize.";
   }
 
   const reviewTexts = reviews.map(r => `- Rating: ${r.rating}/5. Learned: ${r.learned || 'N/A'}. Feedback: "${r.feedback || ''}"`).join('\n');
-  const prompt = `Analyze the following user reviews from a skill-sharing platform and write a brief, cohesive 2-sentence summary of this user's teaching style, strengths, and feedback. Keep it constructive, positive, and direct. Do not mention specific names of reviewers. Do not use markdown bullet lists.
+  const prompt = `Analyze the following user reviews from a skill-sharing platform and write a brief, cohesive 2-sentence summary of this user's teaching style, strengths, and areas for improvement. Be honest and balanced — if reviews mention negatives or low ratings, reflect them fairly. Do not mention specific names of reviewers. Do not use markdown bullet lists.
 
 Reviews:\n${reviewTexts}`;
 
@@ -50,7 +50,7 @@ Reviews:\n${reviewTexts}`;
     return result.response.text().trim();
   } catch (err) {
     console.error("Gemini review summarization error:", err);
-    return "This mentor consistently receives positive ratings and has successfully completed multiple skill exchanges.";
+    return "Unable to generate review summary at this time.";
   }
 }
 
