@@ -108,7 +108,7 @@ export default function Profile() {
   const [showScanModal, setShowScanModal] = useState(false);
   const [selectedSkills, setSelectedSkills] = useState([]);
   const [gamification, setGamification] = useState(null);
-  const [collapsed, setCollapsed] = useState({});
+  const [collapsed, setCollapsed] = useState({ basicInfo: true, skills: true, socialLinks: true });
   const toggleSection = (s) => setCollapsed(p => ({ ...p, [s]: !p[s] }));
 
   const handleGithubScan = async () => {
