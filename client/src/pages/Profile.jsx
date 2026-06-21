@@ -4,11 +4,14 @@ import api from '../api/axios';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
 import { AVAIL_OPTIONS, CATEGORIES_NOALL as CATEGORIES } from '../utils';
-import { PinIcon, DiamondIcon, TrophyIcon, StarIcon, MedalIcon, HandshakeIcon, CameraIcon, SparklesIcon } from '../components/Icons';
+import { BADGE_DETAILS, BadgeIcon } from '../utils/badges';
+import { PinIcon, DiamondIcon, TrophyIcon, StarIcon, MedalIcon, CameraIcon, SparklesIcon } from '../components/Icons';
 
 function StructuredSkillInput({ skills, onChange, colorClass = '' }) {
   const [name, setName] = useState('');
   const [category, setCategory] = useState(CATEGORIES[0]);
+
+  const chipColors = ['#C84B31', '#3A6351', '#B8902A', '#5B7DB1', '#8B5CF6', '#EC4899', '#14B8A6', '#F97316'];
 
   const add = () => {
     if (name.trim()) {
@@ -23,9 +26,22 @@ function StructuredSkillInput({ skills, onChange, colorClass = '' }) {
     <div className="structured-skill-input">
       <div className="chips-container" style={{ marginBottom: 12 }}>
         {skills.map((s, i) => (
-          <span key={i} className={`chip ${colorClass}`} style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
-            <span style={{ fontSize: 10, opacity: 0.7, textTransform: 'uppercase', fontWeight: 700 }}>{s.category}</span>
+          <span key={i} className={`chip ${colorClass}`} style={{
+            display: 'inline-flex', alignItems: 'center', gap: 8,
+            background: s.verified ? 'var(--sage-light)' : '',
+            transition: 'transform 0.15s, box-shadow 0.15s',
+            cursor: 'default',
+          }}
+            onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-1px)'; e.currentTarget.style.boxShadow = '0 2px 6px rgba(0,0,0,0.1)'; }}
+            onMouseLeave={e => { e.currentTarget.style.transform = ''; e.currentTarget.style.boxShadow = ''; }}
+          >
+            <span style={{
+              width: 8, height: 8, borderRadius: '50%',
+              background: chipColors[CATEGORIES.indexOf(s.category) % chipColors.length],
+              flexShrink: 0,
+            }} />
             <strong>{s.name}</strong>
+            {s.verified && <span title="GitHub Verified" style={{ color: 'var(--sage)', fontSize: 11, fontWeight: 700, background: 'white', borderRadius: 4, padding: '0 4px' }}>✓</span>}
             <button className="chip-x" type="button" onClick={() => remove(i)}>×</button>
           </span>
         ))}
@@ -46,7 +62,7 @@ function StructuredSkillInput({ skills, onChange, colorClass = '' }) {
         >
           {CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
         </select>
-        <button type="button" className="btn-ghost" onClick={add} style={{ padding: '0 16px' }}>Add</button>
+        <button type="button" className="btn-cosmos btn-cosmos-primary" onClick={add} style={{ padding: '0 20px', fontSize: 11, whiteSpace: 'nowrap' }}>+ Add</button>
       </div>
     </div>
   );
@@ -82,6 +98,7 @@ export default function Profile() {
   const { showToast } = useToast();
   const navigate = useNavigate();
   const fileInputRef = useRef(null);
+  const initialFormRef = useRef(null);
   const [form, setForm] = useState(null);
   const [touched, setTouched] = useState({});
   const [loading, setLoading] = useState(false);
@@ -90,6 +107,9 @@ export default function Profile() {
   const [inferredSkills, setInferredSkills] = useState([]);
   const [showScanModal, setShowScanModal] = useState(false);
   const [selectedSkills, setSelectedSkills] = useState([]);
+  const [gamification, setGamification] = useState(null);
+  const [collapsed, setCollapsed] = useState({});
+  const toggleSection = (s) => setCollapsed(p => ({ ...p, [s]: !p[s] }));
 
   const handleGithubScan = async () => {
     if (!form.socialLinks.github) {
@@ -148,7 +168,7 @@ export default function Profile() {
 
   useEffect(() => {
     if (me) {
-      setForm({
+      const init = {
         name: me.name || '',
         location: me.location || '',
         bio: me.bio || '',
@@ -158,15 +178,22 @@ export default function Profile() {
         languages: me.languages || [],
         isPublic: me.isPublic ?? true,
         socialLinks: { linkedin: me.socialLinks?.linkedin || '', github: me.socialLinks?.github || '', portfolio: me.socialLinks?.portfolio || '' },
-      });
+      };
+      setForm(init);
+      initialFormRef.current = init;
     }
   }, [me]);
+
+  useEffect(() => {
+    api.get('/gamification').then(res => setGamification(res.data)).catch(() => {});
+  }, []);
 
   const h = (e) => setForm({ ...form, [e.target.name]: e.target.value });
   const handleBlur = (e) => setTouched({ ...touched, [e.target.name]: true });
 
   const nameValid = form?.name?.trim().length >= 2;
   const nameError = touched.name && form?.name && !nameValid;
+  const hasChanges = initialFormRef.current && form && JSON.stringify(form) !== JSON.stringify(initialFormRef.current);
 
   const submit = async (e) => {
     e.preventDefault();
@@ -226,8 +253,8 @@ export default function Profile() {
               title="Change Profile Picture"
             >
               {!me.avatarUrl && initials}
-              <div style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', opacity: 0, transition: 'opacity 0.2s' }} onMouseEnter={(e) => e.currentTarget.style.opacity = 1} onMouseLeave={(e) => e.currentTarget.style.opacity = 0}>
-<CameraIcon size={24} />
+              <div style={{ position: 'absolute', bottom: 0, right: 0, background: 'rgba(0,0,0,0.55)', borderRadius: '8px 0 12px 0', padding: '4px 6px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white' }}>
+                <CameraIcon size={14} />
               </div>
             </div>
             <input type="file" ref={fileInputRef} style={{ display: 'none' }} accept="image/*" onChange={handleAvatarUpload} />
@@ -252,35 +279,79 @@ export default function Profile() {
           <button className="btn-ghost" onClick={() => navigate(`/profile/${me._id}`)}>View Public Profile ↗</button>
         </div>
 
-        {/* Achievements Section */}
-        {me.badges && me.badges.length > 0 && (
-          <div style={{ background: 'var(--card-bg)', borderRadius: 16, padding: 32, marginBottom: 24, border: '1px solid var(--border)' }}>
-            <h2 style={{ fontSize: 18, marginBottom: 24, display: 'flex', alignItems: 'center', gap: 8 }}><MedalIcon size={18} /> Achievements</h2>
-            <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap' }}>
-              {me.badges.map((badge, idx) => {
-                const badgeId = typeof badge === 'string' ? badge : badge.id;
-                let icon = <StarIcon size={20} />;
-                let desc = '';
-                if (badgeId === 'Early Bird') { icon = <StarIcon size={20} />; desc = 'Completed first swap'; }
-                if (badgeId === 'Super Mentor') { icon = <StarIcon size={20} />; desc = '10+ five-star reviews'; }
-                if (badgeId === 'Team Player') { icon = <HandshakeIcon size={20} />; desc = 'Completed a team project'; }
-                return (
-                  <div key={idx} style={{ background: 'var(--gold-light)', border: '1px solid var(--gold)', padding: '12px 16px', borderRadius: 12, display: 'flex', alignItems: 'center', gap: 12 }}>
-                    <div style={{ fontSize: 24, display: 'flex', color: 'var(--gold)' }}>{icon}</div>
-                    <div>
-                      <div style={{ fontWeight: 700, color: 'var(--ink)', fontSize: 14 }}>{badgeId}</div>
-                      <div style={{ fontSize: 11, color: 'var(--muted)' }}>{desc}</div>
-                    </div>
-                  </div>
-                );
-              })}
+        {/* XP/Level/Streak Progress */}
+        {gamification && (
+          <div style={{ background: 'var(--card-bg)', borderRadius: 16, padding: 24, marginBottom: 24, border: '1px solid var(--border)' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                <SparklesIcon size={16} />
+                <span style={{ fontWeight: 700, fontSize: 14, color: 'var(--ink)' }}>Level {gamification.level}</span>
+              </div>
+              <span style={{ fontSize: 12, color: 'var(--muted)' }}>{gamification.xpCurrent}/{gamification.xpNeeded} XP</span>
+            </div>
+            <div style={{ height: 8, background: 'var(--border)', borderRadius: 4, overflow: 'hidden', marginBottom: 12 }}>
+              <div style={{
+                height: '100%', width: `${Math.min(100, (gamification.xpCurrent / gamification.xpNeeded) * 100)}%`,
+                background: 'linear-gradient(90deg, var(--accent), #8B5CF6)', borderRadius: 4, transition: 'width .5s ease',
+              }} />
+            </div>
+            <div style={{ display: 'flex', gap: 20, fontSize: 12, color: 'var(--muted)' }}>
+              <span>🔥 {gamification.streak?.current || 0} day streak</span>
+              <span>🏆 {gamification.xp.toLocaleString()} total XP</span>
             </div>
           </div>
         )}
 
+        {/* Achievements Section */}
+        {(() => {
+          const allBadges = gamification?.badges || BADGE_DETAILS.map(d => {
+            const earned = me.badges?.find(b => (typeof b === 'string' ? b : b.id) === d.id);
+            return { ...d, earned: !!earned, earnedAt: earned?.earnedAt || null };
+          });
+          const earnedCount = allBadges.filter(b => b.earned).length;
+          if (earnedCount === 0) return null;
+          const totalBadgeXp = allBadges.filter(b => b.earned).reduce((s, b) => s + (b.xpReward || 0), 0);
+
+          return (
+            <div style={{ background: 'var(--card-bg)', borderRadius: 16, padding: 32, marginBottom: 24, border: '1px solid var(--border)' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
+                <h2 style={{ fontSize: 18, margin: 0, display: 'flex', alignItems: 'center', gap: 8, color: 'var(--ink)' }}><MedalIcon size={18} /> Achievements</h2>
+                <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
+                  <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--ink)' }}>{earnedCount}<span style={{ color: 'var(--muted)', fontWeight: 400 }}>/{allBadges.length}</span></span>
+                  {totalBadgeXp > 0 && <span style={{ fontSize: 11, color: 'var(--muted)' }}>+{totalBadgeXp} XP</span>}
+                </div>
+              </div>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 12 }}>
+                {allBadges.filter(b => b.earned).map((badge, idx) => (
+                  <div key={idx} style={{
+                    display: 'flex', alignItems: 'center', gap: 10, padding: '10px 14px',
+                    background: 'var(--accent-light)', borderRadius: 12, border: '1px solid rgba(var(--accent-rgb),0.2)',
+                  }}>
+                    <div style={{ width: 36, height: 36, borderRadius: 10, background: 'var(--accent-light)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--accent)' }}>
+                      <BadgeIcon name={badge.icon} size={20} />
+                    </div>
+                    <div>
+                      <div style={{ fontWeight: 700, fontSize: 13, color: 'var(--ink)' }}>{badge.name}</div>
+                      <div style={{ fontSize: 11, color: 'var(--muted)' }}>
+                        {badge.description}{badge.earnedAt ? ` · ${new Date(badge.earnedAt).toLocaleDateString()}` : ''}
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          );
+        })()}
+
         <form onSubmit={submit}>
-          <div style={{ background: 'var(--card-bg)', borderRadius: 16, padding: 32, border: '1px solid var(--border)', marginBottom: 16 }}>
-            <div style={{ fontFamily: 'PT Mono, monospace', fontSize: 11, letterSpacing: 2, textTransform: 'uppercase', color: 'var(--muted)', marginBottom: 20 }}>Basic Info</div>
+          <div style={{ background: 'var(--card-bg)', borderRadius: 16, border: '1px solid var(--border)', marginBottom: 16, overflow: 'hidden' }}>
+            <div onClick={() => toggleSection('basicInfo')} style={{ padding: 32, paddingBottom: collapsed.basicInfo ? 32 : 0, cursor: 'pointer', display: 'flex', justifyContent: 'space-between', alignItems: 'center', userSelect: 'none' }}>
+              <div style={{ fontFamily: 'PT Mono, monospace', fontSize: 11, letterSpacing: 2, textTransform: 'uppercase', color: 'var(--muted)' }}>Basic Info</div>
+              <span style={{ color: 'var(--muted)', fontSize: 14, transform: collapsed.basicInfo ? 'rotate(-90deg)' : 'rotate(0)', transition: 'transform 0.2s' }}>▾</span>
+            </div>
+            {(() => {
+            if (collapsed.basicInfo) return null;
+            return <div style={{ padding: '0 32px 32px' }}>
             <div className="form-group">
               <label className="form-label">Full Name</label>
               <input
@@ -306,10 +377,18 @@ export default function Profile() {
                 <span className="toggle-slider" />
               </label>
             </div>
+          </div>;
+          })()}
           </div>
 
-          <div style={{ background: 'var(--card-bg)', borderRadius: 16, padding: 32, border: '1px solid var(--border)', marginBottom: 16 }}>
-            <div style={{ fontFamily: 'PT Mono, monospace', fontSize: 11, letterSpacing: 2, textTransform: 'uppercase', color: 'var(--muted)', marginBottom: 20 }}>Skills</div>
+          <div style={{ background: 'var(--card-bg)', borderRadius: 16, border: '1px solid var(--border)', marginBottom: 16, overflow: 'hidden' }}>
+            <div onClick={() => toggleSection('skills')} style={{ padding: 32, paddingBottom: collapsed.skills ? 32 : 0, cursor: 'pointer', display: 'flex', justifyContent: 'space-between', alignItems: 'center', userSelect: 'none' }}>
+              <div style={{ fontFamily: 'PT Mono, monospace', fontSize: 11, letterSpacing: 2, textTransform: 'uppercase', color: 'var(--muted)' }}>Skills</div>
+              <span style={{ color: 'var(--muted)', fontSize: 14, transform: collapsed.skills ? 'rotate(-90deg)' : 'rotate(0)', transition: 'transform 0.2s' }}>▾</span>
+            </div>
+{(() => {
+            if (collapsed.skills) return null;
+            return <div style={{ padding: '0 32px 32px' }}>
             <div className="form-group">
               <label className="form-label">Skills You Offer</label>
               <StructuredSkillInput skills={form.skillsOffered} onChange={(v) => setForm({ ...form, skillsOffered: v })} />
@@ -322,45 +401,60 @@ export default function Profile() {
               <label className="form-label">Languages Spoken</label>
               <ChipInput chips={form.languages} onChange={(v) => setForm({ ...form, languages: v })} />
             </div>
+          </div>;
+          })()}
           </div>
 
-          <div style={{ background: 'var(--card-bg)', borderRadius: 16, padding: 32, border: '1px solid var(--border)', marginBottom: 24 }}>
-            <div style={{ fontFamily: 'PT Mono, monospace', fontSize: 11, letterSpacing: 2, textTransform: 'uppercase', color: 'var(--muted)', marginBottom: 20 }}>Social Links</div>
-             <div className="form-group"><label className="form-label">LinkedIn</label><input className="form-input" style={{ background: 'var(--cream)', color: 'var(--ink)' }} name="linkedin" value={form.socialLinks.linkedin} onChange={(e) => setForm({ ...form, socialLinks: { ...form.socialLinks, linkedin: e.target.value } })} placeholder="https://linkedin.com/in/…" /></div>
-             <div className="form-group">
-               <label className="form-label">GitHub</label>
-               <div style={{ display: 'flex', gap: 8 }}>
-                 <input 
-                   className="form-input" 
-                   style={{ background: 'var(--cream)', color: 'var(--ink)', flex: 1 }} 
-                   name="github" 
-                   value={form.socialLinks.github} 
-                   onChange={(e) => setForm({ ...form, socialLinks: { ...form.socialLinks, github: e.target.value } })} 
-                   placeholder="https://github.com/…" 
-                 />
-                 <button 
-                   type="button" 
-                   className="btn-outline-sm" 
-                   style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '0 16px', height: '46px', border: '1.5px solid var(--border)' }}
-                   onClick={handleGithubScan}
-                   disabled={scanLoading}
-                 >
-                   <SparklesIcon size={14} /> {scanLoading ? 'Scanning…' : 'Scan Skills'}
-                 </button>
-               </div>
-             </div>
-             <div className="form-group"><label className="form-label">Portfolio</label><input className="form-input" style={{ background: 'var(--cream)', color: 'var(--ink)' }} name="portfolio" value={form.socialLinks.portfolio} onChange={(e) => setForm({ ...form, socialLinks: { ...form.socialLinks, portfolio: e.target.value } })} placeholder="https://yoursite.com" /></div>
+          <div style={{ background: 'var(--card-bg)', borderRadius: 16, border: '1px solid var(--border)', marginBottom: 24, overflow: 'hidden' }}>
+            <div onClick={() => toggleSection('socialLinks')} style={{ padding: 32, paddingBottom: collapsed.socialLinks ? 32 : 0, cursor: 'pointer', display: 'flex', justifyContent: 'space-between', alignItems: 'center', userSelect: 'none' }}>
+              <div style={{ fontFamily: 'PT Mono, monospace', fontSize: 11, letterSpacing: 2, textTransform: 'uppercase', color: 'var(--muted)' }}>Social Links</div>
+              <span style={{ color: 'var(--muted)', fontSize: 14, transform: collapsed.socialLinks ? 'rotate(-90deg)' : 'rotate(0)', transition: 'transform 0.2s' }}>▾</span>
+            </div>
+{(() => {
+            if (collapsed.socialLinks) return null;
+            return <div style={{ padding: '0 32px 32px' }}>
+              <div className="form-group"><label className="form-label">LinkedIn</label><input className="form-input" style={{ background: 'var(--cream)', color: 'var(--ink)' }} name="linkedin" value={form.socialLinks.linkedin} onChange={(e) => setForm({ ...form, socialLinks: { ...form.socialLinks, linkedin: e.target.value } })} placeholder="https://linkedin.com/in/…" /></div>
+              <div className="form-group">
+                <label className="form-label">GitHub</label>
+                <div style={{ display: 'flex', gap: 8 }}>
+                  <input 
+                    className="form-input" 
+                    style={{ background: 'var(--cream)', color: 'var(--ink)', flex: 1 }} 
+                    name="github" 
+                    value={form.socialLinks.github} 
+                    onChange={(e) => setForm({ ...form, socialLinks: { ...form.socialLinks, github: e.target.value } })} 
+                    placeholder="https://github.com/…" 
+                  />
+                  <button 
+                    type="button" 
+                    className="btn-outline-sm" 
+                    style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '0 16px', height: '46px', border: '1.5px solid var(--border)' }}
+                    onClick={handleGithubScan}
+                    disabled={scanLoading}
+                  >
+                    <SparklesIcon size={14} /> {scanLoading ? 'Scanning…' : 'Scan Skills'}
+                  </button>
+                </div>
+              </div>
+                <div className="form-group"><label className="form-label">Portfolio</label><input className="form-input" style={{ background: 'var(--cream)', color: 'var(--ink)' }} name="portfolio" value={form.socialLinks.portfolio} onChange={(e) => setForm({ ...form, socialLinks: { ...form.socialLinks, portfolio: e.target.value } })} placeholder="https://yoursite.com" /></div>
+             </div>;
+            })()}
           </div>
 
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 20 }}>
-            <button className="btn-cosmos btn-cosmos-primary" type="submit" disabled={loading} style={{ padding: '12px 32px', fontSize: 11 }}>
-              {loading ? 'Saving…' : 'Save Changes'}
-            </button>
+          <div style={{ position: 'sticky', bottom: 0, zIndex: 10, background: 'var(--card-bg)', borderTop: '1px solid var(--border)', borderRadius: '0 0 16px 16px', padding: '14px 24px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 16 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+              <button className="btn-cosmos btn-cosmos-primary" type="submit" disabled={loading || !hasChanges} style={{ padding: '10px 24px', fontSize: 11 }}>
+                {loading ? 'Saving…' : 'Save Changes'}
+              </button>
+              <span style={{ fontSize: 11, color: hasChanges ? 'var(--accent)' : 'var(--muted)', fontWeight: 600 }}>
+                {loading ? 'Saving…' : hasChanges ? 'Unsaved changes' : 'All saved ✓'}
+              </span>
+            </div>
             <button 
               type="button" 
               onClick={() => setShowDeleteModal(true)} 
               disabled={loading}
-              style={{ background: 'none', border: 'none', color: 'var(--accent)', fontSize: 14, fontWeight: 600, cursor: 'pointer', textDecoration: 'underline' }}
+              style={{ background: 'none', border: 'none', color: 'var(--accent)', fontSize: 13, fontWeight: 600, cursor: 'pointer', textDecoration: 'underline', opacity: loading ? 0.5 : 1 }}
             >
               Delete Account
             </button>
