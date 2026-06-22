@@ -1,6 +1,9 @@
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Reveal from '../components/Reveal';
-import { PinIcon, CheckIcon, SparklesIcon, CalendarIcon } from '../components/Icons';
+import AnimatedCounter from '../components/AnimatedCounter';
+import FAQAccordion from '../components/FAQAccordion';
+import { PinIcon, CheckIcon, SparklesIcon, CalendarIcon, ChevronLeftIcon, ChevronRightIcon } from '../components/Icons';
 
 
 const TESTIMONIALS = [
@@ -17,10 +20,28 @@ const SOCIAL_AVATARS = [
   { initials: 'KP', color: '#7A5FA8' },
 ];
 
+const stagger = (i, base = 0) => i * 120 + base;
+
 export default function Landing() {
   const navigate = useNavigate();
+  const [testimonialIdx, setTestimonialIdx] = useState(0);
+  const intervalRef = useRef(null);
+  const handleMouseEnter = () => {
+    if (intervalRef.current) { clearInterval(intervalRef.current); intervalRef.current = null; }
+  };
+  const handleMouseLeave = () => {
+    intervalRef.current = setInterval(() => {
+      setTestimonialIdx(i => (i + 1) % TESTIMONIALS.length);
+    }, 5000);
+  };
 
-  const stagger = (i, base = 0) => i * 120 + base;
+  useEffect(() => {
+    handleMouseLeave();
+    return () => { if (intervalRef.current) clearInterval(intervalRef.current); };
+  }, []);
+
+  const nextTestimonial = () => setTestimonialIdx(i => (i + 1) % TESTIMONIALS.length);
+  const prevTestimonial = () => setTestimonialIdx(i => (i - 1 + TESTIMONIALS.length) % TESTIMONIALS.length);
 
   return (
     <div className="page-fade-in">
@@ -48,7 +69,7 @@ export default function Landing() {
         {/* Dot grid overlay */}
         <svg className="dot-grid-svg" viewBox="0 0 100 100" preserveAspectRatio="none">
           <pattern id="dot-grid-hero" x="0" y="0" width="6" height="6" patternUnits="userSpaceOnUse">
-            <circle cx="1" cy="1" r="0.5" fill="var(--border)" opacity="0.35" />
+            <circle cx="1" cy="1" r="0.5" fill="var(--dot-color)" />
           </pattern>
           <rect width="100%" height="100%" fill="url(#dot-grid-hero)" mask="url(#dot-grid-mask)" />
           <mask id="dot-grid-mask">
@@ -150,7 +171,7 @@ export default function Landing() {
                   ))}
                 </div>
                 <div style={{ fontSize: 12, color: 'var(--muted)', fontWeight: 500, lineHeight: 1.5 }}>
-                  <strong style={{ color: 'var(--ink)', fontWeight: 700 }}>4,200+</strong> professionals swapping skills<br />
+                  <strong style={{ color: 'var(--ink)', fontWeight: 700 }}><AnimatedCounter value="4,200+" /></strong> professionals swapping skills<br />
                   across 38 cities worldwide
                 </div>
               </div>
@@ -273,7 +294,7 @@ export default function Landing() {
           ].map((s, i) => (
             <Reveal key={s.label} delay={i * 100} style={{ width: '100%' }}>
               <div className="metric-item">
-                <div className="metric-value" style={{ color: 'white' }}>{s.num}</div>
+                <div className="metric-value" style={{ color: 'white' }}><AnimatedCounter value={s.num} /></div>
                 <div className="metric-label" style={{ color: 'rgba(255,255,255,0.8)' }}>{s.label}</div>
               </div>
             </Reveal>
@@ -730,6 +751,52 @@ export default function Landing() {
         </div>
       </section>
 
+      {/* ──────────────── FAQ ──────────────── */}
+      <section style={{
+        padding: '100px 24px', position: 'relative', overflow: 'hidden',
+        background: 'var(--section-dark)',
+      }}>
+        <div className="orb-glow" style={{
+          width: 400, height: 400, top: '50%', left: '50%',
+          transform: 'translate(-50%, -50%)',
+          background: 'rgba(var(--accent-rgb),0.08)',
+        }} />
+        <svg className="dot-grid-svg" viewBox="0 0 100 100" preserveAspectRatio="none">
+          <pattern id="dot-grid-faq" x="0" y="0" width="7" height="7" patternUnits="userSpaceOnUse">
+            <circle cx="1" cy="1" r="0.5" fill="white" opacity="0.06" />
+          </pattern>
+          <rect width="100%" height="100%" fill="url(#dot-grid-faq)" />
+        </svg>
+
+        <div style={{ maxWidth: 720, margin: '0 auto', position: 'relative', zIndex: 1 }}>
+          <Reveal>
+            <div style={{ textAlign: 'center', marginBottom: 48 }}>
+              <div style={{
+                fontFamily: 'PT Mono, monospace', fontSize: 10,
+                letterSpacing: 2.5, textTransform: 'uppercase',
+                color: 'var(--section-text-muted)', marginBottom: 14,
+                display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10,
+              }}>
+                <span style={{ display: 'inline-block', width: 24, height: 1, background: 'var(--section-text-muted)' }} />
+                FAQ
+                <span style={{ display: 'inline-block', width: 24, height: 1, background: 'var(--section-text-muted)' }} />
+              </div>
+              <h2 style={{
+                fontFamily: 'PT Serif, serif',
+                fontSize: 'clamp(28px, 3.5vw, 44px)',
+                fontWeight: 600, letterSpacing: -1.2, margin: 0,
+                color: 'var(--section-text)',
+              }}>
+                Got <em style={{ fontStyle: 'italic', color: 'var(--accent)' }}>questions</em>?
+              </h2>
+            </div>
+          </Reveal>
+          <Reveal>
+            <FAQAccordion />
+          </Reveal>
+        </div>
+      </section>
+
       {/* ──────────────── TESTIMONIALS ──────────────── */}
       <section style={{
         padding: '100px 24px', position: 'relative', overflow: 'hidden',
@@ -759,74 +826,50 @@ export default function Landing() {
             </div>
           </Reveal>
 
-          <div className="testimonial-grid">
-            {/* Big left card */}
-            <Reveal delay={0} className="testimonial-card" style={{
-              background: 'var(--card-bg)', border: '1px solid var(--border)',
-              borderRadius: 12, padding: '36px 32px',
-              display: 'flex', flexDirection: 'column', gap: 20,
-            }}>
-              <div style={{
-                fontSize: 15, lineHeight: 1.8, color: 'var(--ink)', fontStyle: 'italic',
-                flex: 1,
-              }}>
-                "{TESTIMONIALS[0].text}"
-              </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                <div style={{
-                  width: 44, height: 44, borderRadius: 10,
-                  background: TESTIMONIALS[0].color, display: 'flex',
-                  alignItems: 'center', justifyContent: 'center',
-                  fontSize: 15, fontWeight: 800, color: 'white',
-                }}>
-                  {TESTIMONIALS[0].initials}
-                </div>
-                <div>
-                  <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--ink)' }}>
-                    {TESTIMONIALS[0].name}
+          <Reveal>
+            <div
+              className="testimonial-carousel"
+              onMouseEnter={handleMouseEnter}
+              onMouseLeave={handleMouseLeave}
+            >
+              <div className="testimonial-carousel-track" style={{ transform: `translateX(-${testimonialIdx * 100}%)` }}>
+                {TESTIMONIALS.map((t, i) => (
+                  <div key={i} className="testimonial-carousel-slide">
+                    <div className="testimonial-carousel-card">
+                      <div className="testimonial-carousel-text">"{t.text}"</div>
+                      <div className="testimonial-carousel-author">
+                        <div className="testimonial-carousel-avatar" style={{ background: t.color }}>
+                          {t.initials}
+                        </div>
+                        <div>
+                          <div className="testimonial-carousel-name">{t.name}</div>
+                          <div className="testimonial-carousel-role">{t.role}</div>
+                        </div>
+                      </div>
+                    </div>
                   </div>
-                  <div style={{ fontSize: 12, color: 'var(--muted)' }}>
-                    {TESTIMONIALS[0].role}
-                  </div>
-                </div>
+                ))}
               </div>
-            </Reveal>
 
-            {/* Right column — 2 stacked cards */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
-              {TESTIMONIALS.slice(1).map((t, i) => (
-                <Reveal key={i} delay={(i + 1) * 100} className="testimonial-card" style={{
-                  background: 'var(--card-bg)', border: '1px solid var(--border)',
-                  borderRadius: 12, padding: '28px 24px',
-                  display: 'flex', flexDirection: 'column', gap: 16,
-                }}>
-                  <div style={{
-                    fontSize: 13, lineHeight: 1.7, color: 'var(--ink)', fontStyle: 'italic',
-                  }}>
-                    "{t.text}"
-                  </div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginTop: 'auto' }}>
-                    <div style={{
-                      width: 36, height: 36, borderRadius: 8,
-                      background: t.color, display: 'flex',
-                      alignItems: 'center', justifyContent: 'center',
-                      fontSize: 12, fontWeight: 800, color: 'white',
-                    }}>
-                      {t.initials}
-                    </div>
-                    <div>
-                      <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--ink)' }}>
-                        {t.name}
-                      </div>
-                      <div style={{ fontSize: 11, color: 'var(--muted)' }}>
-                        {t.role}
-                      </div>
-                    </div>
-                  </div>
-                </Reveal>
-              ))}
+              <button className="testimonial-carousel-btn testimonial-carousel-btn-prev" onClick={prevTestimonial} aria-label="Previous">
+                <ChevronLeftIcon size={16} />
+              </button>
+              <button className="testimonial-carousel-btn testimonial-carousel-btn-next" onClick={nextTestimonial} aria-label="Next">
+                <ChevronRightIcon size={16} />
+              </button>
+
+              <div className="testimonial-carousel-dots">
+                {TESTIMONIALS.map((_, i) => (
+                  <button
+                    key={i}
+                    className={`testimonial-carousel-dot ${i === testimonialIdx ? 'testimonial-carousel-dot-active' : ''}`}
+                    onClick={() => setTestimonialIdx(i)}
+                    aria-label={`Go to testimonial ${i + 1}`}
+                  />
+                ))}
+              </div>
             </div>
-          </div>
+          </Reveal>
         </div>
       </section>
 
@@ -838,15 +881,15 @@ export default function Landing() {
           <div style={{ maxWidth: 900, margin: '0 auto' }}>
             <div className="metrics-row">
               <div className="metric-item">
-                <div className="metric-value" style={{ color: 'var(--ink)' }}>4,200+</div>
+                <div className="metric-value" style={{ color: 'var(--ink)' }}><AnimatedCounter value="4,200+" /></div>
                 <div className="metric-label" style={{ color: 'var(--muted)' }}>Active Members</div>
               </div>
               <div className="metric-item">
-                <div className="metric-value" style={{ color: 'var(--ink)' }}>2,800+</div>
+                <div className="metric-value" style={{ color: 'var(--ink)' }}><AnimatedCounter value="2,800+" /></div>
                 <div className="metric-label" style={{ color: 'var(--muted)' }}>Swaps Completed</div>
               </div>
               <div className="metric-item" style={{ borderRight: 'none' }}>
-                <div className="metric-value" style={{ color: 'var(--ink)' }}>94%</div>
+                <div className="metric-value" style={{ color: 'var(--ink)' }}><AnimatedCounter value="94%" /></div>
                 <div className="metric-label" style={{ color: 'var(--muted)' }}>Satisfaction Rate</div>
               </div>
             </div>

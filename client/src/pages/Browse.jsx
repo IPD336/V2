@@ -6,6 +6,7 @@ import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
 import { useSocket } from '../context/SocketContext';
 import SwapRequestModal from '../components/SwapRequestModal';
+import TypingIndicator from '../components/TypingIndicator';
 import { SkeletonCard } from '../components/Skeleton';
 import { COLORS, CATEGORIES, initials, stars } from '../utils';
 import { SearchIcon, PinIcon, ClockIcon, DiamondIcon, TrophyIcon, SparklesIcon } from '../components/Icons';
@@ -124,19 +125,40 @@ export default function Browse() {
     placeholderData: { users: [], total: 0, pages: 1 },
   });
 
+  const [recsLoaded, setRecsLoaded] = useState(false);
+  const [recsLoadingSlow, setRecsLoadingSlow] = useState(false);
+
   const { data: recs } = useQuery({
     queryKey: ['recommendations'],
     queryFn: async () => {
+      setRecsLoaded(false);
+      setRecsLoadingSlow(false);
+      const slowTimer = setTimeout(() => setRecsLoadingSlow(true), 5000);
       try {
         const r = await api.get('/ai/smart-recommendations');
         return r.data.recommendations;
       } catch {
         const r = await api.get('/users/recommendations');
         return r.data.recommendations;
+      } finally {
+        clearTimeout(slowTimer);
+        setRecsLoaded(true);
+        setRecsLoadingSlow(false);
       }
     },
     staleTime: 60_000,
   });
+
+  const prefetchRecs = useCallback(async () => {
+    try {
+      await api.get('/ai/smart-recommendations');
+    } catch { /* ignore */ }
+  }, []);
+
+  useEffect(() => {
+    const timer = setTimeout(prefetchRecs, 2000);
+    return () => clearTimeout(timer);
+  }, [prefetchRecs]);
 
   const users = (browseData.users || []).filter((u) => u._id !== me?._id);
   const totalPages = browseData.pages;
@@ -163,7 +185,18 @@ export default function Browse() {
         </div>
 
         {/* Recommendations */}
-        {recommendations.length > 0 && (
+        {!recsLoaded ? (
+          <div style={{ marginBottom: 48, background: 'var(--accent-light)', borderRadius: 20, padding: '32px 28px', border: '1px solid rgba(200,75,49,0.10)' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 24 }}>
+              <span style={{ fontFamily: 'PT Mono, monospace', fontSize: 11, letterSpacing: 2, textTransform: 'uppercase', color: 'var(--accent)' }}>✦ For You</span>
+              <span className="hide-mobile" style={{ fontSize: 13, color: 'var(--muted)' }}>Matched to your skill goals</span>
+            </div>
+            <TypingIndicator message={recsLoadingSlow ? 'Still finding your matches...' : 'Finding your matches...'} />
+            <div className="cards-grid" style={{ marginTop: 20 }}>
+              {[1, 2, 3].map(i => <SkeletonCard key={i} />)}
+            </div>
+          </div>
+        ) : recommendations.length > 0 ? (
           <div style={{ marginBottom: 48, background: 'var(--accent-light)', borderRadius: 20, padding: '32px 28px', border: '1px solid rgba(200,75,49,0.10)' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 24 }}>
               <span style={{ fontFamily: 'PT Mono, monospace', fontSize: 11, letterSpacing: 2, textTransform: 'uppercase', color: 'var(--accent)' }}>✦ For You</span>
@@ -175,7 +208,7 @@ export default function Browse() {
               ))}
             </div>
           </div>
-        )}
+        ) : null}
 
         {/* Search & Filter */}
         <div style={{ marginBottom: 12 }}>

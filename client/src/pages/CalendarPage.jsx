@@ -42,19 +42,44 @@ function statusConfig(status) {
 /* ─── Schedule Modal ─── */
 function ScheduleModal({ swap, me, onClose, onDone }) {
   const { showToast } = useToast();
-  const [scheduledAt, setScheduledAt] = useState(
+  const [title, setTitle] = useState(swap.skillOffered ? `${swap.skillOffered} ↔ ${swap.skillWanted}` : '');
+  const [allDay, setAllDay] = useState(false);
+  const [startDate, setStartDate] = useState(
     swap.scheduledAt ? new Date(swap.scheduledAt).toISOString().slice(0, 16) : ''
   );
-  const [duration, setDuration] = useState(swap.scheduledAt ? String(getDurationMins(swap)) : '60');
+  const [endDate, setEndDate] = useState(() => {
+    if (swap.scheduledAt && swap.scheduledEndAt) {
+      return new Date(swap.scheduledEndAt).toISOString().slice(0, 16);
+    }
+    const start = swap.scheduledAt ? new Date(swap.scheduledAt) : new Date();
+    return new Date(start.getTime() + 60 * 60 * 1000).toISOString().slice(0, 16);
+  });
+  const [location, setLocation] = useState(swap.format || '');
+  const [description, setDescription] = useState('');
+  const [color, setColor] = useState('#7986CB');
   const [loading, setLoading] = useState(false);
+
+  const COLORS = [
+    { hex: '#7986CB', name: 'Lavender' },
+    { hex: '#33B679', name: 'Sage' },
+    { hex: '#8E24AA', name: 'Grape' },
+    { hex: '#E67C73', name: 'Flamingo' },
+    { hex: '#F6BF26', name: 'Banana' },
+    { hex: '#F4511E', name: 'Tangerine' },
+    { hex: '#039BE5', name: 'Peacock' },
+    { hex: '#616161', name: 'Graphite' },
+    { hex: '#3F51B5', name: 'Blueberry' },
+    { hex: '#0B8043', name: 'Basil' },
+    { hex: '#D50000', name: 'Tomato' },
+  ];
 
   const submit = async (e) => {
     e.preventDefault();
-    if (!scheduledAt) { showToast('Please pick a date and time', 'error'); return; }
+    if (!startDate) { showToast('Please pick a start date and time', 'error'); return; }
     setLoading(true);
     try {
-      const start = new Date(scheduledAt);
-      const end = new Date(start.getTime() + parseInt(duration) * 60 * 1000);
+      const start = new Date(startDate);
+      const end = endDate ? new Date(endDate) : new Date(start.getTime() + 60 * 60 * 1000);
       await api.put(`/swaps/${swap._id}/schedule`, {
         scheduledAt: start.toISOString(),
         scheduledEndAt: end.toISOString(),
@@ -71,44 +96,143 @@ function ScheduleModal({ swap, me, onClose, onDone }) {
 
   return (
     <div className="modal-overlay active" onClick={(e) => e.target === e.currentTarget && onClose()}>
-      <div className="modal" style={{ maxWidth: 440 }}>
+      <div style={{
+        background: 'var(--card-bg)', border: '1px solid var(--border)',
+        width: '100%', maxWidth: 440, borderRadius: 12,
+        padding: 24, boxShadow: 'var(--shadow-lg)', position: 'relative',
+      }}>
         <button className="modal-close" onClick={onClose} aria-label="Close">✕</button>
-        <div className="modal-heading" style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 22 }}>
-          <CalendarIcon size={20} /> Schedule Session
-        </div>
-        <div className="modal-sub">
-          Set a date for your swap with <strong>{other?.name}</strong> — {swap.skillOffered} ↔ {swap.skillWanted}
+        <h2 style={{ margin: '0 0 16px', fontSize: 14, fontWeight: 700, color: 'var(--ink)' }}>
+          <CalendarIcon size={16} style={{ marginRight: 6, verticalAlign: 'middle' }} />
+          Create Event
+        </h2>
+        <div style={{ fontSize: 12, color: 'var(--muted)', marginBottom: 16, lineHeight: 1.5 }}>
+          Schedule your swap with <strong style={{ color: 'var(--ink)' }}>{other?.name}</strong> — {swap.skillOffered} ↔ {swap.skillWanted}
         </div>
         <form onSubmit={submit}>
-          <div className="form-group">
-            <label className="form-label">Date & Time</label>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
             <input
-              className="form-input"
-              type="datetime-local"
-              value={scheduledAt}
-              onChange={(e) => setScheduledAt(e.target.value)}
-              min={new Date().toISOString().slice(0, 16)}
-              required
+              placeholder="Event title"
+              style={{
+                border: '1px solid var(--border)', background: 'var(--card-bg)',
+                width: '100%', borderRadius: 6, padding: '10px 14px',
+                fontSize: 13, outline: 'none', boxSizing: 'border-box',
+                color: 'var(--ink)',
+              }}
+              type="text"
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
             />
-          </div>
-          <div className="form-group">
-            <label className="form-label">Duration</label>
-            <select className="form-select" value={duration} onChange={(e) => setDuration(e.target.value)}>
-              <option value="30">30 minutes</option>
-              <option value="60">1 hour</option>
-              <option value="90">1.5 hours</option>
-              <option value="120">2 hours</option>
-            </select>
-          </div>
-          {scheduledAt && (
-            <div style={{ background: 'var(--accent-light)', border: '1px solid rgba(var(--accent-rgb),0.2)', borderRadius: 10, padding: '12px 16px', marginBottom: 20, fontSize: 13 }}>
-              📅 <strong>{formatDateFull(scheduledAt)}</strong> · {formatTime(scheduledAt)} – {formatTime(new Date(new Date(scheduledAt).getTime() + parseInt(duration) * 60000))} ({DURATION_LABELS[parseInt(duration)] || duration + 'm'})
+            <label style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 12, color: 'var(--muted)', cursor: 'pointer' }}>
+              <input
+                type="checkbox"
+                checked={allDay}
+                onChange={(e) => setAllDay(e.target.checked)}
+                style={{ accentColor: 'var(--accent)' }}
+              />
+              All day
+            </label>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
+              <div>
+                <label style={{ fontSize: 10, color: 'var(--muted)', marginBottom: 4, display: 'block' }}>Start</label>
+                <input
+                  style={{
+                    border: '1px solid var(--border)', background: 'var(--card-bg)',
+                    width: '100%', borderRadius: 6, padding: '8px 12px',
+                    fontSize: 12, outline: 'none', boxSizing: 'border-box',
+                    color: 'var(--ink)',
+                  }}
+                  type={allDay ? 'date' : 'datetime-local'}
+                  value={allDay ? startDate.slice(0, 10) : startDate}
+                  onChange={(e) => setStartDate(e.target.value)}
+                  min={new Date().toISOString().slice(0, 16)}
+                  required
+                />
+              </div>
+              <div>
+                <label style={{ fontSize: 10, color: 'var(--muted)', marginBottom: 4, display: 'block' }}>End</label>
+                <input
+                  style={{
+                    border: '1px solid var(--border)', background: 'var(--card-bg)',
+                    width: '100%', borderRadius: 6, padding: '8px 12px',
+                    fontSize: 12, outline: 'none', boxSizing: 'border-box',
+                    color: 'var(--ink)',
+                  }}
+                  type={allDay ? 'date' : 'datetime-local'}
+                  value={allDay ? endDate.slice(0, 10) : endDate}
+                  onChange={(e) => setEndDate(e.target.value)}
+                />
+              </div>
             </div>
-          )}
-          <div style={{ display: 'flex', gap: 10 }}>
-            <button type="button" className="btn-cosmos-ghost" style={{ flex: 1, padding: '12px' }} onClick={onClose}>Cancel</button>
-            <button type="submit" className="btn-cosmos-primary" style={{ flex: 1, padding: '12px' }} disabled={loading}>
-              {loading ? 'Saving…' : 'Save Session'}
+            <input
+              placeholder="Location (e.g. Google Meet, Zoom)"
+              style={{
+                border: '1px solid var(--border)', background: 'var(--card-bg)',
+                width: '100%', borderRadius: 6, padding: '10px 14px',
+                fontSize: 13, outline: 'none', boxSizing: 'border-box',
+                color: 'var(--ink)',
+              }}
+              type="text"
+              value={location}
+              onChange={(e) => setLocation(e.target.value)}
+            />
+            <textarea
+              placeholder="Description or notes"
+              rows={3}
+              style={{
+                border: '1px solid var(--border)', background: 'var(--card-bg)',
+                width: '100%', borderRadius: 6, padding: '10px 14px',
+                fontSize: 13, outline: 'none', boxSizing: 'border-box',
+                resize: 'none', color: 'var(--ink)',
+              }}
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+            />
+            <div>
+              <label style={{ fontSize: 10, color: 'var(--muted)', marginBottom: 6, display: 'block' }}>Color</label>
+              <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+                {COLORS.map(c => (
+                  <button
+                    key={c.hex}
+                    type="button"
+                    onClick={() => setColor(c.hex)}
+                    title={c.name}
+                    style={{
+                      width: 24, height: 24, borderRadius: '50%',
+                      background: c.hex, border: color === c.hex ? '2px solid var(--ink)' : '2px solid transparent',
+                      cursor: 'pointer', padding: 0,
+                      opacity: color === c.hex ? 1 : 0.6,
+                      transition: 'all 0.15s',
+                    }}
+                  />
+                ))}
+              </div>
+            </div>
+          </div>
+          <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8, marginTop: 20 }}>
+            <button
+              type="button"
+              style={{
+                padding: '10px 20px', fontSize: 12, fontWeight: 600,
+                background: 'transparent', border: 'none', cursor: 'pointer',
+                color: 'var(--muted)', letterSpacing: '0.5px',
+              }}
+              onClick={onClose}
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              disabled={loading}
+              style={{
+                padding: '10px 20px', fontSize: 12, fontWeight: 600,
+                background: 'var(--accent)', border: 'none', borderRadius: 6,
+                cursor: loading ? 'not-allowed' : 'pointer',
+                color: 'white', letterSpacing: '0.5px',
+                opacity: loading ? 0.6 : 1,
+              }}
+            >
+              {loading ? 'Saving…' : 'Create'}
             </button>
           </div>
         </form>
