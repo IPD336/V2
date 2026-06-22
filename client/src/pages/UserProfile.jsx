@@ -6,6 +6,7 @@ import { useToast } from '../context/ToastContext';
 import { useSocket } from '../context/SocketContext';
 import SwapRequestModal from '../components/SwapRequestModal';
 import Spinner from '../components/Spinner';
+import TypingIndicator from '../components/TypingIndicator';
 import { PinIcon, ClockIcon, StarIcon, DiamondIcon, TrophyIcon, MedalIcon, HandshakeIcon, LinkIcon, SparklesIcon, RocketIcon, SwapIcon, TargetIcon, CheckIcon, SendIcon, SearchIcon, WorkspaceIcon } from '../components/Icons';
 
 function initials(name = '') {
@@ -42,6 +43,7 @@ export default function UserProfile() {
   const [saved, setSaved] = useState(false);
   const [aiSummary, setAiSummary] = useState('');
   const [aiSummaryLoading, setAiSummaryLoading] = useState(false);
+  const [aiSummarySlow, setAiSummarySlow] = useState(false);
   const [flipped, setFlipped] = useState(false);
   const [gamification, setGamification] = useState(null);
   const [flipHeight, setFlipHeight] = useState(null);
@@ -66,10 +68,11 @@ export default function UserProfile() {
 
         if (rRes.data.reviews?.length > 0) {
           setAiSummaryLoading(true);
+          const slowTimer = setTimeout(() => setAiSummarySlow(true), 5000);
           api.get(`/ai/reviews-summary/${id}`)
             .then(res => setAiSummary(res.data.summary))
             .catch(() => {})
-            .finally(() => setAiSummaryLoading(false));
+            .finally(() => { setAiSummaryLoading(false); setAiSummarySlow(false); clearTimeout(slowTimer); });
         }
       } catch {
         showToast('User not found', 'error');
@@ -356,7 +359,7 @@ export default function UserProfile() {
               <div style={{ flex: 1 }}>
                 <h3 style={{ fontSize: 13, fontWeight: 700, textTransform: 'uppercase', letterSpacing: 1.5, color: 'var(--sage)', marginBottom: 8, fontFamily: 'PT Mono, monospace' }}>AI Feedback Summary</h3>
                 {aiSummaryLoading ? (
-                  <div className="skeleton" style={{ width: '100%', height: 16, borderRadius: 4, background: 'rgba(58,99,81,0.2)' }} />
+                  <TypingIndicator message={aiSummarySlow ? 'Still analyzing reviews...' : 'Analyzing reviews...'} />
                 ) : (
                   <p style={{ fontSize: 14, lineHeight: 1.6, color: 'var(--ink)', margin: 0, fontStyle: 'italic' }}>
                     "{aiSummary || 'No summary available.'}"

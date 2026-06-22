@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import api from '../api/axios';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
+import TypingIndicator from './TypingIndicator';
 import { SparklesIcon, HandshakeIcon } from './Icons';
 
 export default function SwapRequestModal({ target, onClose }) {
@@ -27,6 +28,8 @@ export default function SwapRequestModal({ target, onClose }) {
   const [touched, setTouched] = useState({});
   const [loading, setLoading] = useState(false);
   const [aiLoading, setAiLoading] = useState(false);
+  const [aiSlow, setAiSlow] = useState(false);
+  const [aiError, setAiError] = useState(false);
   const [dragOver, setDragOver] = useState(null);
   const [draggedSkill, setDraggedSkill] = useState(null);
   const dragSource = useRef(null);
@@ -40,6 +43,9 @@ export default function SwapRequestModal({ target, onClose }) {
       return;
     }
     setAiLoading(true);
+    setAiSlow(false);
+    setAiError(false);
+    const slowTimer = setTimeout(() => setAiSlow(true), 5000);
     try {
       const res = await api.post('/ai/draft-proposal', {
         receiverId: target._id,
@@ -49,8 +55,9 @@ export default function SwapRequestModal({ target, onClose }) {
       setForm({ ...form, message: res.data.draft });
       showToast('AI draft message created!');
     } catch (err) {
+      setAiError(true);
       showToast(err.response?.data?.message || 'Failed to generate draft', 'error');
-    } finally { setAiLoading(false); }
+    } finally { setAiLoading(false); setAiSlow(false); clearTimeout(slowTimer); }
   };
 
   const messageValid = form.message.trim().length >= 10;
@@ -203,15 +210,30 @@ export default function SwapRequestModal({ target, onClose }) {
           <div className="form-group">
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
               <label className="form-label" style={{ margin: 0 }}>Personal Message</label>
-              <button
-                type="button"
-                className="btn-outline-sm"
-                style={{ padding: '4px 10px', display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 11, border: '1px solid var(--border)' }}
-                onClick={handleAiDraft}
-                disabled={aiLoading}
-              >
-                <SparklesIcon size={12} /> {aiLoading ? 'Drafting…' : 'Write with AI'}
-              </button>
+              {aiLoading ? (
+                <TypingIndicator message={aiSlow ? 'Still writing...' : 'Writing draft...'} />
+              ) : aiError ? (
+                <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                  <span style={{ fontSize: 11, color: 'var(--accent)' }}>Failed</span>
+                  <button
+                    type="button"
+                    className="btn-outline-sm"
+                    style={{ padding: '4px 10px', display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 11, border: '1px solid var(--border)' }}
+                    onClick={handleAiDraft}
+                  >
+                    <SparklesIcon size={12} /> Retry
+                  </button>
+                </div>
+              ) : (
+                <button
+                  type="button"
+                  className="btn-outline-sm"
+                  style={{ padding: '4px 10px', display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 11, border: '1px solid var(--border)' }}
+                  onClick={handleAiDraft}
+                >
+                  <SparklesIcon size={12} /> Write with AI
+                </button>
+              )}
             </div>
             <textarea
               className={`form-textarea${messageError ? ' error' : ''}${touched.message && messageValid ? ' success' : ''}`}

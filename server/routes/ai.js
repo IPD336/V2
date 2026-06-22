@@ -12,6 +12,18 @@ const { validate, objectId, z } = require('../utils/validation');
 
 const router = express.Router();
 
+/* ─── SSE helpers ─── */
+function sseHeaders(res) {
+  res.setHeader('Content-Type', 'text/event-stream');
+  res.setHeader('Cache-Control', 'no-cache');
+  res.setHeader('Connection', 'keep-alive');
+  res.setHeader('X-Accel-Buffering', 'no');
+}
+
+function sseSend(res, data) {
+  res.write(`data: ${JSON.stringify(data)}\n\n`);
+}
+
 const draftProposalSchema = z.object({
   body: z.object({
     receiverId: objectId,
@@ -54,6 +66,28 @@ router.get('/reviews-summary/:userId', async (req, res) => {
     res.respond({ summary });
   } catch (err) {
     res.fail(err.message, 500);
+  }
+});
+
+router.get('/stream-reviews-summary/:userId', async (req, res) => {
+  try {
+    const reviews = await Review.find({ reviewee: req.params.userId }).select('rating learned feedback');
+    sseHeaders(res);
+
+    sseSend(res, { status: 'thinking' });
+
+    const summary = await summarizeReviews(reviews);
+
+    for (let i = 0; i < summary.length; i += 3) {
+      sseSend(res, { chunk: summary.slice(i, i + 3) });
+      await new Promise(r => setTimeout(r, 20));
+    }
+
+    sseSend(res, { status: 'done' });
+    res.end();
+  } catch (err) {
+    sseSend(res, { status: 'error', message: err.message });
+    res.end();
   }
 });
 
@@ -143,6 +177,62 @@ router.get('/smart-recommendations', auth, async (req, res) => {
     res.respond({ recommendations: smartRecommendations });
   } catch (err) {
     res.fail(err.message, 500);
+  }
+});
+
+router.get('/stream-recommendations', auth, async (req, res) => {
+  try {
+    const me = await User.findById(req.user.id).select('skillsOffered skillsWanted').lean();
+    sseHeaders(res);
+
+    if (!me) {
+      sseSend(res, { status: 'error', message: 'User not found' });
+      return res.end();
+    }
+
+    if (!me.skillsOffered?.length && !me.skillsWanted?.length) {
+      sseSend(res, { status: 'done', recommendations: [] });
+      return res.end();
+    }
+
+    const { matchScore } = require('../services/matchService');
+
+    const candidates = await User.find({
+      isPublic: { $ne: false },
+      role: { $ne: 'admin' },
+      _id: { $ne: req.user.id },
+    }).select('-passwordHash -savedProfiles').lean();
+
+    const scored = candidates
+      .map((u) => ({ ...u, score: matchScore(me, u) }))
+      .filter((u) => u.score > 0)
+      .sort((a, b) => b.score - a.score || (b.rating || 0) - (a.rating || 0))
+      .slice(0, 5);
+
+    if (scored.length === 0) {
+      sseSend(res, { status: 'done', recommendations: [] });
+      return res.end();
+    }
+
+    sseSend(res, { status: 'scored', total: scored.length });
+
+    const explanations = await generateMatchExplanations(me, scored);
+
+    const recommendations = scored.map((candidate, i) => ({
+      ...candidate,
+      aiMatchExplanation: explanations[i] || '',
+    }));
+
+    for (const rec of recommendations) {
+      sseSend(res, { status: 'candidate', candidate: rec });
+      await new Promise(r => setTimeout(r, 50));
+    }
+
+    sseSend(res, { status: 'done' });
+    res.end();
+  } catch (err) {
+    sseSend(res, { status: 'error', message: err.message });
+    res.end();
   }
 });
 
