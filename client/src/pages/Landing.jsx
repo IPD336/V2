@@ -2,7 +2,9 @@ import { useNavigate } from 'react-router-dom';
 import Reveal from '../components/Reveal';
 import AnimatedCounter from '../components/AnimatedCounter';
 import FAQAccordion from '../components/FAQAccordion';
-import { PinIcon, CheckIcon, SparklesIcon, CalendarIcon } from '../components/Icons';
+import SkillOrbitDiagram from '../components/SkillOrbitDiagram';
+import { SparklesIcon } from '../components/Icons';
+import SkillConstellationDiagram from '../components/SkillConstellationDiagram';
 
 
 const TESTIMONIALS = [
@@ -23,9 +25,6 @@ const stagger = (i, base = 0) => i * 120 + base;
 
 export default function Landing() {
   const navigate = useNavigate();
-
-  const nextTestimonial = () => setTestimonialIdx(i => (i + 1) % TESTIMONIALS.length);
-  const prevTestimonial = () => setTestimonialIdx(i => (i - 1 + TESTIMONIALS.length) % TESTIMONIALS.length);
 
   return (
     <div className="page-fade-in">
@@ -61,12 +60,7 @@ export default function Landing() {
             <ellipse cx="50%" cy="40%" rx="45%" ry="50%" fill="black" />
           </mask>
         </svg>
-        {/* Decorative large logo watermark */}
-        <img src="/logo.png" alt="" width={400} height={400} style={{
-          position: 'absolute', right: '8%', top: '10%', zIndex: 0,
-          opacity: 0.08, pointerEvents: 'none', objectFit: 'contain',
-          borderRadius: 32,
-        }} />
+
 
         <div style={{
           position: 'relative', zIndex: 1, width: '100%',
@@ -163,96 +157,16 @@ export default function Landing() {
           </div>
         </div>
 
-        {/* Hero right-side cards */}
-        <div style={{
-          position: 'absolute', right: '5%', top: '50%', transform: 'translateY(-50%)',
-          width: 340, zIndex: 1, display: 'none',
-        }}
+        {/* Hero right-side — Skill Constellation Diagram */}
+        <div
           className="hero-visual-cards"
+          style={{
+            position: 'absolute', right: '24px', top: '50%',
+            transform: 'translateY(-50%)',
+            width: 520, height: 560, zIndex: 1,
+          }}
         >
-          {/* Profile card */}
-          <Reveal delay={200}>
-            <div style={{
-              background: 'var(--card-bg)', borderRadius: 20,
-              border: '1px solid var(--border)', boxShadow: 'var(--shadow-lg)',
-              overflow: 'hidden', marginBottom: 20,
-            }}>
-              <div style={{ height: 72, background: 'linear-gradient(135deg, var(--accent) 0%, color-mix(in srgb, var(--accent) 70%, white) 100%)' }} />
-              <div style={{ padding: '0 20px 20px' }}>
-                <div style={{
-                  width: 56, height: 56, borderRadius: 14,
-                  background: 'var(--accent)', border: '3px solid var(--card-bg)',
-                  marginTop: -28, marginBottom: 12,
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  fontWeight: 800, fontSize: 18, color: 'white',
-                }}>PM</div>
-                <div style={{ fontSize: 16, fontWeight: 700, marginBottom: 2, color: 'var(--ink)' }}>Priya Mehta</div>
-                <div style={{ fontSize: 12, color: 'var(--muted)', marginBottom: 14, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 3 }}><PinIcon size={12} />Mumbai, India</div>
-                <div className="skill-section-label">Offering</div>
-                <div className="tag-row">
-                  <span className="tag tag-r">React</span>
-                  <span className="tag tag-r">Node.js</span>
-                </div>
-                <div className="skill-section-label">Wants to Learn</div>
-                <div className="tag-row">
-                  <span className="tag tag-g">Docker</span>
-                  <span className="tag tag-g">Kubernetes</span>
-                </div>
-              </div>
-            </div>
-          </Reveal>
-
-          {/* Top Matches card */}
-          <Reveal delay={320}>
-            <div style={{
-              background: 'var(--card-bg)', borderRadius: 14,
-              border: '1px solid var(--border)', boxShadow: 'var(--shadow)',
-              padding: '16px 18px', marginBottom: 20,
-            }}>
-              <div className="skill-section-label" style={{ marginBottom: 10 }}>Top Matches</div>
-              <div style={{
-                display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-                padding: '7px 0', borderBottom: '1px solid var(--border)',
-                fontSize: 12, color: 'var(--ink)',
-              }}>
-                <span style={{ fontWeight: 600 }}>Rahul — Python</span>
-                <span style={{ fontWeight: 800, color: 'var(--accent)' }}>96%</span>
-              </div>
-              <div style={{
-                display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-                padding: '7px 0', fontSize: 12, color: 'var(--ink)',
-              }}>
-                <span style={{ fontWeight: 600 }}>Sara — TypeScript</span>
-                <span style={{ fontWeight: 800, color: 'var(--accent)' }}>88%</span>
-              </div>
-            </div>
-          </Reveal>
-
-          {/* Swap completed card */}
-          <Reveal delay={440}>
-            <div style={{
-              background: 'var(--card-bg)', borderRadius: 14,
-              border: '1px solid var(--border)', boxShadow: 'var(--shadow)',
-              padding: '16px 18px',
-            }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                <div style={{
-                  width: 36, height: 36, borderRadius: 10,
-                  background: 'var(--sage)', display: 'flex',
-                  alignItems: 'center', justifyContent: 'center',
-                  fontSize: 12, fontWeight: 800, color: 'white', flexShrink: 0,
-                }}>SA</div>
-                <div>
-                  <div style={{ fontSize: 12, fontWeight: 700, marginBottom: 2, color: 'var(--ink)', display: 'flex', alignItems: 'center', gap: 4 }}><CheckIcon size={14} style={{ color: 'var(--accent)' }} />Swap Completed</div>
-                  <div style={{ fontSize: 11, color: 'var(--muted)' }}>Sara → Python · You → Go</div>
-                </div>
-              </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 4, marginTop: 8 }}>
-                <span style={{ color: 'var(--gold)', fontSize: 11 }}>★★★★★</span>
-                <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--ink)' }}>4.9 / 5</span>
-              </div>
-            </div>
-          </Reveal>
+          <SkillConstellationDiagram />
         </div>
       </section>
 

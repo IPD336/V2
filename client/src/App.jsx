@@ -13,6 +13,7 @@ import OnboardingModal from './components/OnboardingModal';
 import CommandPalette from './components/CommandPalette';
 import KeyboardShortcutsModal from './components/KeyboardShortcutsModal';
 import Footer from './components/Footer';
+import SplashScreen from './components/SplashScreen';
 const Landing = lazy(() => import('./pages/Landing'));
 import Login from './pages/Login';
 import Register from './pages/Register';
@@ -82,6 +83,32 @@ function AppRoutes() {
   );
 }
 
+/**
+ * Shows the splash screen on every load/refresh, but only when the user
+ * is NOT authenticated. Once auth loading resolves, we decide immediately.
+ */
+function SplashGate({ children }) {
+  const { user, loading } = useAuth();
+  const [showSplash, setShowSplash] = useState(false);
+  const [ready, setReady] = useState(false);
+
+  useEffect(() => {
+    if (!loading) {
+      setShowSplash(!user);   // show splash only for guests
+      setReady(true);
+    }
+  }, [loading, user]);
+
+  return (
+    <>
+      {ready && showSplash && (
+        <SplashScreen onDone={() => setShowSplash(false)} />
+      )}
+      {children}
+    </>
+  );
+}
+
 const queryClient = new QueryClient({ defaultOptions: { queries: { staleTime: 30_000, retry: 1 } } });
 
 export default function App() {
@@ -92,12 +119,14 @@ export default function App() {
         <AuthProvider>
           <ToastProvider>
             <SocketProvider>
-              <Navbar />
-              <CommandPalette />
-              <KeyboardShortcutsModal />
-              <ErrorBoundary>
-                <AppRoutes />
-              </ErrorBoundary>
+              <SplashGate>
+                <Navbar />
+                <CommandPalette />
+                <KeyboardShortcutsModal />
+                <ErrorBoundary>
+                  <AppRoutes />
+                </ErrorBoundary>
+              </SplashGate>
             </SocketProvider>
           </ToastProvider>
         </AuthProvider>

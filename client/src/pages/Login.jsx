@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { useTheme } from '../context/ThemeContext';
 import Logo from '../components/Logo';
 import { useToast } from '../context/ToastContext';
 import api from '../api/axios';
@@ -8,6 +9,7 @@ import { isValidEmail } from '../utils';
 
 export default function Login() {
   const { login } = useAuth();
+  const { theme } = useTheme();
   const { showToast } = useToast();
   const navigate = useNavigate();
   const [form, setForm] = useState({ email: '', password: '' });
@@ -70,16 +72,20 @@ export default function Login() {
         background: 'rgba(var(--accent-rgb),0.08)',
       }} />
       {/* Logo watermark */}
-      <img src="/logo.png" alt="" width={300} height={300} style={{
+      <img src={theme === 'light' ? '/logo_new_-_white-removebg-preview.png' : '/logo_new_-_dark_-removebg-preview.png'} alt="" width={300} height={300} style={{
         position: 'absolute', right: '5%', bottom: '10%', zIndex: 0,
         opacity: 0.06, pointerEvents: 'none', objectFit: 'contain', borderRadius: 24,
       }} />
 
       <div style={{ width: '100%', maxWidth: 420, padding: '0 20px', position: 'relative', zIndex: 1 }}>
-        <div style={{ textAlign: 'center', marginBottom: 36 }}>
-          <Logo size={72} />
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginBottom: 36 }}>
+          <Logo size={72} showText={false} />
+          <span style={{
+            fontFamily: 'PT Serif, serif', fontSize: 20, fontWeight: 700,
+            letterSpacing: -0.5, color: 'var(--ink)', marginTop: 6,
+          }}>SkillSwap</span>
           <h1 style={{ fontFamily: 'PT Serif, serif', fontSize: 28, fontWeight: 600, letterSpacing: -1, color: 'var(--ink)', marginTop: 16, marginBottom: 8 }}>Welcome Back</h1>
-          <p style={{ color: 'var(--muted)', fontSize: 13, margin: 0 }}>Sign in to manage your swaps and profile.</p>
+          <p style={{ color: 'var(--muted)', fontSize: 13, margin: 0, textAlign: 'center' }}>Sign in to manage your swaps and profile.</p>
         </div>
 
         {isWaking && (
