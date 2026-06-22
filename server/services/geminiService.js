@@ -85,7 +85,7 @@ async function generateWithRetry(task, prompt, parseFn) {
   if (!primary) return null;
 
   for (let attempt = 0; attempt < 2; attempt++) {
-    const m = attempt === 0 ? primary : (task === 'proposal' || task === 'github-skills' ? genAI.getGenerativeModel({ model: MODELS.complex }) : null);
+    const m = attempt === 0 ? primary : genAI.getGenerativeModel({ model: MODELS.simple });
     if (!m) continue;
     try {
       const result = await withTimeout(m.generateContent(prompt));
@@ -144,9 +144,11 @@ ${texts}
 Be balanced. No names. No lists.`;
 
   const result = await generateWithRetry('summary', prompt);
-  const output = result || "Unable to generate review summary at this time.";
-  cache.set(key, output, TTL.SUMMARY);
-  return output;
+  if (result) {
+    cache.set(key, result, TTL.SUMMARY);
+    return result;
+  }
+  return "Unable to generate review summary at this time.";
 }
 
 /* ─── inferGithubSkills ─── */

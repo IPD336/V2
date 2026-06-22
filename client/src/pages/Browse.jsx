@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useRef, memo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import api from '../api/axios';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
@@ -125,13 +125,26 @@ export default function Browse() {
     placeholderData: { users: [], total: 0, pages: 1 },
   });
 
-  const [recsLoaded, setRecsLoaded] = useState(false);
+  const queryClient = useQueryClient();
+
+  const prefetchRecs = useCallback(() => {
+    queryClient.prefetchQuery({
+      queryKey: ['recommendations'],
+      queryFn: () => api.get('/ai/smart-recommendations').then(r => r.data.recommendations),
+      staleTime: 60_000,
+    });
+  }, [queryClient]);
+
+  useEffect(() => {
+    const timer = setTimeout(prefetchRecs, 2000);
+    return () => clearTimeout(timer);
+  }, [prefetchRecs]);
+
   const [recsLoadingSlow, setRecsLoadingSlow] = useState(false);
 
-  const { data: recs } = useQuery({
+  const { data: recs, isLoading: recsLoading } = useQuery({
     queryKey: ['recommendations'],
     queryFn: async () => {
-      setRecsLoaded(false);
       setRecsLoadingSlow(false);
       const slowTimer = setTimeout(() => setRecsLoadingSlow(true), 5000);
       try {
@@ -142,23 +155,11 @@ export default function Browse() {
         return r.data.recommendations;
       } finally {
         clearTimeout(slowTimer);
-        setRecsLoaded(true);
         setRecsLoadingSlow(false);
       }
     },
     staleTime: 60_000,
   });
-
-  const prefetchRecs = useCallback(async () => {
-    try {
-      await api.get('/ai/smart-recommendations');
-    } catch { /* ignore */ }
-  }, []);
-
-  useEffect(() => {
-    const timer = setTimeout(prefetchRecs, 2000);
-    return () => clearTimeout(timer);
-  }, [prefetchRecs]);
 
   const users = (browseData.users || []).filter((u) => u._id !== me?._id);
   const totalPages = browseData.pages;
@@ -185,7 +186,7 @@ export default function Browse() {
         </div>
 
         {/* Recommendations */}
-        {!recsLoaded ? (
+        {recsLoading ? (
           <div style={{ marginBottom: 48, background: 'var(--accent-light)', borderRadius: 20, padding: '32px 28px', border: '1px solid rgba(200,75,49,0.10)' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 24 }}>
               <span style={{ fontFamily: 'PT Mono, monospace', fontSize: 11, letterSpacing: 2, textTransform: 'uppercase', color: 'var(--accent)' }}>✦ For You</span>
