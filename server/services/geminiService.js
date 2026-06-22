@@ -24,6 +24,7 @@ class GeminiCache {
     this.cache.set(key, { value, expiresAt: Date.now() + ttlMs });
   }
   cleanup() {
+    if (this.cache.size === 0) return;
     const now = Date.now();
     for (const [key, item] of this.cache) {
       if (now > item.expiresAt) this.cache.delete(key);
