@@ -42,7 +42,13 @@ export default function Navbar() {
     };
     document.addEventListener('keydown', handleKey);
     document.addEventListener('mousedown', handleClick);
-    return () => { document.removeEventListener('keydown', handleKey); document.removeEventListener('mousedown', handleClick); };
+    const notifHandler = () => setNotifOpen(p => !p);
+    window.addEventListener('opencode:toggle-notifications', notifHandler);
+    return () => {
+      document.removeEventListener('keydown', handleKey);
+      document.removeEventListener('mousedown', handleClick);
+      window.removeEventListener('opencode:toggle-notifications', notifHandler);
+    };
   }, []);
 
   const handleNotifClick = (n) => {

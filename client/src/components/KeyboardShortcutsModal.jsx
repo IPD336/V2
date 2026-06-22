@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { useTheme } from '../context/ThemeContext';
 
 const isMac = navigator.platform.includes('Mac');
 const mod = isMac ? '⌘' : 'Ctrl';
@@ -24,7 +25,8 @@ const sections = [
     label: 'Actions',
     items: [
       { desc: 'Command palette', keys: [mod, 'K'] },
-      { desc: 'New swap request', keys: ['N'] },
+      { desc: 'Notifications', keys: ['N'] },
+      { desc: 'Toggle theme', keys: ['Shift', 'T'] },
       { desc: 'Close / Back', keys: ['Esc'] },
       { desc: 'Shortcuts help', keys: ['?'] },
     ],
@@ -34,12 +36,6 @@ const sections = [
     items: [
       { desc: 'Open search', keys: [mod, 'K'] },
       { desc: 'Focus search', keys: ['/'] },
-    ],
-  },
-  {
-    label: 'Composing',
-    items: [
-      { desc: 'New swap request', keys: ['N'] },
     ],
   },
 ];
@@ -82,6 +78,7 @@ export default function KeyboardShortcutsModal() {
   const modalRef = useRef(null);
   const navigate = useNavigate();
   const { user } = useAuth();
+  const { toggleTheme } = useTheme();
 
   useEffect(() => {
     const handler = (e) => {
@@ -99,13 +96,19 @@ export default function KeyboardShortcutsModal() {
       if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.tagName === 'SELECT') return;
 
       const key = e.key.toLowerCase();
+      if (key === 'n') {
+        e.preventDefault();
+        window.dispatchEvent(new CustomEvent('opencode:toggle-notifications'));
+        return;
+      }
+      if (key === 't' && e.shiftKey) {
+        e.preventDefault();
+        toggleTheme();
+        return;
+      }
       if (pageMap[key]) {
         e.preventDefault();
         navigate(pageMap[key]);
-      }
-      if (key === 'n') {
-        e.preventDefault();
-        navigate('/swaps');
       }
     };
     const toggleHandler = (e) => {
@@ -118,7 +121,7 @@ export default function KeyboardShortcutsModal() {
       window.removeEventListener('keydown', handler);
       window.removeEventListener('opencode:toggle-shortcuts', toggleHandler);
     };
-  }, [navigate, user]);
+  }, [navigate, user, toggleTheme]);
 
   useEffect(() => {
     if (!open || !anchor || !modalRef.current) return;
