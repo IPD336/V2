@@ -61,7 +61,7 @@ app.use('/api/messages', messageRoutes);
 app.use('/api/ai', aiRoutes);
 app.use('/api/gamification', gamificationRoutes);
 
-app.get('/api/health', (_, res) => res.respond({ status: 'ok', time: new Date().toISOString() }));
+app.get('/api/ping', (_, res) => res.respond({ status: 'ok', time: new Date().toISOString() }));
 
 app.use((err, req, res, next) => {
   console.error(err.stack);
