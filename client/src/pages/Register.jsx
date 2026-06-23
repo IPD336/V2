@@ -20,7 +20,7 @@ export default function Register() {
 
   useEffect(() => {
     let timer = setTimeout(() => setIsWaking(true), 1500);
-    api.get('/health')
+    api.get('/ping')
       .then(() => { clearTimeout(timer); setIsWaking(false); })
       .catch(() => { setIsWaking(true); });
     return () => clearTimeout(timer);
