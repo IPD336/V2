@@ -61,6 +61,7 @@ app.use('/api/messages', messageRoutes);
 app.use('/api/ai', aiRoutes);
 app.use('/api/gamification', gamificationRoutes);
 
+app.get('/', (_, res) => res.respond({ service: 'SkillSwap API', status: 'ok', version: '2.0', docs: '/api/ping' }));
 app.get('/api/ping', (_, res) => res.respond({ status: 'ok', time: new Date().toISOString() }));
 
 app.use((err, req, res, next) => {
