@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, useCallback } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 /* ─── Tier definitions ──────────────────────────────────────────────────── */
 
@@ -128,14 +128,14 @@ function TierLabel({ tier, isActive, isNext, isCurrent }) {
 /* ─── Main component ──────────────────────────────────────────────────────── */
 
 export default function TierProgressRing() {
-  const [displayPct, setDisplayPct]       = useState(0);
-  const [particles, setParticles]         = useState([]);
-  const [hasStarted, setHasStarted]       = useState(false);
-  const [burstDone, setBurstDone]         = useState(new Set());
-  const rafRef    = useRef(null);
-  const sectionRef = useRef(null);
-  const startTime = useRef(null);
-  const DURATION  = 2400; // ms for the sweep animation
+  const [displayPct, setDisplayPct] = useState(0);
+  const [particles, setParticles]   = useState([]);
+  const [burstDone, setBurstDone]   = useState(new Set());
+  const rafRef      = useRef(null);
+  const sectionRef  = useRef(null);
+  const startTime   = useRef(null);
+  const hasStarted  = useRef(false);   // ref — never causes re-renders
+  const DURATION    = 2400;
 
   // Determine which tier is "current" based on displayPct
   const activeTiers = TIERS.filter(t => t.threshold <= displayPct);
@@ -144,9 +144,10 @@ export default function TierProgressRing() {
   // Gradient stops — interpolate between tier colours along the arc
   const gradientId = 'tierArcGrad';
 
-  /* Particle animation loop */
+  /* Particle animation loop — keyed on particle count, not a boolean expression */
+  const particleCount = particles.length;
   useEffect(() => {
-    if (particles.length === 0) return;
+    if (particleCount === 0) return;
     let animId;
     const tick = () => {
       setParticles(prev => {
@@ -159,53 +160,58 @@ export default function TierProgressRing() {
     };
     animId = requestAnimationFrame(tick);
     return () => cancelAnimationFrame(animId);
-  }, [particles.length > 0]);
+  }, [particleCount]);
 
-  /* Main sweep animation */
-  const runSweep = useCallback(() => {
-    if (hasStarted) return;
-    setHasStarted(true);
-    startTime.current = performance.now();
-
-    const easeOut = t => 1 - Math.pow(1 - t, 3);
-
-    const frame = (now) => {
-      const elapsed = now - startTime.current;
-      const t = Math.min(elapsed / DURATION, 1);
-      const pct = easeOut(t) * TARGET_PERCENT;
-      setDisplayPct(pct);
-
-      // Trigger particle bursts at tier thresholds
-      TIERS.forEach(tier => {
-        if (tier.threshold > 0 && pct >= tier.threshold) {
-          setBurstDone(prev => {
-            if (!prev.has(tier.name)) {
-              const angleDeg = ARC_START_DEG + pctToDeg(tier.threshold);
-              setParticles(p => [...p, ...spawnParticles(angleDeg, tier.color)]);
-              return new Set([...prev, tier.name]);
-            }
-            return prev;
-          });
-        }
-      });
-
-      if (t < 1) rafRef.current = requestAnimationFrame(frame);
-    };
-
-    rafRef.current = requestAnimationFrame(frame);
-  }, [hasStarted]);
-
-  /* IntersectionObserver to start when visible */
+  /* IntersectionObserver + sweep — all in one stable effect, no useCallback needed */
   useEffect(() => {
     const el = sectionRef.current;
     if (!el) return;
+
+    const easeOut = t => 1 - Math.pow(1 - t, 3);
+
+    const runSweep = () => {
+      if (hasStarted.current) return;
+      hasStarted.current = true;
+      startTime.current = performance.now();
+
+      const frame = (now) => {
+        const elapsed = now - startTime.current;
+        const t = Math.min(elapsed / DURATION, 1);
+        const pct = easeOut(t) * TARGET_PERCENT;
+        setDisplayPct(pct);
+
+        // Particle bursts at tier crossings
+        TIERS.forEach(tier => {
+          if (tier.threshold > 0 && pct >= tier.threshold) {
+            setBurstDone(prev => {
+              if (!prev.has(tier.name)) {
+                const angleDeg = ARC_START_DEG + pctToDeg(tier.threshold);
+                setParticles(p => [...p, ...spawnParticles(angleDeg, tier.color)]);
+                return new Set([...prev, tier.name]);
+              }
+              return prev;
+            });
+          }
+        });
+
+        if (t < 1) {
+          rafRef.current = requestAnimationFrame(frame);
+        }
+      };
+
+      rafRef.current = requestAnimationFrame(frame);
+    };
+
     const obs = new IntersectionObserver(
       ([entry]) => { if (entry.isIntersecting) runSweep(); },
-      { threshold: 0.3 }
+      { threshold: 0.25 }
     );
     obs.observe(el);
-    return () => { obs.disconnect(); cancelAnimationFrame(rafRef.current); };
-  }, [runSweep]);
+
+    // Cleanup only disconnects the observer — does NOT cancel the RAF
+    // so the animation continues even after the element leaves/re-enters view
+    return () => obs.disconnect();
+  }, []); // empty deps — runs once on mount, stable forever
 
   const sweepDeg = pctToDeg(displayPct);
   const trackPath = arcPath(ARC_SWEEP_DEG);
