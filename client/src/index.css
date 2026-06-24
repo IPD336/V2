@@ -790,6 +790,25 @@ body, nav, .modal, .modal-overlay, .profile-card, .swap-card, .team-card, .form-
     transform: none !important;
     padding-left: 20px !important;
   }
+
+/* ─── TIER PROGRESS RING ─────────────────────────────────────────────── */
+@keyframes node-pulse-ring {
+  0% {
+    transform: scale(0.4);
+    opacity: 0.8;
+  }
+  100% {
+    transform: scale(1.6);
+    opacity: 0;
+  }
+}
+@keyframes float-slow {
+  0%, 100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-5px);
+  }
 }
 
 /* ── KEYBOARD ARIA ── */
