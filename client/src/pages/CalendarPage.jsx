@@ -4,6 +4,7 @@ import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
 import { useNavigate } from 'react-router-dom';
 import { CalendarIcon, ChevronLeftIcon, ChevronRightIcon, ClockIcon, VideoIcon, CheckIcon, SwapIcon, StarIcon } from '../components/Icons';
+import DateTimePicker from '../components/DateTimePicker';
 
 /* ─── Helpers ─── */
 const MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December'];
@@ -111,18 +112,18 @@ function ScheduleModal({ swap, me, onClose, onDone }) {
         </div>
         <form onSubmit={submit}>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-            <input
-              placeholder="Event title"
+            {/* Read-only skill swap title */}
+            <div
               style={{
-                border: '1px solid var(--border)', background: 'var(--card-bg)',
+                border: '1px solid var(--border)', background: 'var(--warm)',
                 width: '100%', borderRadius: 6, padding: '10px 14px',
-                fontSize: 13, outline: 'none', boxSizing: 'border-box',
-                color: 'var(--ink)',
+                fontSize: 13, boxSizing: 'border-box',
+                color: 'var(--ink)', cursor: 'default',
+                userSelect: 'none',
               }}
-              type="text"
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-            />
+            >
+              {title}
+            </div>
             <label style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 12, color: 'var(--muted)', cursor: 'pointer' }}>
               <input
                 type="checkbox"
@@ -133,36 +134,21 @@ function ScheduleModal({ swap, me, onClose, onDone }) {
               All day
             </label>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
-              <div>
-                <label style={{ fontSize: 10, color: 'var(--muted)', marginBottom: 4, display: 'block' }}>Start</label>
-                <input
-                  style={{
-                    border: '1px solid var(--border)', background: 'var(--card-bg)',
-                    width: '100%', borderRadius: 6, padding: '8px 12px',
-                    fontSize: 12, outline: 'none', boxSizing: 'border-box',
-                    color: 'var(--ink)',
-                  }}
-                  type={allDay ? 'date' : 'datetime-local'}
-                  value={allDay ? startDate.slice(0, 10) : startDate}
-                  onChange={(e) => setStartDate(e.target.value)}
-                  min={new Date().toISOString().slice(0, 16)}
-                  required
-                />
-              </div>
-              <div>
-                <label style={{ fontSize: 10, color: 'var(--muted)', marginBottom: 4, display: 'block' }}>End</label>
-                <input
-                  style={{
-                    border: '1px solid var(--border)', background: 'var(--card-bg)',
-                    width: '100%', borderRadius: 6, padding: '8px 12px',
-                    fontSize: 12, outline: 'none', boxSizing: 'border-box',
-                    color: 'var(--ink)',
-                  }}
-                  type={allDay ? 'date' : 'datetime-local'}
-                  value={allDay ? endDate.slice(0, 10) : endDate}
-                  onChange={(e) => setEndDate(e.target.value)}
-                />
-              </div>
+              <DateTimePicker
+                id="schedule-start"
+                label="Start"
+                value={startDate}
+                onChange={setStartDate}
+                allDay={allDay}
+                min={new Date().toISOString().slice(0, 16)}
+              />
+              <DateTimePicker
+                id="schedule-end"
+                label="End"
+                value={endDate}
+                onChange={setEndDate}
+                allDay={allDay}
+              />
             </div>
             <input
               placeholder="Location (e.g. Google Meet, Zoom)"

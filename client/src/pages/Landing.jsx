@@ -5,6 +5,7 @@ import FAQAccordion from '../components/FAQAccordion';
 import SkillOrbitDiagram from '../components/SkillOrbitDiagram';
 import { SparklesIcon } from '../components/Icons';
 import SkillConstellationDiagram from '../components/SkillConstellationDiagram';
+import SkillJourneyTimeline from '../components/SkillJourneyTimeline';
 
 
 const TESTIMONIALS = [
@@ -601,51 +602,7 @@ export default function Landing() {
             </div>
           </Reveal>
 
-          <div style={{
-            display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))',
-            gap: 20,
-          }}>
-            {[
-              { num: '01', icon: '✦', title: 'Build Your Profile',
-                desc: 'Add your name, photo, location, and bio. List skills you offer, skills you want, and your availability.' },
-              { num: '02', icon: '⌕', title: 'Search & Browse',
-                desc: 'Filter by skill category or search by keyword. Our smart matching algorithm surfaces your highest-compatibility partners first.' },
-              { num: '03', icon: '⇄', title: 'Send a Swap Request',
-                desc: 'Choose what you\'re offering, what you want, write a personal message, and propose a schedule.' },
-              { num: '04', icon: '★', title: 'Learn & Leave Feedback',
-                desc: 'Complete your sessions. Rate your partner, describe what you learned, and help the community grow.' },
-            ].map((s, i) => (
-              <Reveal key={s.num} delay={i * 100}>
-                <div style={{
-                  background: 'var(--section-card)', border: '1px solid var(--section-card-border)',
-                  borderRadius: 16, padding: '28px 24px',
-                  position: 'relative',
-                }}>
-                  <div style={{
-                    fontFamily: 'PT Serif, serif', fontSize: 56, fontWeight: 700,
-                    color: 'var(--section-text)', opacity: 0.08, lineHeight: 1,
-                    marginBottom: 16,
-                  }}>
-                    {s.num}
-                  </div>
-                  <div style={{
-                    width: 40, height: 40, borderRadius: 10,
-                    background: 'var(--accent)', color: 'white',
-                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    fontSize: 18, marginBottom: 14,
-                  }}>
-                    {s.icon}
-                  </div>
-                  <div style={{ fontSize: 15, fontWeight: 700, color: 'var(--section-text)', marginBottom: 8 }}>
-                    {s.title}
-                  </div>
-                  <div style={{ fontSize: 12, color: 'var(--section-text-muted)', lineHeight: 1.6 }}>
-                    {s.desc}
-                  </div>
-                </div>
-              </Reveal>
-            ))}
-          </div>
+          <SkillJourneyTimeline />
         </div>
       </section>
 
