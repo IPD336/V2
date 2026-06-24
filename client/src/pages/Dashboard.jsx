@@ -5,7 +5,6 @@ import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
 import api from '../api/axios';
 import { SkeletonCard } from '../components/Skeleton';
-import TierProgressRing from '../components/TierProgressRing';
 import { 
   SearchIcon, 
   SwapIcon, 
@@ -501,17 +500,35 @@ export default function Dashboard() {
             {/* RIGHT COLUMN: Profile & Stats Sidebar */}
             <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
               
-              {/* XP & Level progress card with animated TierProgressRing */}
-              <div className="dashboard-card" style={{ padding: '20px 16px' }}>
-                <h3 style={{ fontFamily: 'PT Serif, serif', fontSize: 15, fontWeight: 600, color: 'var(--ink)', margin: '0 0 8px 0', display: 'flex', alignItems: 'center', gap: 6 }}>
-                  <SparklesIcon size={16} /> Level {gamification?.level || 1} Progress
+              {/* XP & Level progress card */}
+              <div className="dashboard-card" style={{ padding: 20 }}>
+                <h3 style={{ fontFamily: 'PT Serif, serif', fontSize: 15, fontWeight: 600, color: 'var(--ink)', margin: '0 0 16px 0', display: 'flex', alignItems: 'center', gap: 6 }}>
+                  <SparklesIcon size={16} /> Level {gamification?.level || 1}
                 </h3>
 
-                <TierProgressRing 
-                  currentXp={gamification?.xpCurrent || 0} 
-                  totalXp={gamification?.xpNeeded || 100} 
-                  currentLeague={user?.league?.name || 'Bronze'} 
-                />
+                {gamification && (
+                  <div style={{ marginBottom: 16 }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 11, color: 'var(--muted)', marginBottom: 6 }}>
+                      <span>{gamification.xpCurrent} / {gamification.xpNeeded} XP</span>
+                      <span>{gamification.xp} total XP</span>
+                    </div>
+                    <div style={{ height: 8, background: 'var(--border)', borderRadius: 4, overflow: 'hidden' }}>
+                      <div style={{
+                        height: '100%', width: `${Math.min(100, (gamification.xpCurrent / gamification.xpNeeded) * 100)}%`,
+                        background: 'linear-gradient(90deg, var(--accent), #8B5CF6)',
+                        borderRadius: 4, transition: 'width .5s ease',
+                      }} />
+                    </div>
+                  </div>
+                )}
+
+                <div className="league-badge-display" style={{ borderLeft: `4px solid ${user?.league?.color || '#CD7F32'}`, margin: 0 }}>
+                  <TrophyIcon size={24} style={{ color: user?.league?.color || '#CD7F32' }} />
+                  <div>
+                    <div style={{ fontSize: 9, fontWeight: 700, textTransform: 'uppercase', color: 'var(--muted)', letterSpacing: 0.5 }}>Current League</div>
+                    <div style={{ fontSize: 15, fontWeight: 800, color: 'var(--ink)' }}>{user?.league?.name || 'Bronze'} League</div>
+                  </div>
+                </div>
 
                 {/* Streak display */}
                 {gamification?.streak && (

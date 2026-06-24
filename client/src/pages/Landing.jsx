@@ -6,6 +6,7 @@ import SkillOrbitDiagram from '../components/SkillOrbitDiagram';
 import { SparklesIcon } from '../components/Icons';
 import SkillConstellationDiagram from '../components/SkillConstellationDiagram';
 import SkillJourneyTimeline from '../components/SkillJourneyTimeline';
+import TierProgressRing from '../components/TierProgressRing';
 
 
 const TESTIMONIALS = [
@@ -726,6 +727,100 @@ export default function Landing() {
                 <div className="metric-label" style={{ color: 'var(--muted)' }}>Satisfaction Rate</div>
               </div>
             </div>
+          </div>
+        </Reveal>
+      </section>
+
+      {/* ──────────────── TIER PROGRESS RING ──────────────── */}
+      <section style={{
+        padding: '100px 24px',
+        background: 'var(--section-dark)',
+        position: 'relative',
+        overflow: 'hidden',
+      }}>
+        {/* Background orb glow */}
+        <div style={{
+          position: 'absolute', inset: 0,
+          background: 'radial-gradient(ellipse 60% 60% at 50% 50%, rgba(184,144,42,0.07) 0%, transparent 70%)',
+          pointerEvents: 'none',
+        }} />
+
+        <Reveal>
+          <div style={{ textAlign: 'center', marginBottom: 60 }}>
+            <div style={{
+              display: 'inline-flex', alignItems: 'center', gap: 8,
+              fontSize: 10, fontFamily: "'PT Mono', monospace",
+              letterSpacing: 2.5, textTransform: 'uppercase',
+              color: 'var(--gold)', marginBottom: 16,
+              padding: '6px 16px',
+              border: '1px solid rgba(184,144,42,0.3)',
+              borderRadius: 20,
+              background: 'rgba(184,144,42,0.08)',
+            }}>
+              ✦ Gamification
+            </div>
+            <h2 style={{
+              fontFamily: 'PT Serif, serif',
+              fontSize: 'clamp(28px, 4vw, 44px)',
+              fontWeight: 600,
+              lineHeight: 1.1,
+              letterSpacing: -1,
+              color: 'var(--section-text)',
+              marginBottom: 14,
+            }}>
+              Earn your <em style={{ fontStyle: 'italic', color: 'var(--gold)' }}>rank</em>.
+            </h2>
+            <p style={{
+              fontSize: 13,
+              color: 'var(--section-text-muted)',
+              maxWidth: 420,
+              margin: '0 auto',
+              lineHeight: 1.75,
+            }}>
+              Every swap, session, and review earns XP. Climb from Bronze to Diamond and unlock
+              exclusive features, boosted visibility, and community badges.
+            </p>
+          </div>
+        </Reveal>
+
+        {/* Ring centred in section */}
+        <div style={{ position: 'relative', zIndex: 1 }}>
+          <TierProgressRing />
+        </div>
+
+        {/* Tier benefit pills row */}
+        <Reveal>
+          <div style={{
+            display: 'flex',
+            flexWrap: 'wrap',
+            gap: 12,
+            justifyContent: 'center',
+            marginTop: 56,
+            maxWidth: 700,
+            margin: '56px auto 0',
+          }}>
+            {[
+              { tier: '🥉', label: 'Bronze', perk: 'Basic matching' },
+              { tier: '🥈', label: 'Silver', perk: 'Priority search' },
+              { tier: '🥇', label: 'Gold',   perk: 'Featured profile' },
+              { tier: '💎', label: 'Platinum', perk: 'Verified badge' },
+              { tier: '✦',  label: 'Diamond', perk: 'Mentor status' },
+            ].map(b => (
+              <div key={b.label} style={{
+                display: 'flex', alignItems: 'center', gap: 8,
+                padding: '8px 16px',
+                borderRadius: 24,
+                background: 'var(--section-card)',
+                border: '1px solid var(--section-card-border)',
+                fontSize: 11,
+                fontFamily: "'PT Sans', sans-serif",
+                color: 'var(--section-text-muted)',
+              }}>
+                <span style={{ fontSize: 15 }}>{b.tier}</span>
+                <span style={{ fontWeight: 700, color: 'var(--section-text)' }}>{b.label}</span>
+                <span style={{ opacity: 0.6 }}>— {b.perk}</span>
+              </div>
+            ))}
           </div>
         </Reveal>
       </section>
