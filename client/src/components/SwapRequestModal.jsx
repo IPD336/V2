@@ -4,6 +4,7 @@ import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
 import TypingIndicator from './TypingIndicator';
 import { SparklesIcon, HandshakeIcon } from './Icons';
+import { DatePicker } from './DatePicker';
 
 export default function SwapRequestModal({ target, onClose }) {
   useEffect(() => {
@@ -33,6 +34,10 @@ export default function SwapRequestModal({ target, onClose }) {
   const [dragOver, setDragOver] = useState(null);
   const [draggedSkill, setDraggedSkill] = useState(null);
   const dragSource = useRef(null);
+
+  function handleScheduleChange(isoStr) {
+    setForm({ ...form, scheduledAt: isoStr || '' });
+  }
 
   const handle = (e) => setForm({ ...form, [e.target.name]: e.target.value });
   const handleBlur = (e) => setTouched({ ...touched, [e.target.name]: true });
@@ -246,15 +251,12 @@ export default function SwapRequestModal({ target, onClose }) {
 
           <div className="form-group">
             <label className="form-label">Schedule Session <span style={{ color: 'var(--muted)', fontWeight: 400 }}>(optional)</span></label>
-            <div style={{ display: 'flex', gap: 8 }}>
-              <input
-                className="form-input"
-                type="datetime-local"
-                name="scheduledAt"
+            <div style={{ display: 'flex', gap: 8, alignItems: 'flex-end' }}>
+              <DatePicker
+                label="Date & Time"
                 value={form.scheduledAt}
-                onChange={handle}
-                min={new Date().toISOString().slice(0, 16)}
-                aria-label="Schedule date and time"
+                onChange={handleScheduleChange}
+                min={new Date().toISOString().slice(0, 10)}
                 style={{ flex: 1 }}
               />
               <select className="form-select" name="duration" value={form.duration} onChange={handle} style={{ width: 'auto', minWidth: 80 }} aria-label="Session duration">

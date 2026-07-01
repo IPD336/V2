@@ -4,7 +4,7 @@ import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
 import { useNavigate } from 'react-router-dom';
 import { CalendarIcon, ChevronLeftIcon, ChevronRightIcon, ClockIcon, VideoIcon, CheckIcon, SwapIcon, StarIcon } from '../components/Icons';
-import DateTimePicker from '../components/DateTimePicker';
+import { DateRangePicker } from '../components/DatePicker';
 
 /* ─── Helpers ─── */
 const MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December'];
@@ -44,7 +44,6 @@ function statusConfig(status) {
 function ScheduleModal({ swap, me, onClose, onDone }) {
   const { showToast } = useToast();
   const [title, setTitle] = useState(swap.skillOffered ? `${swap.skillOffered} ↔ ${swap.skillWanted}` : '');
-  const [allDay, setAllDay] = useState(false);
   const [startDate, setStartDate] = useState(
     swap.scheduledAt ? new Date(swap.scheduledAt).toISOString().slice(0, 16) : ''
   );
@@ -59,6 +58,11 @@ function ScheduleModal({ swap, me, onClose, onDone }) {
   const [description, setDescription] = useState('');
   const [color, setColor] = useState('#7986CB');
   const [loading, setLoading] = useState(false);
+
+  function handleRangeChange({ start, end }) {
+    setStartDate(start);
+    setEndDate(end);
+  }
 
   const COLORS = [
     { hex: '#7986CB', name: 'Lavender' },
@@ -124,32 +128,12 @@ function ScheduleModal({ swap, me, onClose, onDone }) {
             >
               {title}
             </div>
-            <label style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 12, color: 'var(--muted)', cursor: 'pointer' }}>
-              <input
-                type="checkbox"
-                checked={allDay}
-                onChange={(e) => setAllDay(e.target.checked)}
-                style={{ accentColor: 'var(--accent)' }}
-              />
-              All day
-            </label>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
-              <DateTimePicker
-                id="schedule-start"
-                label="Start"
-                value={startDate}
-                onChange={setStartDate}
-                allDay={allDay}
-                min={new Date().toISOString().slice(0, 16)}
-              />
-              <DateTimePicker
-                id="schedule-end"
-                label="End"
-                value={endDate}
-                onChange={setEndDate}
-                allDay={allDay}
-              />
-            </div>
+            <DateRangePicker
+              label="Date & Time Range"
+              value={{ start: startDate, end: endDate }}
+              onChange={handleRangeChange}
+              min={new Date().toISOString().slice(0, 10)}
+            />
             <input
               placeholder="Location (e.g. Google Meet, Zoom)"
               style={{
