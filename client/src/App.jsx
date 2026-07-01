@@ -12,7 +12,6 @@ import MobileBottomNav from './components/MobileBottomNav';
 import OnboardingModal from './components/OnboardingModal';
 import CommandPalette from './components/CommandPalette';
 import KeyboardShortcutsModal from './components/KeyboardShortcutsModal';
-import Footer from './components/Footer';
 import SplashScreen from './components/SplashScreen';
 const Landing = lazy(() => import('./pages/Landing'));
 import Login from './pages/Login';
@@ -74,7 +73,6 @@ function AppRoutes() {
         <Route path="/admin" element={<ProtectedRoute><Suspense fallback={<Spinner />}><AdminDashboard /></Suspense></ProtectedRoute>} />
         <Route path="*" element={<Suspense fallback={<Spinner />}><NotFound /></Suspense>} />
       </Routes>
-      {!user && <Footer />}
       {user && user.role !== 'admin' && <MobileBottomNav />}
       {showOnboarding && (
         <OnboardingModal onDone={() => setShowOnboarding(false)} />
