@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
 import Logo from '../components/Logo';
+import TextRoll from '../components/TextRoll';
 import { useToast } from '../context/ToastContext';
 import api from '../api/axios';
 import { isValidEmail } from '../utils';
@@ -84,7 +85,7 @@ export default function Login() {
             fontFamily: 'PT Serif, serif', fontSize: 20, fontWeight: 700,
             letterSpacing: -0.5, color: 'var(--ink)', marginTop: 6,
           }}>SkillSwap</span>
-          <h1 style={{ fontFamily: 'PT Serif, serif', fontSize: 28, fontWeight: 600, letterSpacing: -1, color: 'var(--ink)', marginTop: 16, marginBottom: 8 }}>Welcome Back</h1>
+          <h1 style={{ fontFamily: 'PT Serif, serif', fontSize: 28, fontWeight: 600, letterSpacing: -1, color: 'var(--ink)', marginTop: 16, marginBottom: 8 }}><TextRoll center>Welcome Back</TextRoll></h1>
           <p style={{ color: 'var(--muted)', fontSize: 13, margin: 0, textAlign: 'center' }}>Sign in to manage your swaps and profile.</p>
         </div>
 
@@ -132,15 +133,15 @@ export default function Login() {
             {passwordError && <p className="form-error">Password must be at least 6 characters</p>}
           </div>
           <div style={{ textAlign: 'right', marginTop: -8, marginBottom: 16 }}>
-            <Link to="/forgot-password" style={{ fontSize: 12, color: 'var(--muted)', textDecoration: 'none', fontWeight: 600 }}>Forgot Password?</Link>
+            <Link to="/forgot-password" style={{ fontSize: 12, color: 'var(--muted)', textDecoration: 'none', fontWeight: 600 }}><TextRoll>Forgot Password?</TextRoll></Link>
           </div>
           {error && <p className="form-error">{error}</p>}
           <button className="btn-cosmos btn-cosmos-primary" type="submit" disabled={loading} style={{ width: '100%', padding: '14px 24px', fontSize: 11 }}>
-            {loading ? 'Signing in…' : 'Sign In'}
+            {loading ? 'Signing in…' : <TextRoll center>Sign In</TextRoll>}
           </button>
           <p style={{ textAlign: 'center', marginTop: 16, fontSize: 12, color: 'var(--muted)' }}>
             New here?{' '}
-            <Link to="/register" style={{ color: 'var(--accent)', fontWeight: 700, textDecoration: 'none' }}>Create Account</Link>
+            <Link to="/register" style={{ color: 'var(--accent)', fontWeight: 700, textDecoration: 'none' }}><TextRoll center>Create Account</TextRoll></Link>
           </p>
         </form>
       </div>

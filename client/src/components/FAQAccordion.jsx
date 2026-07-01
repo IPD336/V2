@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
+import TextRoll from './TextRoll';
 
 const faqs = [
   {
@@ -55,7 +56,7 @@ export default function FAQAccordion() {
               onClick={() => setOpenIdx(isOpen ? null : i)}
               aria-expanded={isOpen}
             >
-              <span>{faq.q}</span>
+              <span><TextRoll>{faq.q}</TextRoll></span>
               <span className={`faq-chevron ${isOpen ? 'faq-chevron-open' : ''}`}>↓</span>
             </button>
             <div

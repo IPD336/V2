@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
 import Logo from '../components/Logo';
+import TextRoll from '../components/TextRoll';
 import { useToast } from '../context/ToastContext';
 import api from '../api/axios';
 import { isValidEmail } from '../utils';
@@ -85,7 +86,7 @@ export default function Register() {
             fontFamily: 'PT Serif, serif', fontSize: 20, fontWeight: 700,
             letterSpacing: -0.5, color: 'var(--ink)', marginTop: 6,
           }}>SkillSwap</span>
-          <h1 style={{ fontFamily: 'PT Serif, serif', fontSize: 28, fontWeight: 600, letterSpacing: -1, color: 'var(--ink)', marginTop: 16, marginBottom: 8 }}>Create Account</h1>
+          <h1 style={{ fontFamily: 'PT Serif, serif', fontSize: 28, fontWeight: 600, letterSpacing: -1, color: 'var(--ink)', marginTop: 16, marginBottom: 8 }}><TextRoll center>Create Account</TextRoll></h1>
           <p style={{ color: 'var(--muted)', fontSize: 13, margin: 0, textAlign: 'center' }}>Join the community. List your skills, find your match.</p>
         </div>
 
@@ -148,11 +149,11 @@ export default function Register() {
           </div>
           {error && <p className="form-error">{error}</p>}
           <button className="btn-cosmos btn-cosmos-primary" type="submit" disabled={loading} style={{ width: '100%', padding: '14px 24px', fontSize: 11 }}>
-            {loading ? 'Creating account…' : 'Create Account'}
+            {loading ? 'Creating account…' : <TextRoll center>Create Account</TextRoll>}
           </button>
           <p style={{ textAlign: 'center', marginTop: 16, fontSize: 12, color: 'var(--muted)' }}>
             Already have an account?{' '}
-            <Link to="/login" style={{ color: 'var(--accent)', fontWeight: 700, textDecoration: 'none' }}>Sign In</Link>
+            <Link to="/login" style={{ color: 'var(--accent)', fontWeight: 700, textDecoration: 'none' }}><TextRoll center>Sign In</TextRoll></Link>
           </p>
         </form>
       </div>
