@@ -6,6 +6,8 @@ import SkillOrbitDiagram from '../components/SkillOrbitDiagram';
 import { SparklesIcon } from '../components/Icons';
 import SkillConstellationDiagram from '../components/SkillConstellationDiagram';
 import SkillJourneyTimeline from '../components/SkillJourneyTimeline';
+import TextRoll from '../components/TextRoll';
+import Footer from '../components/Footer';
 
 
 const TESTIMONIALS = [
@@ -82,7 +84,7 @@ export default function Landing() {
                 color: 'var(--muted)', width: 'fit-content',
               }}>
                 <span style={{ width: 6, height: 6, borderRadius: '50%', background: 'var(--sage)' }} />
-                Free Skill Exchange Platform
+                <TextRoll center>Free Skill Exchange Platform</TextRoll>
               </div>
             </Reveal>
 
@@ -95,9 +97,9 @@ export default function Landing() {
                 color: 'var(--ink)', margin: 0,
               }}>
                 Trade What<br />
-                You <span style={{ fontStyle: 'italic', color: 'var(--accent)' }}>Know.</span><br />
+                You <span style={{ fontStyle: 'italic', color: 'var(--accent)' }}><TextRoll center>Know.</TextRoll></span><br />
                 Learn What<br />
-                You <span style={{ display: 'inline-block', borderBottom: '3px solid var(--ink)', paddingBottom: 2 }}>Don't.</span>
+                You <span style={{ display: 'inline-block', borderBottom: '3px solid var(--ink)', paddingBottom: 2 }}><TextRoll center>Don't.</TextRoll></span>
               </h1>
             </Reveal>
 
@@ -119,7 +121,7 @@ export default function Landing() {
                   className="btn-cosmos btn-cosmos-primary"
                   onClick={() => navigate('/register')}
                 >
-                  Start Swapping
+                  <TextRoll center>Start Swapping</TextRoll>
                   <span style={{ fontSize: 14, lineHeight: 1 }}>→</span>
                 </button>
                 <a
@@ -130,7 +132,7 @@ export default function Landing() {
                     display: 'flex', alignItems: 'center', gap: 6,
                   }}
                 >
-                  Explore features ↓
+                  <TextRoll center>Explore features ↓</TextRoll>
                 </a>
               </div>
             </Reveal>
@@ -194,7 +196,7 @@ export default function Landing() {
             <Reveal key={s.label} delay={i * 100} style={{ width: '100%' }}>
               <div className="metric-item">
                 <div className="metric-value" style={{ color: 'white' }}><AnimatedCounter value={s.num} /></div>
-                <div className="metric-label" style={{ color: 'rgba(255,255,255,0.8)' }}>{s.label}</div>
+                <div className="metric-label" style={{ color: 'rgba(255,255,255,0.8)' }}><TextRoll center>{s.label}</TextRoll></div>
               </div>
             </Reveal>
           ))}
@@ -220,7 +222,7 @@ export default function Landing() {
                   display: 'flex', alignItems: 'center', gap: 10,
                 }}>
                   <span style={{ display: 'inline-block', width: 24, height: 1, background: 'var(--muted)' }} />
-                  Feature
+                  <TextRoll>Feature</TextRoll>
                 </div>
                 <h2 style={{
                   fontFamily: 'PT Serif, serif',
@@ -228,7 +230,7 @@ export default function Landing() {
                   fontWeight: 600, lineHeight: 1.08, letterSpacing: -1.2,
                   margin: '0 0 20px', color: 'var(--ink)',
                 }}>
-                  <em style={{ fontStyle: 'italic', color: 'var(--accent)' }}>Smart Matching</em> that actually works
+                  <em style={{ fontStyle: 'italic', color: 'var(--accent)' }}><TextRoll center>Smart Matching</TextRoll></em> <TextRoll center>that actually works</TextRoll>
                 </h2>
                 <p style={{ fontSize: 14, lineHeight: 1.8, color: 'var(--muted)', margin: '0 0 28px' }}>
                   Our algorithm doesn't just look at keywords — it analyzes complementary skill gaps, experience levels, and availability to find your ideal swap partner.
@@ -295,7 +297,7 @@ export default function Landing() {
                   display: 'flex', alignItems: 'center', gap: 10,
                 }}>
                   <span style={{ display: 'inline-block', width: 24, height: 1, background: 'var(--muted)' }} />
-                  Feature
+                  <TextRoll>Feature</TextRoll>
                 </div>
                 <h2 style={{
                   fontFamily: 'PT Serif, serif',
@@ -303,7 +305,7 @@ export default function Landing() {
                   fontWeight: 600, lineHeight: 1.08, letterSpacing: -1.2,
                   margin: '0 0 20px', color: 'var(--ink)',
                 }}>
-                  <em style={{ fontStyle: 'italic', color: 'var(--accent)' }}>Workspaces & Scheduling</em>
+                  <em style={{ fontStyle: 'italic', color: 'var(--accent)' }}><TextRoll center>Workspaces & Scheduling</TextRoll></em>
                 </h2>
                 <p style={{ fontSize: 14, lineHeight: 1.8, color: 'var(--muted)', margin: '0 0 28px' }}>
                   Every swap gets its own dedicated workspace with live chat and shared goals, integrated directly with a custom monthly calendar to schedule, reschedule, and track your sessions.
@@ -384,7 +386,7 @@ export default function Landing() {
                   display: 'flex', alignItems: 'center', gap: 10,
                 }}>
                   <span style={{ display: 'inline-block', width: 24, height: 1, background: 'var(--muted)' }} />
-                  Feature
+                  <TextRoll>Feature</TextRoll>
                 </div>
                 <h2 style={{
                   fontFamily: 'PT Serif, serif',
@@ -392,7 +394,7 @@ export default function Landing() {
                   fontWeight: 600, lineHeight: 1.08, letterSpacing: -1.2,
                   margin: '0 0 20px', color: 'var(--ink)',
                 }}>
-                  <em style={{ fontStyle: 'italic', color: 'var(--accent)' }}>Gamified</em> Rankings
+                  <em style={{ fontStyle: 'italic', color: 'var(--accent)' }}><TextRoll center>Gamified</TextRoll></em> <TextRoll center>Rankings</TextRoll>
                 </h2>
                 <p style={{ fontSize: 14, lineHeight: 1.8, color: 'var(--muted)', margin: '0 0 28px' }}>
                   Earn badges, climb from Bronze to Diamond, and compete on the global leaderboard. Every swap you complete builds your reputation.
@@ -483,7 +485,7 @@ export default function Landing() {
                   display: 'flex', alignItems: 'center', gap: 10,
                 }}>
                   <span style={{ display: 'inline-block', width: 24, height: 1, background: 'var(--muted)' }} />
-                  Feature
+                  <TextRoll>Feature</TextRoll>
                 </div>
                 <h2 style={{
                   fontFamily: 'PT Serif, serif',
@@ -491,7 +493,7 @@ export default function Landing() {
                   fontWeight: 600, lineHeight: 1.08, letterSpacing: -1.2,
                   margin: '0 0 20px', color: 'var(--ink)',
                 }}>
-                  <em style={{ fontStyle: 'italic', color: 'var(--accent)' }}>AI-Powered</em> Assistance
+                  <em style={{ fontStyle: 'italic', color: 'var(--accent)' }}><TextRoll center>AI-Powered</TextRoll></em> <TextRoll center>Assistance</TextRoll>
                 </h2>
                 <p style={{ fontSize: 14, lineHeight: 1.8, color: 'var(--muted)', margin: '0 0 28px' }}>
                   Supercharge your exchanges with Gemini AI. Instantly draft personalized swap proposal messages, scan your GitHub repositories to suggest verified technical skills, and view summarized reviews of other members.
@@ -573,7 +575,7 @@ export default function Landing() {
                   display: 'flex', alignItems: 'center', gap: 10,
                 }}>
                   <span style={{ display: 'inline-block', width: 24, height: 1, background: 'var(--section-text-muted)' }} />
-                  Process
+                  <TextRoll center>Process</TextRoll>
                 </div>
                 <h2 style={{
                   fontFamily: 'PT Serif, serif',
@@ -581,7 +583,7 @@ export default function Landing() {
                   fontWeight: 600, lineHeight: 1.05, letterSpacing: -1.5,
                   margin: 0, color: 'var(--section-text)',
                 }}>
-                  How <em style={{ fontStyle: 'italic', color: 'var(--accent)' }}>SkillSwap</em><br />Actually Works
+                  How <em style={{ fontStyle: 'italic', color: 'var(--accent)' }}><TextRoll center>SkillSwap</TextRoll></em><br /><TextRoll center>Actually Works</TextRoll>
                 </h2>
               </div>
               <div>
@@ -595,7 +597,7 @@ export default function Landing() {
                   className="btn-cosmos btn-cosmos-primary"
                   onClick={() => navigate('/register')}
                 >
-                  Create Profile
+                  <TextRoll center>Create Profile</TextRoll>
                   <span style={{ fontSize: 14, lineHeight: 1 }}>→</span>
                 </button>
               </div>
@@ -621,7 +623,7 @@ export default function Landing() {
                 display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10,
               }}>
                 <span style={{ display: 'inline-block', width: 24, height: 1, background: 'var(--muted)' }} />
-                Testimonials
+                <TextRoll center>Testimonials</TextRoll>
                 <span style={{ display: 'inline-block', width: 24, height: 1, background: 'var(--muted)' }} />
               </div>
               <h2 style={{
@@ -630,7 +632,7 @@ export default function Landing() {
                 fontWeight: 600, letterSpacing: -1.2, margin: 0,
                 color: 'var(--ink)',
               }}>
-                Loved by the <em style={{ fontStyle: 'italic', color: 'var(--accent)' }}>community</em>
+                <TextRoll center>Loved by the</TextRoll> <em style={{ fontStyle: 'italic', color: 'var(--accent)' }}><TextRoll center>community</TextRoll></em>
               </h2>
             </div>
           </Reveal>
@@ -659,10 +661,10 @@ export default function Landing() {
                 </div>
                 <div>
                   <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--ink)' }}>
-                    {TESTIMONIALS[0].name}
+                    <TextRoll center>{TESTIMONIALS[0].name}</TextRoll>
                   </div>
                   <div style={{ fontSize: 12, color: 'var(--muted)' }}>
-                    {TESTIMONIALS[0].role}
+                    <TextRoll>{TESTIMONIALS[0].role}</TextRoll>
                   </div>
                 </div>
               </div>
@@ -692,10 +694,10 @@ export default function Landing() {
                     </div>
                     <div>
                       <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--ink)' }}>
-                        {t.name}
+                        <TextRoll center>{t.name}</TextRoll>
                       </div>
                       <div style={{ fontSize: 11, color: 'var(--muted)' }}>
-                        {t.role}
+                        <TextRoll>{t.role}</TextRoll>
                       </div>
                     </div>
                   </div>
@@ -715,15 +717,15 @@ export default function Landing() {
             <div className="metrics-row">
               <div className="metric-item">
                 <div className="metric-value" style={{ color: 'var(--ink)' }}><AnimatedCounter value="4,200+" /></div>
-                <div className="metric-label" style={{ color: 'var(--muted)' }}>Active Members</div>
+                <div className="metric-label" style={{ color: 'var(--muted)' }}><TextRoll center>Active Members</TextRoll></div>
               </div>
               <div className="metric-item">
                 <div className="metric-value" style={{ color: 'var(--ink)' }}><AnimatedCounter value="2,800+" /></div>
-                <div className="metric-label" style={{ color: 'var(--muted)' }}>Swaps Completed</div>
+                <div className="metric-label" style={{ color: 'var(--muted)' }}><TextRoll center>Swaps Completed</TextRoll></div>
               </div>
               <div className="metric-item" style={{ borderRight: 'none' }}>
                 <div className="metric-value" style={{ color: 'var(--ink)' }}><AnimatedCounter value="94%" /></div>
-                <div className="metric-label" style={{ color: 'var(--muted)' }}>Satisfaction Rate</div>
+                <div className="metric-label" style={{ color: 'var(--muted)' }}><TextRoll center>Satisfaction Rate</TextRoll></div>
               </div>
             </div>
           </div>
@@ -752,7 +754,7 @@ export default function Landing() {
               fontWeight: 600, lineHeight: 1.05, letterSpacing: -1.5,
               margin: '0 0 20px', color: 'var(--section-text)',
             }}>
-              Ready to start <em style={{ fontStyle: 'italic', color: 'var(--accent)' }}>swapping</em>?
+              <TextRoll center>Ready to start</TextRoll> <em style={{ fontStyle: 'italic', color: 'var(--accent)' }}><TextRoll center>swapping</TextRoll></em>?
             </h2>
             <p style={{
               fontSize: 14, lineHeight: 1.7, color: 'var(--section-text-muted)',
@@ -765,7 +767,7 @@ export default function Landing() {
               onClick={() => navigate('/register')}
               style={{ padding: '16px 44px', fontSize: 12 }}
             >
-              Create Free Account
+              <TextRoll center>Create Free Account</TextRoll>
               <span style={{ fontSize: 16, lineHeight: 1 }}>→</span>
             </button>
           </div>
@@ -799,7 +801,7 @@ export default function Landing() {
                 display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10,
               }}>
                 <span style={{ display: 'inline-block', width: 24, height: 1, background: 'var(--section-text-muted)' }} />
-                FAQ
+                <TextRoll center>FAQ</TextRoll>
                 <span style={{ display: 'inline-block', width: 24, height: 1, background: 'var(--section-text-muted)' }} />
               </div>
               <h2 style={{
@@ -808,7 +810,7 @@ export default function Landing() {
                 fontWeight: 600, letterSpacing: -1.2, margin: 0,
                 color: 'var(--section-text)',
               }}>
-                Got <em style={{ fontStyle: 'italic', color: 'var(--accent)' }}>questions</em>?
+                <TextRoll center>Got</TextRoll> <em style={{ fontStyle: 'italic', color: 'var(--accent)' }}><TextRoll center>questions?</TextRoll></em>
               </h2>
             </div>
           </Reveal>
@@ -819,6 +821,7 @@ export default function Landing() {
       </section>
 
       {/* ──────────────── FOOTER ──────────────── */}
+      <Footer />
     </div>
   );
 }
