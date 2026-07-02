@@ -101,7 +101,7 @@ router.post('/github-verify', auth, validate(githubVerifySchema), async (req, re
     }
 
     const response = await fetch(`https://api.github.com/users/${username}/repos?per_page=30&sort=updated`, {
-      headers: { 'User-Agent': 'SkillSwap-AI-App' }
+      headers: { 'User-Agent': 'SkillSwap-AI-App', Authorization: `token ${process.env.GITHUB_TOKEN || ''}` }
     });
 
     let repoList = [];
