@@ -3,9 +3,21 @@ import { useNavigate } from 'react-router-dom';
 import api from '../api/axios';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
-import { AVAIL_OPTIONS, CATEGORIES_NOALL as CATEGORIES } from '../utils';
+import { AVAIL_OPTIONS, CATEGORIES_NOALL as CATEGORIES, BANNER_COLORS, BANNER_GRADIENTS } from '../utils';
 import { BADGE_DETAILS, BadgeIcon } from '../utils/badges.jsx';
-import { PinIcon, DiamondIcon, TrophyIcon, StarIcon, MedalIcon, CameraIcon, SparklesIcon } from '../components/Icons';
+import { PinIcon, DiamondIcon, TrophyIcon, StarIcon, MedalIcon, CameraIcon, SparklesIcon, PaletteIcon, TrashIcon } from '../components/Icons';
+
+const AVATAR_STYLES = [
+  { id: 'adventurer', label: 'Adventurer', desc: 'Illustrated characters' },
+  { id: 'bottts', label: 'Bottts', desc: 'Robot avatars' },
+  { id: 'fun-emoji', label: 'Fun Emoji', desc: 'Playful emoji faces' },
+  { id: 'lorelei', label: 'Lorelei', desc: 'Abstract patterns' },
+  { id: 'micah', label: 'Micah', desc: 'Soft portraits' },
+];
+
+function generateDicebearUrl(style, seed) {
+  return `https://api.dicebear.com/9.x/${style}/svg?seed=${seed}&size=200`;
+}
 
 function StructuredSkillInput({ skills, onChange, colorClass = '' }) {
   const [name, setName] = useState('');
@@ -110,6 +122,13 @@ export default function Profile() {
   const [gamification, setGamification] = useState(null);
   const [collapsed, setCollapsed] = useState({ basicInfo: true, skills: true, socialLinks: true });
   const toggleSection = (s) => setCollapsed(p => ({ ...p, [s]: !p[s] }));
+  const [showAvatarLibrary, setShowAvatarLibrary] = useState(false);
+  const [avatarStyle, setAvatarStyle] = useState('adventurer');
+  const [avatarSeeds] = useState(() => Array.from({ length: 16 }, () => Math.random().toString(36).slice(2, 10)));
+  const [savingAvatar, setSavingAvatar] = useState(false);
+  const [showBannerLibrary, setShowBannerLibrary] = useState(false);
+  const [bannerTab, setBannerTab] = useState('colors');
+  const [savingBanner, setSavingBanner] = useState(false);
 
   const handleGithubScan = async () => {
     if (!form.socialLinks.github) {
@@ -163,6 +182,76 @@ export default function Profile() {
       showToast(err.response?.data?.message || 'Failed to upload image', 'error');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleSelectDicebear = async (url) => {
+    setSavingAvatar(true);
+    try {
+      await api.put(`/users/${me._id}/avatar-dicebear`, { avatarUrl: url });
+      await refreshUser();
+      setShowAvatarLibrary(false);
+      showToast('Avatar updated! ✓');
+    } catch (err) {
+      showToast(err.response?.data?.message || 'Failed to update avatar', 'error');
+    } finally {
+      setSavingAvatar(false);
+    }
+  };
+
+  const handleRemoveAvatar = async () => {
+    setSavingAvatar(true);
+    try {
+      await api.delete(`/users/${me._id}/avatar`);
+      await refreshUser();
+      setShowAvatarLibrary(false);
+      showToast('Avatar removed ✓');
+    } catch (err) {
+      showToast(err.response?.data?.message || 'Failed to remove avatar', 'error');
+    } finally {
+      setSavingAvatar(false);
+    }
+  };
+
+  const handleSelectBannerColor = async (color) => {
+    setSavingBanner(true);
+    try {
+      await api.put(`/users/${me._id}/banner`, { bannerColor: color });
+      await refreshUser();
+      setShowBannerLibrary(false);
+      showToast('Banner color set! ✓');
+    } catch (err) {
+      showToast(err.response?.data?.message || 'Failed to set banner color', 'error');
+    } finally {
+      setSavingBanner(false);
+    }
+  };
+
+  const handleSelectBannerGradient = async (gradient) => {
+    setSavingBanner(true);
+    try {
+      await api.put(`/users/${me._id}/banner`, { bannerUrl: gradient });
+      await refreshUser();
+      setShowBannerLibrary(false);
+      showToast('Banner selected! ✓');
+    } catch (err) {
+      showToast(err.response?.data?.message || 'Failed to set banner', 'error');
+    } finally {
+      setSavingBanner(false);
+    }
+  };
+
+  const handleRemoveBanner = async () => {
+    setSavingBanner(true);
+    try {
+      await api.delete(`/users/${me._id}/banner`);
+      await refreshUser();
+      setShowBannerLibrary(false);
+      showToast('Banner removed ✓');
+    } catch (err) {
+      showToast(err.response?.data?.message || 'Failed to remove banner', 'error');
+    } finally {
+      setSavingBanner(false);
     }
   };
 
@@ -245,38 +334,55 @@ export default function Profile() {
     <div className="page bg-gradient-subtle page-fade-in">
       <div className="container" style={{ maxWidth: 680, paddingTop: 48, paddingBottom: 80 }}>
         {/* Header card */}
-        <div style={{ background: 'var(--card-bg)', borderRadius: 16, padding: 32, marginBottom: 24, border: '1px solid var(--border)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 24, flexWrap: 'wrap' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 24, flexWrap: 'wrap' }}>
-            <div 
-              style={{ width: 72, height: 72, borderRadius: 18, background: me.avatarUrl ? `url(${me.avatarUrl}) center/cover` : me.avatarColor, display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800, fontSize: 24, color: 'white', flexShrink: 0, position: 'relative', cursor: 'pointer', overflow: 'hidden' }}
-              onClick={() => fileInputRef.current?.click()}
-              title="Change Profile Picture"
-            >
-              {!me.avatarUrl && initials}
-              <div style={{ position: 'absolute', bottom: 0, right: 0, background: 'rgba(0,0,0,0.55)', borderRadius: '8px 0 12px 0', padding: '4px 6px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white' }}>
-                <CameraIcon size={14} />
+        <div style={{ background: 'var(--card-bg)', borderRadius: 16, marginBottom: 24, border: '1px solid var(--border)', overflow: 'hidden' }}>
+          {(() => {
+            const bannerBg = me.bannerUrl || (me.bannerColor ? `linear-gradient(135deg, ${me.bannerColor}, ${me.bannerColor}aa)` : null);
+            const hasBanner = !!bannerBg;
+            return (
+              <div
+                style={{ height: 80, background: bannerBg || 'var(--cream)', backgroundSize: 'cover', backgroundPosition: 'center', position: 'relative', cursor: 'pointer', borderBottom: hasBanner ? 'none' : '1px dashed var(--border)' }}
+                onClick={() => setShowBannerLibrary(true)}
+                title={hasBanner ? 'Change Banner' : 'Add Banner'}
+              >
+                <div style={{ position: 'absolute', bottom: 6, right: 6, background: 'rgba(0,0,0,0.45)', borderRadius: 8, padding: '4px 6px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', gap: 4, fontSize: 11, fontWeight: 600 }}>
+                  <PaletteIcon size={12} /> {hasBanner ? 'Change' : 'Add Banner'}
+                </div>
+              </div>
+            );
+          })()}
+          <div style={{ padding: 32, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 24, flexWrap: 'wrap' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 24, flexWrap: 'wrap' }}>
+              <div 
+                style={{ width: 72, height: 72, borderRadius: 18, background: me.avatarUrl ? `url(${me.avatarUrl}) center/cover` : me.avatarColor, display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800, fontSize: 24, color: 'white', flexShrink: 0, position: 'relative', cursor: 'pointer', overflow: 'hidden' }}
+                onClick={() => setShowAvatarLibrary(true)}
+                title="Change Profile Picture"
+              >
+                {!me.avatarUrl && initials}
+                <div style={{ position: 'absolute', bottom: 0, right: 0, background: 'rgba(0,0,0,0.55)', borderRadius: '8px 0 12px 0', padding: '4px 6px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white' }}>
+                  <CameraIcon size={14} />
+                </div>
+              </div>
+              <input type="file" ref={fileInputRef} style={{ display: 'none' }} accept="image/*" onChange={handleAvatarUpload} />
+              <div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 4, flexWrap: 'wrap' }}>
+                  <h1 style={{ fontFamily: 'PT Serif, serif', fontSize: 28, fontWeight: 600, letterSpacing: -0.5, margin: 0, color: 'var(--ink)' }}>{me.name}</h1>
+                  {me.league && (
+                    <span style={{ 
+                      background: me.league.color + '15', color: me.league.name === 'Diamond' ? '#00E5FF' : me.league.name === 'Platinum' ? '#8e9eab' : me.league.color,
+                      padding: '4px 12px', borderRadius: 20, fontSize: 13, fontWeight: 800, border: `1.5px solid ${me.league.color}`, display: 'flex', alignItems: 'center', gap: 6, boxShadow: `0 0 10px ${me.league.color}20`
+                    }}>
+                      {me.league.name === 'Diamond' ? <DiamondIcon size={14} /> : me.league.name === 'Gold' ? <TrophyIcon size={14} /> : '✦'} {me.league.name} Mentor
+                    </span>
+                  )}
+                </div>
+                <div style={{ fontSize: 13, color: 'var(--muted)', display: 'flex', gap: 16, flexWrap: 'wrap' }}>
+                  {me.location && <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}><PinIcon size={12} /> {me.location}</span>}
+                  <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}><StarIcon size={12} /> {me.rating?.toFixed(1) || '—'} ({me.reviewCount || 0} reviews)</span>
+                </div>
               </div>
             </div>
-            <input type="file" ref={fileInputRef} style={{ display: 'none' }} accept="image/*" onChange={handleAvatarUpload} />
-            <div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 4, flexWrap: 'wrap' }}>
-                <h1 style={{ fontFamily: 'PT Serif, serif', fontSize: 28, fontWeight: 600, letterSpacing: -0.5, margin: 0, color: 'var(--ink)' }}>{me.name}</h1>
-                {me.league && (
-                  <span style={{ 
-                    background: me.league.color + '15', color: me.league.name === 'Diamond' ? '#00E5FF' : me.league.name === 'Platinum' ? '#8e9eab' : me.league.color,
-                    padding: '4px 12px', borderRadius: 20, fontSize: 13, fontWeight: 800, border: `1.5px solid ${me.league.color}`, display: 'flex', alignItems: 'center', gap: 6, boxShadow: `0 0 10px ${me.league.color}20`
-                  }}>
-                    {me.league.name === 'Diamond' ? <DiamondIcon size={14} /> : me.league.name === 'Gold' ? <TrophyIcon size={14} /> : '✦'} {me.league.name} Mentor
-                  </span>
-                )}
-              </div>
-              <div style={{ fontSize: 13, color: 'var(--muted)', display: 'flex', gap: 16, flexWrap: 'wrap' }}>
-                {me.location && <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}><PinIcon size={12} /> {me.location}</span>}
-                <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}><StarIcon size={12} /> {me.rating?.toFixed(1) || '—'} ({me.reviewCount || 0} reviews)</span>
-              </div>
-            </div>
+            <button className="btn-ghost" onClick={() => navigate(`/profile/${me._id}`)}>View Public Profile ↗</button>
           </div>
-          <button className="btn-ghost" onClick={() => navigate(`/profile/${me._id}`)}>View Public Profile ↗</button>
         </div>
 
         {/* XP/Level/Streak Progress */}
@@ -525,6 +631,230 @@ export default function Profile() {
                   Add Selected ({selectedSkills.length})
                 </button>
               </div>
+            </div>
+          </div>
+        )}
+
+        {/* Avatar Library Modal */}
+        {showAvatarLibrary && (
+          <div className="modal-overlay active" onClick={(e) => e.target === e.currentTarget && setShowAvatarLibrary(false)}>
+            <div className="modal" style={{ maxWidth: 560 }}>
+              <button className="modal-close" onClick={() => setShowAvatarLibrary(false)} aria-label="Close">✕</button>
+              <div className="modal-heading" style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 24 }}>
+                <PaletteIcon size={20} /> Choose Avatar
+              </div>
+              <div className="modal-sub">
+                Pick a prebuilt avatar or upload your own image.
+              </div>
+
+              {/* Style tabs */}
+              <div style={{ display: 'flex', gap: 8, marginBottom: 20, flexWrap: 'wrap' }}>
+                {AVATAR_STYLES.map((s) => (
+                  <button
+                    key={s.id}
+                    type="button"
+                    className={`chip ${avatarStyle === s.id ? 'chip-active' : ''}`}
+                    style={{
+                      cursor: 'pointer',
+                      background: avatarStyle === s.id ? 'var(--accent)' : 'var(--cream)',
+                      color: avatarStyle === s.id ? 'white' : 'var(--ink)',
+                      border: `1.5px solid ${avatarStyle === s.id ? 'var(--accent)' : 'var(--border)'}`,
+                      fontWeight: avatarStyle === s.id ? 700 : 500,
+                      fontSize: 12,
+                      padding: '6px 14px',
+                      borderRadius: 20,
+                      transition: 'all 0.2s',
+                    }}
+                    onClick={() => setAvatarStyle(s.id)}
+                  >
+                    {s.label}
+                  </button>
+                ))}
+              </div>
+
+              {/* Avatar grid */}
+              <div className="avatar-style-grid">
+                {avatarSeeds.map((seed, idx) => {
+                  const url = generateDicebearUrl(avatarStyle, seed);
+                  const isSelected = me.avatarUrl === url;
+                  return (
+                    <button
+                      key={idx}
+                      type="button"
+                      className="avatar-style-card"
+                      style={{
+                        width: '100%',
+                        aspectRatio: '1',
+                        borderRadius: 14,
+                        border: `2px solid ${isSelected ? 'var(--accent)' : 'var(--border)'}`,
+                        background: 'var(--cream)',
+                        cursor: savingAvatar ? 'wait' : 'pointer',
+                        overflow: 'hidden',
+                        transition: 'all 0.2s',
+                        transform: isSelected ? 'scale(1.05)' : 'scale(1)',
+                        boxShadow: isSelected ? '0 0 0 3px var(--accent-light)' : 'none',
+                        opacity: savingAvatar ? 0.6 : 1,
+                        padding: 0,
+                      }}
+                      onClick={() => !savingAvatar && handleSelectDicebear(url)}
+                      title={isSelected ? 'Currently selected' : 'Use this avatar'}
+                    >
+                      <img
+                        src={url}
+                        alt={`${avatarStyle} avatar ${idx + 1}`}
+                        style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
+                        loading="lazy"
+                      />
+                    </button>
+                  );
+                })}
+              </div>
+
+              {/* Actions */}
+              <div style={{ display: 'flex', gap: 12, marginTop: 20, flexWrap: 'wrap' }}>
+                <button
+                  type="button"
+                  className="btn-outline-sm"
+                  style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '0 16px', height: 40, border: '1.5px solid var(--border)', fontSize: 12, fontWeight: 600, borderRadius: 10 }}
+                  onClick={() => { setShowAvatarLibrary(false); fileInputRef.current?.click(); }}
+                >
+                  <CameraIcon size={14} /> Upload from device
+                </button>
+                {me.avatarUrl && (
+                  <button
+                    type="button"
+                    className="btn-outline-sm"
+                    style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '0 16px', height: 40, border: '1.5px solid #ef4444', fontSize: 12, fontWeight: 600, borderRadius: 10, color: '#ef4444' }}
+                    onClick={handleRemoveAvatar}
+                    disabled={savingAvatar}
+                  >
+                    <TrashIcon size={14} /> Remove avatar
+                  </button>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Banner Library Modal */}
+        {showBannerLibrary && (
+          <div className="modal-overlay active" onClick={(e) => e.target === e.currentTarget && setShowBannerLibrary(false)}>
+            <div className="modal" style={{ maxWidth: 540 }}>
+              <button className="modal-close" onClick={() => setShowBannerLibrary(false)} aria-label="Close">✕</button>
+              <div className="modal-heading" style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 24 }}>
+                <PaletteIcon size={20} /> Choose Banner
+              </div>
+              <div className="modal-sub">
+                Pick a solid color or a gradient design for your profile banner.
+              </div>
+
+              {/* Tab buttons */}
+              <div style={{ display: 'flex', gap: 8, marginBottom: 20 }}>
+                <button
+                  type="button"
+                  className={`chip ${bannerTab === 'colors' ? 'chip-active' : ''}`}
+                  style={{
+                    cursor: 'pointer',
+                    background: bannerTab === 'colors' ? 'var(--accent)' : 'var(--cream)',
+                    color: bannerTab === 'colors' ? 'white' : 'var(--ink)',
+                    border: `1.5px solid ${bannerTab === 'colors' ? 'var(--accent)' : 'var(--border)'}`,
+                    fontWeight: bannerTab === 'colors' ? 700 : 500,
+                    fontSize: 12,
+                    padding: '6px 14px',
+                    borderRadius: 20,
+                    transition: 'all 0.2s',
+                  }}
+                  onClick={() => setBannerTab('colors')}
+                >
+                  Colors
+                </button>
+                <button
+                  type="button"
+                  className={`chip ${bannerTab === 'designs' ? 'chip-active' : ''}`}
+                  style={{
+                    cursor: 'pointer',
+                    background: bannerTab === 'designs' ? 'var(--accent)' : 'var(--cream)',
+                    color: bannerTab === 'designs' ? 'white' : 'var(--ink)',
+                    border: `1.5px solid ${bannerTab === 'designs' ? 'var(--accent)' : 'var(--border)'}`,
+                    fontWeight: bannerTab === 'designs' ? 700 : 500,
+                    fontSize: 12,
+                    padding: '6px 14px',
+                    borderRadius: 20,
+                    transition: 'all 0.2s',
+                  }}
+                  onClick={() => setBannerTab('designs')}
+                >
+                  Designs
+                </button>
+              </div>
+
+              {/* Color swatches */}
+              {bannerTab === 'colors' && (
+                <div className="banner-color-grid">
+                  {BANNER_COLORS.map((color, idx) => {
+                    const isSelected = me.bannerColor === color && !me.bannerUrl;
+                    return (
+                      <button
+                        key={idx}
+                        type="button"
+                        className="banner-color-swatch"
+                        style={{
+                          background: color,
+                          border: `3px solid ${isSelected ? 'var(--accent)' : 'transparent'}`,
+                          outline: isSelected ? '2px solid var(--accent)' : 'none',
+                          transform: isSelected ? 'scale(1.1)' : 'scale(1)',
+                        }}
+                        onClick={() => !savingBanner && handleSelectBannerColor(color)}
+                        disabled={savingBanner}
+                        title={isSelected ? 'Currently selected' : color}
+                      />
+                    );
+                  })}
+                </div>
+              )}
+
+              {/* Gradient designs */}
+              {bannerTab === 'designs' && (
+                <div className="banner-gradient-grid">
+                  {BANNER_GRADIENTS.map((g, idx) => {
+                    const isSelected = me.bannerUrl === g.value;
+                    return (
+                      <button
+                        key={idx}
+                        type="button"
+                        className="banner-gradient-card"
+                        style={{
+                          background: g.value,
+                          border: `2px solid ${isSelected ? 'var(--accent)' : 'var(--border)'}`,
+                          outline: isSelected ? '2px solid var(--accent)' : 'none',
+                          cursor: savingBanner ? 'wait' : 'pointer',
+                          opacity: savingBanner ? 0.6 : 1,
+                        }}
+                        onClick={() => !savingBanner && handleSelectBannerGradient(g.value)}
+                        disabled={savingBanner}
+                        title={isSelected ? 'Currently selected' : g.label}
+                      >
+                        <span className="banner-gradient-label">{g.label}</span>
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
+
+              {/* Remove banner */}
+              {(me.bannerUrl || me.bannerColor) && (
+                <div style={{ marginTop: 20 }}>  
+                  <button
+                    type="button"
+                    className="btn-outline-sm"
+                    style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '0 16px', height: 40, border: '1.5px solid #ef4444', fontSize: 12, fontWeight: 600, borderRadius: 10, color: '#ef4444' }}
+                    onClick={handleRemoveBanner}
+                    disabled={savingBanner}
+                  >
+                    <TrashIcon size={14} /> Remove banner
+                  </button>
+                </div>
+              )}
             </div>
           </div>
         )}

@@ -27,6 +27,8 @@ const userSchema = new mongoose.Schema(
     bio: { type: String, default: '' },
     avatarColor: { type: String, default: '#C84B31' },
     avatarUrl: { type: String, default: '' },
+    bannerUrl: { type: String, default: '' },
+    bannerColor: { type: String, default: '' },
     skillsOffered: [skillSchema],
     skillsWanted: [{ type: String }],
     availability: {

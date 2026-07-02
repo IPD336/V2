@@ -14,10 +14,11 @@ import { SearchIcon, PinIcon, ClockIcon, DiamondIcon, TrophyIcon, SparklesIcon }
 const ProfileCard = memo(function ProfileCard({ user, onSwap, onSave, saved, isOnline }) {
   const navigate = useNavigate();
   const color = user.avatarColor || COLORS[0];
+  const bannerBg = user.bannerUrl || (user.bannerColor ? `linear-gradient(135deg, ${user.bannerColor}, ${user.bannerColor}aa)` : `linear-gradient(135deg, ${color}, ${color}aa)`);
 
   return (
     <div className="profile-card">
-      <div className="card-banner" style={{ background: `linear-gradient(135deg, ${color}, ${color}aa)` }} />
+      <div className="card-banner" style={{ background: bannerBg }} />
       <div className="card-body">
         <div className="card-avatar-wrap">
           <div className="card-avatar" style={{ background: user.avatarUrl ? `url(${user.avatarUrl}) center/cover` : color, position: 'relative' }}>

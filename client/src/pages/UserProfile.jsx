@@ -7,7 +7,7 @@ import { useSocket } from '../context/SocketContext';
 import SwapRequestModal from '../components/SwapRequestModal';
 import Spinner from '../components/Spinner';
 import TypingIndicator from '../components/TypingIndicator';
-import { PinIcon, ClockIcon, StarIcon, DiamondIcon, TrophyIcon, MedalIcon, HandshakeIcon, LinkIcon, SparklesIcon, RocketIcon, SwapIcon, TargetIcon, CheckIcon, SendIcon, SearchIcon, WorkspaceIcon } from '../components/Icons';
+import { PinIcon, ClockIcon, StarIcon, DiamondIcon, TrophyIcon, MedalIcon, HandshakeIcon, LinkIcon, SparklesIcon, RocketIcon, SwapIcon, TargetIcon, CheckIcon, SendIcon, SearchIcon, WorkspaceIcon, PaletteIcon } from '../components/Icons';
 
 function initials(name = '') {
   return name.split(' ').map((w) => w[0]).join('').toUpperCase().slice(0, 2);
@@ -130,7 +130,13 @@ export default function UserProfile() {
           <div ref={innerRef} className={`flip-card-inner ${flipped ? 'flipped' : ''}`} style={flipHeight ? { height: flipHeight } : {}}>
             {/* FRONT */}
             <div ref={frontRef} className="flip-card-front">
-              <div style={{ background: 'var(--card-bg)', borderRadius: 16, padding: 40, border: '1px solid var(--border)', display: 'flex', gap: 32, alignItems: 'flex-start', flexWrap: 'wrap' }}>
+              <div style={{ background: 'var(--card-bg)', borderRadius: 16, border: '1px solid var(--border)', overflow: 'hidden' }}>
+                {(() => {
+                  const bannerBg = user.bannerUrl || (user.bannerColor ? `linear-gradient(135deg, ${user.bannerColor}, ${user.bannerColor}aa)` : null);
+                  if (!bannerBg) return null;
+                  return <div style={{ height: 80, background: bannerBg, backgroundSize: 'cover', backgroundPosition: 'center' }} />;
+                })()}
+                <div style={{ padding: 40, display: 'flex', gap: 32, alignItems: 'flex-start', flexWrap: 'wrap' }}>
                 <div style={{ width: 100, height: 100, borderRadius: 24, background: user.avatarUrl ? `url(${user.avatarUrl}) center/cover` : (user.avatarColor || '#C84B31'), display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800, fontSize: 32, color: 'white', flexShrink: 0, position: 'relative' }}>
                   {!user.avatarUrl && initials(user.name)}
                   {isUserOnline(user._id) && <span className="presence-dot" style={{ position: 'absolute', bottom: 4, right: 4, width: 14, height: 14, border: '3px solid var(--card-bg)' }} />}
@@ -201,6 +207,7 @@ export default function UserProfile() {
                 </div>
               </div>
             </div>
+          </div>
 
             {/* BACK */}
             <div ref={backRef} className="flip-card-back">
