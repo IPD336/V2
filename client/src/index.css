@@ -2542,3 +2542,86 @@ input[type="datetime-local"]::-webkit-calendar-picker-indicator:hover {
   100% { stroke-dashoffset: -300; opacity: 0; }
 }
 
+/* ─── Avatar Library Grid ─── */
+.avatar-style-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
+  max-height: 320px;
+  overflow-y: auto;
+  padding: 4px;
+}
+@media (max-width: 500px) {
+  .avatar-style-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+.avatar-style-card {
+  transition: transform 0.2s, box-shadow 0.2s, border-color 0.2s;
+}
+.avatar-style-card:hover {
+  transform: scale(1.08) !important;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.12) !important;
+  border-color: var(--accent) !important;
+}
+
+/* ─── Banner Library ─── */
+.banner-color-grid {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 12px;
+  padding: 4px;
+}
+@media (max-width: 500px) {
+  .banner-color-grid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+.banner-color-swatch {
+  aspect-ratio: 1;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: transform 0.2s, border-color 0.2s, box-shadow 0.2s;
+  padding: 0;
+}
+.banner-color-swatch:hover {
+  transform: scale(1.12) !important;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}
+.banner-gradient-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+  max-height: 320px;
+  overflow-y: auto;
+  padding: 4px;
+}
+.banner-gradient-card {
+  height: 64px;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: transform 0.2s, border-color 0.2s, box-shadow 0.2s;
+  padding: 0;
+  position: relative;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+}
+.banner-gradient-card:hover {
+  transform: scale(1.04) !important;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.12) !important;
+  border-color: var(--accent) !important;
+}
+.banner-gradient-label {
+  font-size: 10px;
+  font-weight: 700;
+  color: white;
+  text-shadow: 0 1px 3px rgba(0,0,0,0.5);
+  padding: 4px 10px;
+  background: rgba(0,0,0,0.3);
+  border-radius: 8px 8px 0 0;
+  width: 100%;
+  text-align: center;
+  letter-spacing: 0.5px;
+}
+

@@ -106,7 +106,7 @@ router.get('/', validate(browseQuerySchema), async (req, res) => {
       const [total, users] = await Promise.all([
         User.countDocuments(query),
         User.find(query)
-          .select('name avatarColor avatarUrl skillsOffered skillsWanted location rating league')
+          .select('name avatarColor avatarUrl bannerUrl bannerColor skillsOffered skillsWanted location rating league')
           .skip(skip)
           .limit(limit)
           .sort({ rating: -1, createdAt: -1 })
@@ -132,7 +132,7 @@ router.get('/recommendations', auth, async (req, res) => {
       isPublic: { $ne: false },
       role: { $ne: 'admin' },
       _id: { $ne: req.user.id },
-    }).select('name avatarColor avatarUrl skillsOffered skillsWanted location rating league').lean();
+    }).select('name avatarColor avatarUrl bannerUrl bannerColor skillsOffered skillsWanted location rating league').lean();
 
     const scored = candidates
       .map((u) => ({ user: u.toObject(), score: matchScore(me, u), mutualMatch: isMutualMatch(me, u) }))
@@ -152,6 +152,161 @@ router.get('/:id', validate(idParamSchema), async (req, res) => {
     if (!user) return res.fail('User not found', 404);
     const enriched = await enrichWithMatch([user], req);
     res.respond(enriched[0]);
+  } catch (err) {
+    res.fail(err.message, 500);
+  }
+});
+
+const DICEBEAR_STYLES = ['adventurer', 'bottts', 'fun-emoji', 'lorelei', 'micah'];
+
+const avatarDicebearSchema = z.object({
+  body: z.object({
+    avatarUrl: z.string().url(),
+  }),
+  params: z.object({
+    id: objectId,
+  }),
+});
+
+router.put('/:id/avatar-dicebear', auth, validate(avatarDicebearSchema), async (req, res) => {
+  try {
+    if (req.user.id.toString() !== req.params.id) {
+      return res.fail('Not authorised', 403);
+    }
+
+    const { avatarUrl } = req.body;
+    const parsed = new URL(avatarUrl);
+    const validHost = ['api.dicebear.com'];
+    if (!validHost.includes(parsed.hostname)) {
+      return res.fail('Invalid avatar URL', 400);
+    }
+
+    const styleMatch = parsed.pathname.match(/\/9\.x\/([^/]+)\//);
+    if (!styleMatch || !DICEBEAR_STYLES.includes(styleMatch[1])) {
+      return res.fail('Invalid avatar style', 400);
+    }
+
+    const user = await User.findByIdAndUpdate(
+      req.params.id,
+      { avatarUrl },
+      { new: true }
+    ).select('-passwordHash');
+
+    res.respond({ message: 'Avatar updated', user, avatarUrl });
+  } catch (err) {
+    res.fail(err.message, 500);
+  }
+});
+
+router.delete('/:id/avatar', auth, validate(idParamSchema), async (req, res) => {
+  try {
+    if (req.user.id.toString() !== req.params.id) {
+      return res.fail('Not authorised', 403);
+    }
+
+    const user = await User.findByIdAndUpdate(
+      req.params.id,
+      { avatarUrl: '' },
+      { new: true }
+    ).select('-passwordHash');
+
+    res.respond({ message: 'Avatar removed', user });
+  } catch (err) {
+    res.fail(err.message, 500);
+  }
+});
+
+router.post('/:id/avatar', auth, upload.single('avatar'), validate(idParamSchema), async (req, res) => {
+  try {
+    if (req.user.id.toString() !== req.params.id) {
+      return res.fail('Not authorised', 403);
+    }
+
+    if (!req.file) {
+      return res.fail('No file uploaded', 400);
+    }
+
+    const user = await User.findByIdAndUpdate(
+      req.params.id,
+      { avatarUrl: req.file.path },
+      { new: true }
+    ).select('-passwordHash');
+
+    res.respond({ message: 'Avatar updated', user, avatarUrl: req.file.path });
+  } catch (err) {
+    res.fail(err.message, 500);
+  }
+});
+
+const BANNER_COLORS = ['#C84B31', '#3A6351', '#3B4F8C', '#B8902A', '#7A5FA8', '#2980b9', '#8B5CF6', '#EC4899', '#14B8A6', '#F97316', '#6B7280', '#1F2937'];
+
+const bannerColorSchema = z.object({
+  body: z.object({
+    bannerColor: z.string().regex(/^#[0-9a-fA-F]{6}$/),
+  }),
+  params: z.object({
+    id: objectId,
+  }),
+});
+
+const bannerUrlSchema = z.object({
+  body: z.object({
+    bannerUrl: z.string(),
+  }),
+  params: z.object({
+    id: objectId,
+  }),
+});
+
+router.put('/:id/banner', auth, async (req, res) => {
+  try {
+    if (req.user.id.toString() !== req.params.id) {
+      return res.fail('Not authorised', 403);
+    }
+
+    const { bannerColor, bannerUrl } = req.body;
+
+    if (bannerColor) {
+      if (!/^#[0-9a-fA-F]{6}$/.test(bannerColor) || !BANNER_COLORS.includes(bannerColor)) {
+        return res.fail('Invalid banner color', 400);
+      }
+      const user = await User.findByIdAndUpdate(
+        req.params.id,
+        { bannerColor, bannerUrl: '' },
+        { new: true }
+      ).select('-passwordHash');
+      return res.respond({ message: 'Banner color updated', user });
+    }
+
+    if (bannerUrl) {
+      const clean = bannerUrl.replace(/^['"]|['"]$/g, '');
+      const user = await User.findByIdAndUpdate(
+        req.params.id,
+        { bannerUrl: clean, bannerColor: '' },
+        { new: true }
+      ).select('-passwordHash');
+      return res.respond({ message: 'Banner updated', user });
+    }
+
+    return res.fail('Provide bannerColor or bannerUrl', 400);
+  } catch (err) {
+    res.fail(err.message, 500);
+  }
+});
+
+router.delete('/:id/banner', auth, validate(idParamSchema), async (req, res) => {
+  try {
+    if (req.user.id.toString() !== req.params.id) {
+      return res.fail('Not authorised', 403);
+    }
+
+    const user = await User.findByIdAndUpdate(
+      req.params.id,
+      { bannerUrl: '', bannerColor: '' },
+      { new: true }
+    ).select('-passwordHash');
+
+    res.respond({ message: 'Banner removed', user });
   } catch (err) {
     res.fail(err.message, 500);
   }
@@ -201,28 +356,6 @@ router.delete('/:id', auth, validate(idParamSchema), async (req, res) => {
     }
     await User.findByIdAndDelete(req.params.id);
     res.respond({ message: 'Account deleted successfully' });
-  } catch (err) {
-    res.fail(err.message, 500);
-  }
-});
-
-router.post('/:id/avatar', auth, upload.single('avatar'), validate(idParamSchema), async (req, res) => {
-  try {
-    if (req.user.id.toString() !== req.params.id) {
-      return res.fail('Not authorised', 403);
-    }
-
-    if (!req.file) {
-      return res.fail('No file uploaded', 400);
-    }
-
-    const user = await User.findByIdAndUpdate(
-      req.params.id,
-      { avatarUrl: req.file.path },
-      { new: true }
-    ).select('-passwordHash');
-
-    res.respond({ message: 'Avatar updated', user, avatarUrl: req.file.path });
   } catch (err) {
     res.fail(err.message, 500);
   }
