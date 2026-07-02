@@ -2176,21 +2176,7 @@ nav:hover .nav-gradient-line {
   flex-shrink: 0;
 }
 
-/* ---- Drag & Drop Swap Skills ---- */
-.swap-skill-chip {
-  transition: all 0.15s ease;
-}
-.swap-skill-chip:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
-}
-.swap-skill-chip:active {
-  cursor: grabbing;
-}
-.swap-skill-chip.dragging {
-  opacity: 0.4;
-  transform: scale(0.95);
-}
+
 
 .nav-search-btn {
   background: var(--warm);
