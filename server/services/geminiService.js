@@ -58,7 +58,7 @@ function withTimeout(promise, ms = 10000) {
 let genAI = null;
 
 const MODELS = {
-  simple: 'gemini-1.5-flash',
+  simple: 'gemini-2.0-flash',
   complex: 'gemini-2.5-flash',
 };
 
@@ -86,7 +86,7 @@ async function generateWithRetry(task, prompt, parseFn) {
   if (!primary) return null;
 
   for (let attempt = 0; attempt < 2; attempt++) {
-    const m = attempt === 0 ? primary : genAI.getGenerativeModel({ model: MODELS.simple });
+    const m = attempt === 0 ? primary : genAI.getGenerativeModel({ model: MODELS.complex });
     if (!m) continue;
     try {
       const result = await withTimeout(m.generateContent(prompt));
