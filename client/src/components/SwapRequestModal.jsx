@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import api from '../api/axios';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
@@ -31,9 +31,6 @@ export default function SwapRequestModal({ target, onClose }) {
   const [aiLoading, setAiLoading] = useState(false);
   const [aiSlow, setAiSlow] = useState(false);
   const [aiError, setAiError] = useState(false);
-  const [dragOver, setDragOver] = useState(null);
-  const [draggedSkill, setDraggedSkill] = useState(null);
-  const dragSource = useRef(null);
 
   function handleScheduleChange(isoStr) {
     setForm({ ...form, scheduledAt: isoStr || '' });
@@ -92,94 +89,6 @@ export default function SwapRequestModal({ target, onClose }) {
     } finally { setLoading(false); }
   };
 
-  // Drag handlers
-  const handleDragStart = (skill, source) => (e) => {
-    e.dataTransfer.effectAllowed = 'move';
-    e.dataTransfer.setData('text/plain', skill);
-    setDraggedSkill(skill);
-    dragSource.current = source;
-  };
-
-  const handleDragEnd = () => {
-    setDraggedSkill(null);
-    setDragOver(null);
-    dragSource.current = null;
-  };
-
-  const handleDragOver = (zone) => (e) => {
-    e.preventDefault();
-    e.dataTransfer.dropEffect = 'move';
-    setDragOver(zone);
-  };
-
-  const handleDragLeave = (zone) => () => {
-    if (dragOver === zone) setDragOver(null);
-  };
-
-  const handleDrop = (zone) => (e) => {
-    e.preventDefault();
-    const skill = e.dataTransfer.getData('text/plain');
-    if (zone === 'offer') {
-      setForm({ ...form, skillOffered: skill });
-    } else {
-      setForm({ ...form, skillWanted: skill });
-    }
-    setDraggedSkill(null);
-    setDragOver(null);
-    dragSource.current = null;
-  };
-
-  const SkillChip = ({ skill, isMySkill }) => (
-    <span
-      draggable
-      onDragStart={handleDragStart(skill, isMySkill ? 'mine' : 'theirs')}
-      onDragEnd={handleDragEnd}
-      onClick={() => {
-        if (isMySkill) setForm({ ...form, skillOffered: skill });
-        else setForm({ ...form, skillWanted: skill });
-      }}
-      className={`swap-skill-chip ${draggedSkill === skill ? 'dragging' : ''} ${(isMySkill && form.skillOffered === skill) || (!isMySkill && form.skillWanted === skill) ? 'selected' : ''}`}
-      style={{
-        padding: '6px 14px', borderRadius: 20, fontSize: 12, fontWeight: 700, cursor: 'grab', userSelect: 'none', transition: 'all 0.15s', display: 'inline-flex', alignItems: 'center', gap: 4,
-        background: draggedSkill === skill ? 'var(--accent-light)' : (isMySkill ? 'rgba(200,75,49,0.08)' : 'rgba(58,99,81,0.08)'),
-        border: `1.5px solid ${(isMySkill && form.skillOffered === skill) || (!isMySkill && form.skillWanted === skill) ? 'var(--accent)' : 'var(--border)'}`,
-        color: 'var(--ink)', opacity: draggedSkill === skill ? 0.4 : 1,
-      }}
-    >
-      {skill}
-      {((isMySkill && form.skillOffered === skill) || (!isMySkill && form.skillWanted === skill)) && <span style={{ fontSize: 10, marginLeft: 2 }}>✓</span>}
-    </span>
-  );
-
-  const DropZone = ({ zone, label, selected, placeholder }) => (
-    <div
-      onDragOver={handleDragOver(zone)}
-      onDragLeave={handleDragLeave(zone)}
-      onDrop={handleDrop(zone)}
-      style={{
-        flex: 1, minHeight: 80, border: `2px dashed ${dragOver === zone ? 'var(--accent)' : selected ? 'var(--sage)' : 'var(--border)'}`,
-        borderRadius: 14, padding: 20, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 8,
-        background: dragOver === zone ? 'rgba(200,75,49,0.06)' : selected ? 'rgba(58,99,81,0.06)' : 'transparent',
-        transition: 'all 0.2s', cursor: dragOver === zone ? 'grabbing' : 'default',
-      }}
-    >
-      <div style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: 1.2, color: dragOver === zone ? 'var(--accent)' : selected ? 'var(--sage)' : 'var(--muted)' }}>
-        {label}
-      </div>
-      {selected ? (
-        <span style={{
-          fontSize: 15, fontWeight: 700, color: 'var(--ink)', padding: '6px 16px', borderRadius: 20,
-          background: zone === 'offer' ? 'rgba(200,75,49,0.1)' : 'rgba(58,99,81,0.1)',
-          border: `1.5px solid ${zone === 'offer' ? 'rgba(200,75,49,0.3)' : 'rgba(58,99,81,0.3)'}`,
-        }}>
-          {selected}
-        </span>
-      ) : (
-        <div style={{ fontSize: 12, color: 'var(--muted)', fontStyle: 'italic' }}>{placeholder}</div>
-      )}
-    </div>
-  );
-
   return (
     <div className="modal-overlay active" onClick={(e) => e.target === e.currentTarget && onClose()}>
       <div className="modal" style={{ maxWidth: 520 }}>
@@ -187,28 +96,21 @@ export default function SwapRequestModal({ target, onClose }) {
         <div className="modal-heading" style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
           <HandshakeIcon size={18} /> Request Swap with {target.name}
         </div>
-        <div className="modal-sub">Drag skills between columns or click to select.</div>
+        <div className="modal-sub">Select the skills you'd like to offer and learn.</div>
         <form onSubmit={submit}>
-          {/* Drag & Drop Skill Selectors */}
-          <div style={{ display: 'flex', gap: 12, marginBottom: 24 }}>
-            <DropZone zone="offer" label="I Offer" selected={form.skillOffered} placeholder="Drop your skill here" />
-            <DropZone zone="want" label="I Want" selected={form.skillWanted} placeholder="Drop their skill here" />
-          </div>
-
+          {/* Skill Selectors */}
           <div style={{ display: 'flex', gap: 12, marginBottom: 20 }}>
-            {/* Your Skills */}
-            <div style={{ flex: 1, background: 'var(--cream)', borderRadius: 12, padding: 12, border: '1px solid var(--border)' }}>
-              <div style={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: 1, color: 'var(--accent)', marginBottom: 8 }}>Your Skills</div>
-              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
-                {mySkills.length > 0 ? mySkills.map((s) => <SkillChip key={s} skill={s} isMySkill />) : <span style={{ fontSize: 12, color: 'var(--muted)' }}>No skills listed</span>}
-              </div>
+            <div style={{ flex: 1 }}>
+              <label className="form-label" style={{ fontSize: 11, fontWeight: 700, color: 'var(--accent)', marginBottom: 6, display: 'block' }}>Skill You Offer</label>
+              <select className="form-select" name="skillOffered" value={form.skillOffered} onChange={handle} aria-label="Skill you offer">
+                {mySkills.length > 0 ? mySkills.map((s) => <option key={s} value={s}>{s}</option>) : <option value="">No skills listed</option>}
+              </select>
             </div>
-            {/* Their Skills */}
-            <div style={{ flex: 1, background: 'var(--cream)', borderRadius: 12, padding: 12, border: '1px solid var(--border)' }}>
-              <div style={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: 1, color: 'var(--sage)', marginBottom: 8 }}>{target.name}'s Skills</div>
-              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
-                {theirSkills.length > 0 ? theirSkills.map((s) => <SkillChip key={s} skill={s} isMySkill={false} />) : <span style={{ fontSize: 12, color: 'var(--muted)' }}>No skills listed</span>}
-              </div>
+            <div style={{ flex: 1 }}>
+              <label className="form-label" style={{ fontSize: 11, fontWeight: 700, color: 'var(--sage)', marginBottom: 6, display: 'block' }}>Skill You Want</label>
+              <select className="form-select" name="skillWanted" value={form.skillWanted} onChange={handle} aria-label="Skill you want">
+                {theirSkills.length > 0 ? theirSkills.map((s) => <option key={s} value={s}>{s}</option>) : <option value="">No skills listed</option>}
+              </select>
             </div>
           </div>
 
