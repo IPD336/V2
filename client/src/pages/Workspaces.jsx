@@ -87,6 +87,12 @@ export default function Workspaces() {
             return [...prev, msg.sender];
           });
         }
+      } else if (msg.room.startsWith('swap_')) {
+        // Silently refresh swaps list to pick up status changes
+        api.get('/swaps').then(res => setActiveSwaps(res.data.active)).catch(() => {});
+      } else if (msg.room.startsWith('team_')) {
+        // Silently refresh teams list to pick up changes
+        api.get('/teams?mine=true').then(res => setActiveTeams(res.data.teams.filter(t => t.status === 'open' || t.status === 'closed'))).catch(() => {});
       }
       setUnreadRooms(prev => {
         if (selected && String(msg.room) === String(selected.id)) return prev;

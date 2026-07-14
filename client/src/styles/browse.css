@@ -5,9 +5,12 @@
   margin-bottom: 48px;
   background: var(--accent-light);
   border-radius: 20px;
-  padding: 28px 24px;
+  padding: 28px 24px 28px;
   border: 1px solid rgba(var(--accent-rgb), 0.10);
+  overflow: visible;
 }
+.rec-section .cards-grid { padding-top: 10px; }
+
 .rec-header { display: flex; align-items: center; gap: 12px; margin-bottom: 20px; }
 .rec-label { font-family: 'PT Mono', monospace; font-size: 11px; letter-spacing: 2px; text-transform: uppercase; color: var(--accent); }
 

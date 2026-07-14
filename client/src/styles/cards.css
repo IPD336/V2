@@ -1,5 +1,5 @@
 /* ── CARDS ── */
-.cards-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(270px, 1fr)); gap: 20px; }
+.cards-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(270px, 1fr)); gap: 20px; padding-top: 8px; overflow: visible; }
 
 /* Legacy .profile-card kept for non-Browse pages */
 .profile-card { background: var(--card-bg); border-radius: 16px; border: 1px solid var(--border); overflow: hidden; transition: transform .25s cubic-bezier(.2,.8,.2,1), box-shadow .25s; cursor: pointer; }

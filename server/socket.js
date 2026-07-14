@@ -128,8 +128,9 @@ module.exports = {
       socket.on('add_goal', async (data) => {
         const { room, type, text } = data;
         const Model = type === 'swap' ? Swap : Team;
+        const docId = room.replace(/^(swap_|team_)/, '');
         try {
-          const item = await Model.findById(room);
+          const item = await Model.findById(docId);
           if (!item) return;
           const isParty = type === 'swap'
             ? [item.sender.toString(), item.receiver.toString()].includes(uid)
@@ -146,8 +147,9 @@ module.exports = {
       socket.on('toggle_goal', async (data) => {
         const { room, type, goalId } = data;
         const Model = type === 'swap' ? Swap : Team;
+        const docId = room.replace(/^(swap_|team_)/, '');
         try {
-          const item = await Model.findById(room);
+          const item = await Model.findById(docId);
           if (!item) return;
           const isParty = type === 'swap'
             ? [item.sender.toString(), item.receiver.toString()].includes(uid)
