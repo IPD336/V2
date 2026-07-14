@@ -114,21 +114,27 @@ async function inferGithubSkills(repos) {
   ).join('\n');
 
   const prompt = `Infer technical skills from these GitHub repos.
-Repos:\n${summary}`;
+Repos:\n${summary}
+Respond ONLY with a valid JSON array of objects. Do NOT wrap it in markdown. Each object must have:
+"name" (string)
+"category" (string: one of 'Development', 'Design', 'Marketing', 'Business', 'Other')
+Example: [{"name":"React","category":"Development"}]`;
 
   try {
-    const { object } = await generateObject({
+    const { text } = await generateText({
       model: aiGateway(MODELS.simple),
       prompt,
-      schema: z.object({
-        skills: z.array(z.object({
-          name: z.string(),
-          category: z.enum(['Development', 'Design', 'Marketing', 'Business', 'Other'])
-        }))
-      })
     });
-    cache.set(key, object.skills, TTL.GITHUB);
-    return object.skills;
+    
+    // Attempt to parse JSON from the text, handling possible markdown wrappers
+    let jsonStr = text.trim();
+    if (jsonStr.startsWith('\`\`\`json')) {
+      jsonStr = jsonStr.replace(/^\`\`\`json\n/, '').replace(/\n\`\`\`$/, '');
+    }
+    
+    const parsedSkills = JSON.parse(jsonStr);
+    cache.set(key, parsedSkills, TTL.GITHUB);
+    return parsedSkills;
   } catch (err) {
     console.error(`Gemini github-skills error:`, err.message);
     return [{ name: "JavaScript", category: "Development" }, { name: "React", category: "Development" }];
@@ -152,19 +158,24 @@ async function generateMatchExplanations(me, candidates) {
 
   const prompt = `Match explanations for skill swap. For each candidate, one short sentence (max 12 words).
 User offers [${myOffered}], wants [${myWanted}].
-${lines}`;
+${lines}
+
+Respond ONLY with a valid JSON object. Do NOT wrap it in markdown. The object must contain an array called "explanations".
+Example: {"explanations":["Match 1 explanation", "Match 2 explanation"]}`;
 
   try {
-    const { object } = await generateObject({
+    const { text } = await generateText({
       model: aiGateway(MODELS.complex),
       prompt,
-      schema: z.object({
-        explanations: z.array(z.string().describe("The explanation string for the match, max 12 words"))
-      })
     });
     
-    // Ensure we map back properly to candidates
-    const result = candidates.map((_, i) => object.explanations[i] || "Good skill match!");
+    let jsonStr = text.trim();
+    if (jsonStr.startsWith('\`\`\`json')) {
+      jsonStr = jsonStr.replace(/^\`\`\`json\n/, '').replace(/\n\`\`\`$/, '');
+    }
+
+    const parsed = JSON.parse(jsonStr);
+    const result = candidates.map((_, i) => parsed.explanations[i] || "Good skill match!");
     cache.set(key, result, TTL.MATCH);
     return result;
   } catch (err) {
