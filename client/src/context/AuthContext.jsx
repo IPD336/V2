@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useEffect, useCallback } from 'react';
+import { createContext, useContext, useState, useEffect, useCallback, useMemo } from 'react';
 import api from '../api/axios';
 
 const AuthContext = createContext(null);
@@ -21,21 +21,30 @@ export function AuthProvider({ children }) {
     }
   }, []);
 
-  const login = async (email, password) => {
+  useEffect(() => {
+    const handleUnauthorized = () => {
+      setUser(null);
+      window.location.href = '/login';
+    };
+    window.addEventListener('auth:unauthorized', handleUnauthorized);
+    return () => window.removeEventListener('auth:unauthorized', handleUnauthorized);
+  }, []);
+
+  const login = useCallback(async (email, password) => {
     const res = await api.post('/auth/login', { email, password });
     localStorage.setItem('ss_token', res.data.token);
     localStorage.setItem('ss_user', JSON.stringify(res.data.user));
     setUser(res.data.user);
     return res.data;
-  };
+  }, []);
 
-  const register = async (data) => {
+  const register = useCallback(async (data) => {
     const res = await api.post('/auth/register', data);
     localStorage.setItem('ss_token', res.data.token);
     localStorage.setItem('ss_user', JSON.stringify(res.data.user));
     setUser(res.data.user);
     return res.data;
-  };
+  }, []);
 
   const logout = useCallback(() => {
     localStorage.removeItem('ss_token');
@@ -49,8 +58,10 @@ export function AuthProvider({ children }) {
     localStorage.setItem('ss_user', JSON.stringify(res.data));
   }, []);
 
+  const value = useMemo(() => ({ user, loading, login, register, logout, refreshUser }), [user, loading, login, register, logout, refreshUser]);
+
   return (
-    <AuthContext.Provider value={{ user, loading, login, register, logout, refreshUser }}>
+    <AuthContext.Provider value={value}>
       {children}
     </AuthContext.Provider>
   );

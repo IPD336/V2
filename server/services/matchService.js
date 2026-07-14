@@ -13,10 +13,10 @@ function matchScore(me, other) {
 }
 
 function isMutualMatch(me, other) {
-  const myOffered = me.skillsOffered.map((s) => s.name.toLowerCase());
-  const myWanted = me.skillsWanted.map((s) => s.toLowerCase());
-  const theirOffered = other.skillsOffered.map((s) => s.name.toLowerCase());
-  const theirWanted = other.skillsWanted.map((s) => s.toLowerCase());
+  const myOffered = (me.skillsOffered || []).map((s) => s.name.toLowerCase());
+  const myWanted = (me.skillsWanted || []).map((s) => s.toLowerCase());
+  const theirOffered = (other.skillsOffered || []).map((s) => s.name.toLowerCase());
+  const theirWanted = (other.skillsWanted || []).map((s) => s.toLowerCase());
   return (
     myOffered.some((s) => theirWanted.includes(s)) &&
     theirOffered.some((s) => myWanted.includes(s))

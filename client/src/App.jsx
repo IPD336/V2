@@ -10,16 +10,17 @@ import Spinner from './components/Spinner';
 import Navbar from './components/Navbar';
 import MobileBottomNav from './components/MobileBottomNav';
 import OnboardingModal from './components/OnboardingModal';
-import CommandPalette from './components/CommandPalette';
-import KeyboardShortcutsModal from './components/KeyboardShortcutsModal';
+const CommandPalette = lazy(() => import('./components/CommandPalette'));
+const KeyboardShortcutsModal = lazy(() => import('./components/KeyboardShortcutsModal'));
 import SplashScreen from './components/SplashScreen';
 const Landing = lazy(() => import('./pages/Landing'));
-import Login from './pages/Login';
-import Register from './pages/Register';
-import ForgotPassword from './pages/ForgotPassword';
-import ResetPassword from './pages/ResetPassword';
+const Login = lazy(() => import('./pages/Login'));
+const Register = lazy(() => import('./pages/Register'));
+const ForgotPassword = lazy(() => import('./pages/ForgotPassword'));
+const ResetPassword = lazy(() => import('./pages/ResetPassword'));
 
 const Browse = lazy(() => import('./pages/Browse'));
+const CardGallery = lazy(() => import('./pages/CardGallery'));
 const Dashboard = lazy(() => import('./pages/Dashboard'));
 const Swaps = lazy(() => import('./pages/Swaps'));
 const CalendarPage = lazy(() => import('./pages/CalendarPage'));
@@ -32,8 +33,6 @@ const AdminDashboard = lazy(() => import('./pages/AdminDashboard'));
 const Workspaces = lazy(() => import('./pages/Workspaces'));
 const Badges = lazy(() => import('./pages/Badges'));
 const NotFound = lazy(() => import('./pages/NotFound'));
-
-import './index.css';
 
 function ProtectedRoute({ children }) {
   const { user, loading } = useAuth();
@@ -55,12 +54,13 @@ function AppRoutes() {
     <>
       <Routes>
         <Route path="/" element={<Suspense fallback={<Spinner />}><Landing /></Suspense>} />
-        <Route path="/login" element={user ? <Navigate to={user.role === 'admin' ? '/admin' : '/dashboard'} /> : <Login />} />
-        <Route path="/register" element={user ? <Navigate to={user.role === 'admin' ? '/admin' : '/dashboard'} /> : <Register />} />
-        <Route path="/forgot-password" element={<ForgotPassword />} />
-        <Route path="/reset-password/:token" element={<ResetPassword />} />
+        <Route path="/login" element={user ? <Navigate to={user.role === 'admin' ? '/admin' : '/dashboard'} /> : <Suspense fallback={<Spinner />}><Login /></Suspense>} />
+        <Route path="/register" element={user ? <Navigate to={user.role === 'admin' ? '/admin' : '/dashboard'} /> : <Suspense fallback={<Spinner />}><Register /></Suspense>} />
+        <Route path="/forgot-password" element={<Suspense fallback={<Spinner />}><ForgotPassword /></Suspense>} />
+        <Route path="/reset-password/:token" element={<Suspense fallback={<Spinner />}><ResetPassword /></Suspense>} />
         <Route path="/dashboard" element={<ProtectedRoute><Suspense fallback={<Spinner />}><Dashboard /></Suspense></ProtectedRoute>} />
         <Route path="/browse" element={<ProtectedRoute><Suspense fallback={<Spinner />}><Browse /></Suspense></ProtectedRoute>} />
+        <Route path="/card-gallery" element={<ProtectedRoute><Suspense fallback={<Spinner />}><CardGallery /></Suspense></ProtectedRoute>} />
         <Route path="/workspaces" element={<ProtectedRoute><Suspense fallback={<Spinner />}><Workspaces /></Suspense></ProtectedRoute>} />
         <Route path="/swaps" element={<ProtectedRoute><Suspense fallback={<Spinner />}><Swaps /></Suspense></ProtectedRoute>} />
         <Route path="/calendar" element={<ProtectedRoute><Suspense fallback={<Spinner />}><CalendarPage /></Suspense></ProtectedRoute>} />
@@ -107,7 +107,7 @@ function SplashGate({ children }) {
   );
 }
 
-const queryClient = new QueryClient({ defaultOptions: { queries: { staleTime: 30_000, retry: 1 } } });
+const queryClient = new QueryClient({ defaultOptions: { queries: { staleTime: 30_000, gcTime: 5 * 60_000, retry: 1, refetchOnWindowFocus: false } } });
 
 export default function App() {
   return (
@@ -118,10 +118,12 @@ export default function App() {
           <ToastProvider>
             <SocketProvider>
               <SplashGate>
-                <Navbar />
-                <CommandPalette />
-                <KeyboardShortcutsModal />
-                <ErrorBoundary>
+        <Navbar />
+        <Suspense fallback={null}>
+          <CommandPalette />
+          <KeyboardShortcutsModal />
+        </Suspense>
+        <ErrorBoundary>
                   <AppRoutes />
                 </ErrorBoundary>
               </SplashGate>

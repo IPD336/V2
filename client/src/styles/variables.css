@@ -1,0 +1,72 @@
+@import url('https://fonts.googleapis.com/css2?family=PT+Serif:ital,wght@0,400;0,700;1,400;1,700&family=PT+Sans:ital,wght@0,400;0,700;1,400;1,700&family=PT+Mono&display=swap');
+
+:root {
+  --ink: #0f0f0f;
+  --ink-light: #2a2a2a;
+  --cream: #F8F4EE;
+  --warm: #EDE8DF;
+  --accent: #C84B31;
+  --accent-rgb: 200, 75, 49;
+  --accent-light: #F0EBE6;
+  --sage: #3A6351;
+  --sage-rgb: 58, 99, 81;
+  --sage-light: #E4EDE8;
+  --gold: #B8902A;
+  --gold-rgb: 184, 144, 42;
+  --gold-light: #F5EDD6;
+  --indigo: #3B4F8C;
+  --indigo-rgb: 59, 79, 140;
+  --indigo-light: #E8EAF3;
+  --muted: #7A7268;
+  --white: #FFFFFF;
+  --border: rgba(15,15,15,0.10);
+  --dot-color: rgba(15,15,15,0.08);
+  --shadow: 0 4px 32px rgba(15,15,15,0.08);
+  --shadow-lg: 0 16px 64px rgba(15,15,15,0.12);
+  --nav-bg: rgba(248,244,238,0.92);
+  --card-bg: #FFFFFF;
+  /* Always-dark section variables (used in How It Works, Footer) */
+  --section-dark: #E8E0D8;
+  --section-dark-secondary: #EDE6DE;
+  --section-card: rgba(0,0,0,0.03);
+  --section-card-border: var(--border);
+  --section-text: var(--ink);
+  --section-text-muted: var(--muted);
+  --section-divider: rgba(255,255,255,0.12);
+}
+
+[data-theme='dark'] {
+  /* Warm dark palette — echoes the cream/beige warmth of light mode */
+  --ink: #f0ebe4;           /* warm off-white, not cold white */
+  --ink-light: #d4cdc4;     /* warm light grey */
+  --cream: #1c1814;         /* warm very dark brown, like cream in a dark room */
+  --warm: #231e1a;          /* slightly lighter warm tone */
+  --accent: #d9562e;        /* earthy brick-orange — keeps the light mode vibe */
+  --accent-rgb: 217, 86, 46;
+  --accent-light: #2c1a13;
+  --sage: #5fa882;
+  --sage-rgb: 95, 168, 130;
+  --sage-light: #2d4f3d;      /* more visible green in dark mode */
+  --gold: #c9a040;
+  --gold-rgb: 201, 160, 64;
+  --gold-light: #453b1d;      /* more visible gold in dark mode */
+  --indigo: #8097d4;
+  --indigo-rgb: 128, 151, 212;
+  --indigo-light: #242c45;    /* more visible indigo in dark mode */
+  --muted: #9a9088;         /* warm muted, not cold grey */
+  --white: #231e1a;
+  --border: rgba(240,235,228,0.10);
+  --dot-color: rgba(240,235,228,0.08);
+  --shadow: 0 4px 32px rgba(0,0,0,0.4);
+  --shadow-lg: 0 16px 64px rgba(0,0,0,0.6);
+  --nav-bg: rgba(28,24,20,0.96);
+  --card-bg: #26211c;       /* warm dark card */
+  /* Always-dark section variables */
+  --section-dark: #0f0c08;
+  --section-dark-secondary: #16120e;
+  --section-card: rgba(255,255,255,0.06);
+  --section-card-border: rgba(255,255,255,0.14);
+  --section-text: rgba(240,235,228,0.95);
+  --section-text-muted: rgba(240,235,228,0.55);
+  --section-divider: rgba(240,235,228,0.16);
+}

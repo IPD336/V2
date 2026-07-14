@@ -1,0 +1,112 @@
+/* ── ACCOUNT SETTINGS TWO-COLUMN LAYOUT ── */
+.settings-layout {
+  display: flex;
+  gap: 40px;
+  width: 100%;
+  margin-top: 32px;
+  align-items: flex-start;
+}
+
+@media (max-width: 900px) {
+  .settings-layout {
+    flex-direction: column;
+    gap: 24px;
+  }
+}
+
+.settings-sidebar {
+  width: 220px;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+@media (max-width: 900px) {
+  .settings-sidebar {
+    width: 100%;
+    flex-direction: row;
+    overflow-x: auto;
+    padding-bottom: 8px;
+  }
+}
+
+.settings-sidebar-btn {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 12px 18px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: var(--card-bg);
+  color: var(--muted);
+  font-family: 'PT Sans', sans-serif;
+  font-size: 13.5px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-align: left;
+}
+
+.settings-sidebar-btn:hover {
+  background: var(--accent-light);
+  color: var(--accent);
+  border-color: var(--accent);
+}
+
+.settings-sidebar-btn.active {
+  background: var(--card-bg);
+  color: var(--accent);
+  border: 2px solid var(--accent);
+  box-shadow: 0 4px 12px rgba(var(--accent-rgb), 0.08);
+}
+
+@media (max-width: 900px) {
+  .settings-sidebar-btn {
+    width: auto;
+    white-space: nowrap;
+  }
+}
+
+.settings-content {
+  flex: 1;
+  min-width: 0;
+}
+
+.modern-input-group {
+  position: relative;
+  margin-top: 14px;
+  margin-bottom: 20px;
+}
+
+.modern-input-label {
+  position: absolute;
+  top: -8px;
+  left: 16px;
+  background: var(--cream);
+  padding: 0 6px;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  z-index: 2;
+}
+
+.modern-input-field {
+  width: 100%;
+  border: 1.5px solid var(--border);
+  border-radius: 14px;
+  padding: 14px 16px;
+  background: rgba(0, 0, 0, 0.02) !important;
+  color: var(--ink);
+  font-size: 15px;
+  outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s;
+  font-family: 'PT Sans', sans-serif;
+}
+
+.modern-input-field:focus {
+  border-color: var(--accent);
+}

@@ -421,7 +421,8 @@ export default function CalendarPage() {
       setCalEvents(calRes.data.swaps);
       const { incoming, outgoing, active, completed } = swapsRes.data;
       setAllSwaps([...incoming, ...outgoing, ...active, ...completed]);
-    } catch {
+    } catch (err) {
+      if (import.meta.env.DEV) console.error(err);
       showToast('Failed to load calendar data', 'error');
     } finally {
       setLoading(false);

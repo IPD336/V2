@@ -1,0 +1,41 @@
+/* ─── SPLASH SCREEN ──────────────────────────────────────────────────── */
+@keyframes splash-scale-in {
+  from { opacity: 0; transform: scale(0.88); }
+  to   { opacity: 1; transform: scale(1); }
+}
+@keyframes splash-fade-up {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ─── SKILL JOURNEY TIMELINE ─────────────────────────────────────────── */
+
+/* Mobile: collapse to single-column with line on left */
+@media (max-width: 767px) {
+  .journey-row {
+    grid-template-columns: 56px 1fr !important;
+    height: auto !important;
+    min-height: 140px;
+    padding: 20px 0;
+    align-items: flex-start !important;
+  }
+  /* Left column (hidden on mobile — all content goes right) */
+  .journey-left {
+    display: none !important;
+  }
+  /* Center node column becomes column 1 on mobile */
+  .journey-row > div:nth-child(2) {
+    grid-column: 1 !important;
+    grid-row: 1;
+    justify-content: center;
+    padding-top: 8px;
+  }
+  /* Right column becomes column 2 on mobile, always visible */
+  .journey-right {
+    grid-column: 2 !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    transform: none !important;
+    padding-left: 20px !important;
+  }
+}

@@ -10,6 +10,10 @@ const { validate, objectId, z } = require('../utils/validation');
 
 const router = express.Router();
 
+function isParty(swap, userId) {
+  return [swap.sender.toString(), swap.receiver.toString()].includes(userId.toString());
+}
+
 const createSwapSchema = z.object({
   body: z.object({
     receiverId: objectId,
@@ -150,8 +154,8 @@ router.put('/:id/complete', auth, validate(idParamSchema), async (req, res) => {
   try {
     const swap = await Swap.findById(req.params.id);
     if (!swap) return res.fail('Swap not found', 404);
-    const isParty = [swap.sender.toString(), swap.receiver.toString()].includes(req.user.id.toString());
-    if (!isParty) return res.fail('Not authorised', 403);
+    const authorized = isParty(swap, req.user.id);
+    if (!authorized) return res.fail('Not authorised', 403);
     if (swap.status !== SWAP_STATUS.ACTIVE)
       return res.fail('Swap must be active to complete', 400);
 
@@ -181,8 +185,8 @@ router.put('/:id/confirm-complete', auth, validate(idParamSchema), async (req, r
   try {
     const swap = await Swap.findById(req.params.id);
     if (!swap) return res.fail('Swap not found', 404);
-    const isParty = [swap.sender.toString(), swap.receiver.toString()].includes(req.user.id.toString());
-    if (!isParty) return res.fail('Not authorised', 403);
+    const authorized = isParty(swap, req.user.id);
+    if (!authorized) return res.fail('Not authorised', 403);
     if (swap.status !== SWAP_STATUS.PENDING_COMPLETION)
       return res.fail('No completion request pending', 400);
 
@@ -211,8 +215,8 @@ router.put('/:id/decline-complete', auth, validate(idParamSchema), async (req, r
   try {
     const swap = await Swap.findById(req.params.id);
     if (!swap) return res.fail('Swap not found', 404);
-    const isParty = [swap.sender.toString(), swap.receiver.toString()].includes(req.user.id.toString());
-    if (!isParty) return res.fail('Not authorised', 403);
+    const authorized = isParty(swap, req.user.id);
+    if (!authorized) return res.fail('Not authorised', 403);
 
     swap.status = SWAP_STATUS.ACTIVE;
     swap.completedBy = [];
@@ -238,8 +242,8 @@ router.put('/:id/schedule', auth, validate(scheduleSchema), async (req, res) => 
   try {
     const swap = await Swap.findById(req.params.id);
     if (!swap) return res.fail('Swap not found', 404);
-    const isParty = [swap.sender.toString(), swap.receiver.toString()].includes(req.user.id.toString());
-    if (!isParty) return res.fail('Not authorised', 403);
+    const authorized = isParty(swap, req.user.id);
+    if (!authorized) return res.fail('Not authorised', 403);
     if (![SWAP_STATUS.PENDING, SWAP_STATUS.ACTIVE].includes(swap.status))
       return res.fail('Can only schedule pending or active swaps', 400);
 
@@ -309,7 +313,7 @@ router.delete('/:id', auth, validate(idParamSchema), async (req, res) => {
   }
 });
 
-router.get('/user/:id', validate(idParamSchema), async (req, res) => {
+router.get('/user/:id', auth, validate(idParamSchema), async (req, res) => {
   try {
     const swaps = await Swap.find({
       $or: [{ sender: req.params.id }, { receiver: req.params.id }],
@@ -321,15 +325,6 @@ router.get('/user/:id', validate(idParamSchema), async (req, res) => {
       .limit(10)
       .lean();
     res.respond({ swaps });
-  } catch (err) {
-    res.fail(err.message, 500);
-  }
-});
-
-router.post('/auto-complete-stale', auth, async (req, res) => {
-  try {
-    await autoCompleteStaleSwaps();
-    res.respond({ message: 'Stale swaps auto-completed' });
   } catch (err) {
     res.fail(err.message, 500);
   }

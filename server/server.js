@@ -34,7 +34,7 @@ app.use(cors({
   credentials: true,
 }));
 app.use(compression());
-app.use(express.json());
+app.use(express.json({ limit: '1mb' }));
 app.use(respondMiddleware);
 
 const authLimiter = rateLimit({
@@ -45,9 +45,27 @@ const authLimiter = rateLimit({
   legacyHeaders: false,
 });
 
+const aiLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 20,
+  message: { success: false, message: 'Too many AI requests, please try again later' },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
+const apiLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 100,
+  message: { success: false, message: 'Too many requests, please try again later' },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
 app.use('/api/auth/login', authLimiter);
 app.use('/api/auth/register', authLimiter);
 app.use('/api/auth/forgot-password', authLimiter);
+app.use('/api/ai', aiLimiter);
+app.use('/api', apiLimiter);
 
 app.use('/api/auth', authRoutes);
 app.use('/api/users', userRoutes);
@@ -77,36 +95,31 @@ if (!MONGO_URI) {
   process.exit(1);
 }
 
-async function migrateCorruptedBadges() {
-  try {
-    const db = mongoose.connection.db;
-    if (!db) return;
-    const users = db.collection('users');
-    const cursor = users.find({ badges: { $exists: true, $ne: [] } });
-    let fixed = 0;
-    while (await cursor.hasNext()) {
-      const doc = await cursor.next();
-      if (!doc.badges || !Array.isArray(doc.badges)) continue;
-      const hasStrings = doc.badges.some(b => typeof b === 'string');
-      if (!hasStrings) continue;
-      const fixedBadges = doc.badges.map(b =>
-        typeof b === 'string' ? { id: b, earnedAt: new Date() } : b
-      );
-      await users.updateOne({ _id: doc._id }, { $set: { badges: fixedBadges } });
-      fixed++;
-    }
-    if (fixed > 0) console.log(`Migration: fixed ${fixed} user(s) with corrupted badges`);
-  } catch (err) {
-    console.error('Migration error (non-fatal):', err.message);
-  }
-}
-
 mongoose
   .connect(MONGO_URI)
   .then(async () => {
     console.log('MongoDB connected');
-    await migrateCorruptedBadges();
     server.listen(PORT, () => console.log(`Server running on http://localhost:${PORT}`));
+
+    const shutdown = async () => {
+      console.log('Shutting down gracefully...');
+      server.close(() => {
+        mongoose.connection.close(false).then(() => process.exit(0));
+      });
+      setTimeout(() => process.exit(1), 10000);
+    };
+    process.on('SIGTERM', shutdown);
+    process.on('SIGINT', shutdown);
+
+    // League recalculation every hour (non-blocking)
+    const { updateAllLeagues } = require('./utils/updateLeagues');
+    updateAllLeagues();
+    setInterval(updateAllLeagues, 60 * 60 * 1000);
+
+    // Auto-complete stale swaps every hour
+    const { autoCompleteStaleSwaps } = require('./utils/autoCompleteSwaps');
+    autoCompleteStaleSwaps();
+    setInterval(autoCompleteStaleSwaps, 60 * 60 * 1000);
   })
   .catch((err) => {
     console.error('MongoDB connection failed:', err.message);

@@ -1,0 +1,63 @@
+/* ─── Skill Orbit Diagram ─── */
+.orbit-ring-group {
+  transform-origin: 250px 250px;
+  animation: orbit-spin linear infinite;
+}
+.orbit-ring-group-0 { animation-duration: 40s; }
+.orbit-ring-group-1 { animation-duration: 60s; animation-direction: reverse; }
+.orbit-ring-group-2 { animation-duration: 90s; }
+
+.orbit-node-group {
+  transform-origin: 0 0;
+  animation: orbit-counter-spin linear infinite;
+}
+.orbit-ring-group-0 .orbit-node-group { animation-duration: 40s; }
+.orbit-ring-group-1 .orbit-node-group { animation-duration: 60s; }
+.orbit-ring-group-2 .orbit-node-group { animation-duration: 90s; }
+
+.orbit-node-glow {
+  animation: orbit-node-pulse 2.5s ease-in-out infinite;
+}
+.orbit-node-group:hover .orbit-node-glow {
+  opacity: 0.35 !important;
+}
+.orbit-node-group:hover circle:not(.orbit-node-glow) {
+  filter: brightness(1.2);
+}
+
+.orbit-pulse-ring-g {
+  transform-origin: 250px 250px;
+  animation: orbit-pulse-ring-g 3.6s ease-out infinite;
+}
+
+.orbit-swap-arc {
+  stroke-dasharray: 8 300;
+  stroke-dashoffset: 0;
+  animation: orbit-draw-arc 4s ease-in-out infinite;
+}
+
+@keyframes orbit-spin {
+  to { transform: rotate(360deg); }
+}
+
+@keyframes orbit-counter-spin {
+  to { transform: rotate(-360deg); }
+}
+
+@keyframes orbit-node-pulse {
+  0%, 100% { opacity: 0.12; }
+  50% { opacity: 0.25; }
+}
+
+@keyframes orbit-pulse-ring-g {
+  0%   { transform: scale(0.3); opacity: 0.5; }
+  100% { transform: scale(2.3); opacity: 0; }
+}
+
+@keyframes orbit-draw-arc {
+  0% { stroke-dashoffset: 300; opacity: 0; }
+  15% { stroke-dashoffset: 0; opacity: 0.6; }
+  70% { stroke-dashoffset: 0; opacity: 0.6; }
+  85% { stroke-dashoffset: -300; opacity: 0; }
+  100% { stroke-dashoffset: -300; opacity: 0; }
+}

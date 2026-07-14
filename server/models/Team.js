@@ -31,7 +31,7 @@ teamSchema.index({ 'members.user': 1 });
 
 teamSchema.pre('save', function () {
   if (!this.inviteCode) {
-    this.inviteCode = Math.random().toString(36).substring(2, 8).toUpperCase();
+    this.inviteCode = require('crypto').randomBytes(8).toString('hex').toUpperCase();
   }
   const acceptedCount = this.members.filter((m) => m.status === 'accepted').length;
   if (acceptedCount >= this.maxSize) {

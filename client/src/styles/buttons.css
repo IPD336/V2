@@ -1,0 +1,9 @@
+/* ── BUTTONS ── */
+.btn-accent { background: var(--accent); color: white; border: none; border-radius: 8px; padding: 9px 22px; font-size: 13px; font-weight: 600; cursor: pointer; font-family: 'PT Sans', sans-serif; letter-spacing: 0.3px; transition: all .2s; box-shadow: 0 2px 12px rgba(var(--accent-rgb),0.25); }
+.btn-accent:hover { filter: brightness(0.85); box-shadow: 0 4px 20px rgba(var(--accent-rgb),0.35); }
+.btn-ghost { border: 1.5px solid var(--border); border-radius: 8px; padding: 8px 20px; font-size: 13px; font-weight: 600; background: transparent; cursor: pointer; font-family: 'PT Sans', sans-serif; color: var(--ink); transition: all .2s; }
+.btn-ghost:hover { border-color: var(--accent); background: var(--accent); color: white; }
+.btn-ink { background: var(--accent); color: white; border: none; border-radius: 8px; padding: 11px 28px; font-size: 13px; font-weight: 700; cursor: pointer; font-family: 'PT Sans', sans-serif; transition: all .25s; }
+.btn-ink:hover { filter: brightness(0.85); transform: translateY(-1px); box-shadow: 0 4px 20px rgba(var(--accent-rgb),0.35); }
+.btn-outline-sm { display: flex; align-items: center; gap: 7px; border: 1.5px solid var(--border); border-radius: 8px; padding: 10px 20px; background: transparent; cursor: pointer; font-family: 'PT Sans', sans-serif; font-size: 12px; font-weight: 600; color: var(--ink); text-decoration: none; transition: all .2s; }
+.btn-outline-sm:hover { background: var(--accent); color: white; border-color: var(--accent); }

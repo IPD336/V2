@@ -227,8 +227,10 @@ router.put('/:id/respond', auth, validate(respondSchema), async (req, res) => {
       ]);
     }
 
-    await team.populate('creator', 'name avatarColor avatarUrl');
-    await team.populate('members.user', 'name avatarColor avatarUrl');
+    await Promise.all([
+      team.populate('creator', 'name avatarColor avatarUrl'),
+      team.populate('members.user', 'name avatarColor avatarUrl'),
+    ]);
     res.respond(team);
   } catch (err) {
     res.fail(err.message, 500);

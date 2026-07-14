@@ -1,24 +1,8 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '../api/axios';
-import {
-  RocketIcon, HandshakeIcon, StarIcon, SwapIcon, TargetIcon,
-  DiamondIcon, SparklesIcon, CheckIcon, TrophyIcon, MedalIcon,
-  PinIcon, SendIcon, SearchIcon, WorkspaceIcon,
-} from '../components/Icons';
+import { BadgeIcon } from '../utils/badges';
 import Spinner from '../components/Spinner';
-
-const badgeIconMap = {
-  RocketIcon, HandshakeIcon, StarIcon, SwapIcon, TargetIcon,
-  DiamondIcon, SparklesIcon, CheckIcon, TrophyIcon, MedalIcon,
-  PinIcon, SendIcon, SearchIcon, WorkspaceIcon,
-};
-
-function BadgeIcon({ name, size = 28 }) {
-  const Icon = badgeIconMap[name];
-  if (!Icon) return <span style={{ fontSize: size }}>•</span>;
-  return <Icon size={size} />;
-}
 
 const LEAGUE_COLORS = {
   Diamond: '#00E5FF', Platinum: '#B4C6DF', Gold: '#FFD700', Silver: '#C0C0C0', Bronze: '#CD7F32',

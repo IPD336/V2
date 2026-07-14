@@ -23,13 +23,18 @@ router.get('/', auth, async (req, res) => {
   }
 });
 
-router.put('/read-all', auth, async (req, res) => {
+const readAllSchema = z.object({
+  body: z.object({
+    type: z.string().max(50).optional(),
+  }).partial(),
+});
+
+router.put('/read-all', auth, validate(readAllSchema), async (req, res) => {
   try {
-    await Notification.updateMany(
-      { user: req.user.id, read: false },
-      { $set: { read: true } }
-    );
-    res.respond({ message: 'All notifications marked as read' });
+    const filter = { user: req.user.id, read: false };
+    if (req.body.type) filter.type = req.body.type;
+    await Notification.updateMany(filter, { $set: { read: true } });
+    res.respond({ message: 'Notifications marked as read' });
   } catch (err) {
     res.fail(err.message, 500);
   }

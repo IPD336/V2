@@ -5,10 +5,7 @@ import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
 import ConfirmModal from '../components/ConfirmModal';
 import { MailIcon, LinkIcon, PinIcon, LockIcon } from '../components/Icons';
-
-function initials(name = '') {
-  return name.split(' ').map((w) => w[0]).join('').toUpperCase().slice(0, 2);
-}
+import { initials } from '../utils';
 
 export default function TeamDetail() {
   const { id } = useParams();

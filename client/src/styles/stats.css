@@ -1,0 +1,6 @@
+/* ── STATS MINI ── */
+.stats-mini { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 32px; }
+.stat-mini-card { background: var(--card-bg); border-radius: 12px; padding: 18px 16px; border: 1px solid var(--border); transition: transform 0.25s, box-shadow 0.25s; }
+.stat-mini-card:hover { transform: translateY(-2px); box-shadow: 0 8px 32px rgba(0,0,0,0.08); }
+.stat-mini-num { font-family: 'PT Serif', serif; font-size: 36px; font-weight: 700; line-height: 1; margin-bottom: 4px; color: var(--accent); }
+.stat-mini-label { font-size: 11px; color: var(--muted); font-weight: 600; }

@@ -22,30 +22,9 @@ import {
   ClockIcon,
   WarningIcon,
   PinIcon,
-  TargetIcon,
-  DiamondIcon,
-  HandshakeIcon
 } from '../components/Icons';
-
-const badgeIcons = {
-  RocketIcon, HandshakeIcon, StarIcon, SwapIcon, TargetIcon,
-  DiamondIcon, SparklesIcon, CheckIcon, TrophyIcon, MedalIcon,
-  PinIcon, SendIcon, SearchIcon, WorkspaceIcon,
-};
-
-function BadgeIcon({ name, size = 20 }) {
-  const Icon = badgeIcons[name];
-  if (!Icon) return <span style={{ fontSize: size }}>•</span>;
-  return <Icon size={size} />;
-}
-
-function timeAgo(date) {
-  const diff = Date.now() - new Date(date);
-  const h = Math.floor(diff / 36e5);
-  if (h < 1) return 'just now';
-  if (h < 24) return `${h}h ago`;
-  return `${Math.floor(h / 24)}d ago`;
-}
+import { BadgeIcon } from '../utils/badges';
+import { initials, timeAgo } from '../utils';
 
 function getGreeting(name) {
   const h = new Date().getHours();
@@ -515,14 +494,14 @@ export default function Dashboard() {
                     <div style={{ height: 8, background: 'var(--border)', borderRadius: 4, overflow: 'hidden' }}>
                       <div style={{
                         height: '100%', width: `${Math.min(100, (gamification.xpCurrent / gamification.xpNeeded) * 100)}%`,
-                        background: 'linear-gradient(90deg, var(--accent), #8B5CF6)',
+                        background: 'var(--sage)',
                         borderRadius: 4, transition: 'width .5s ease',
                       }} />
                     </div>
                   </div>
                 )}
 
-                <div className="league-badge-display" style={{ borderLeft: `4px solid ${user?.league?.color || '#CD7F32'}`, margin: 0 }}>
+                <div className="league-badge-display" style={{ border: `1.5px solid ${user?.league?.color || 'var(--gold)'}`, background: 'var(--warm)', borderRadius: 12, padding: '16px', margin: 0, display: 'flex', alignItems: 'center', gap: 14 }}>
                   <TrophyIcon size={24} style={{ color: user?.league?.color || '#CD7F32' }} />
                   <div>
                     <div style={{ fontSize: 9, fontWeight: 700, textTransform: 'uppercase', color: 'var(--muted)', letterSpacing: 0.5 }}>Current League</div>

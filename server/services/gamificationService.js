@@ -21,52 +21,39 @@ function xpProgress(totalXp) {
   return { level, current, needed, totalXp };
 }
 
-function fixBadges(user) {
-  if (user.badges == null) return;
-  if (typeof user.badges === 'string') {
-    user.badges = [{ id: user.badges, earnedAt: new Date() }];
-    user.markModified('badges');
-    return;
-  }
-  if (Array.isArray(user.badges)) {
-    let changed = false;
-    user.badges = user.badges.map(b => {
-      if (typeof b === 'string' || b instanceof String || (b && typeof b === 'object' && typeof b.id === 'undefined' && typeof b.earnedAt === 'undefined')) {
-        changed = true;
-        const val = (typeof b === 'string' || b instanceof String) ? b.toString() : String(b);
-        return { id: val, earnedAt: new Date() };
-      }
-      return b;
-    });
-    if (changed) user.markModified('badges');
-  }
-}
-
 async function awardXp(userId, amount) {
-  const user = await User.findById(userId);
-  if (!user) return;
-
-  user.xp = (user.xp || 0) + amount;
-  user.level = calcLevel(user.xp);
-  fixBadges(user);
-  await user.save();
+  const newLevel = calcLevel((await User.findById(userId).select('xp').lean())?.xp || 0);
+  const updated = await User.findOneAndUpdate(
+    { _id: userId },
+    [
+      { $set: { xp: { $add: [{ $ifNull: ['$xp', 0] }, amount] } } },
+      { $set: { level: calcLevel('$xp') } },
+    ],
+    { new: true, runValidators: false }
+  );
+  if (!updated) return;
 }
 
 async function addBadge(userId, badgeId) {
-  const user = await User.findById(userId);
-  if (!user) return false;
-  if (user.badges.some(b => b.id === badgeId)) return false;
-
-  user.badges.push({ id: badgeId, earnedAt: new Date() });
-
   const detail = BADGE_DETAILS[badgeId];
-  if (detail && detail.xpReward) {
-    user.xp = (user.xp || 0) + detail.xpReward;
-    user.level = calcLevel(user.xp);
+  const xpReward = detail?.xpReward || 0;
+
+  const updateOps = [
+    { $addToSet: { badges: { id: badgeId, earnedAt: new Date() } } },
+  ];
+  if (xpReward > 0) {
+    updateOps.push({ $inc: { xp: xpReward } });
   }
 
-  fixBadges(user);
-  await user.save();
+  const updated = await User.findByIdAndUpdate(userId, updateOps, { new: true, runValidators: false });
+  if (!updated) return false;
+
+  const alreadyHad = updated.badges.filter(b => typeof b === 'string' ? b !== badgeId : b.id !== badgeId);
+  if (alreadyHad.length === updated.badges.length - 1 && xpReward === 0) return false;
+
+  if (xpReward > 0) {
+    await User.findByIdAndUpdate(userId, { $set: { level: calcLevel(updated.xp) } }, { runValidators: false });
+  }
 
   await createNotification(
     userId,
@@ -79,7 +66,7 @@ async function addBadge(userId, badgeId) {
 }
 
 async function trackDailyStreak(userId) {
-  const user = await User.findById(userId);
+  const user = await User.findById(userId).select('streak xp badges').lean();
   if (!user) return;
 
   const today = new Date().toISOString().split('T')[0];
@@ -97,12 +84,15 @@ async function trackDailyStreak(userId) {
   }
 
   const longestStreak = Math.max(currentStreak, user.streak?.longest || 0);
+  const newXp = (user.xp || 0) + XP_REWARDS.DAILY_LOGIN;
 
-  user.streak = { current: currentStreak, longest: longestStreak, lastActiveDate: today };
-  user.xp = (user.xp || 0) + XP_REWARDS.DAILY_LOGIN;
-  user.level = calcLevel(user.xp);
-  fixBadges(user);
-  await user.save();
+  await User.findByIdAndUpdate(userId, {
+    $set: {
+      streak: { current: currentStreak, longest: longestStreak, lastActiveDate: today },
+      level: calcLevel(newXp),
+    },
+    $inc: { xp: XP_REWARDS.DAILY_LOGIN },
+  }, { runValidators: false });
 
   if (currentStreak >= 3) await addBadge(userId, BADGES.STREAK_3);
   if (currentStreak >= 7) await addBadge(userId, BADGES.STREAK_7);

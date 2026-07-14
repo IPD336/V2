@@ -8,23 +8,12 @@ import { useSocket } from '../context/SocketContext';
 import { SkeletonRow } from '../components/Skeleton';
 import ConfirmModal from '../components/ConfirmModal';
 import { SwapIcon, MailIcon, SendIcon, CheckIcon, CalendarIcon, VideoIcon } from '../components/Icons';
-
-function timeAgo(date) {
-  const diff = Date.now() - new Date(date);
-  const h = Math.floor(diff / 36e5);
-  if (h < 1) return 'just now';
-  if (h < 24) return `${h}h ago`;
-  return `${Math.floor(h / 24)}d ago`;
-}
+import { initials, timeAgo } from '../utils';
 
 function formatScheduled(date) {
   if (!date) return null;
   const d = new Date(date);
   return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) + ' · ' + d.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true });
-}
-
-function initials(name = '') {
-  return name.split(' ').map((w) => w[0]).join('').toUpperCase().slice(0, 2);
 }
 
 function ReviewModal({ swap, onClose, onDone }) {

@@ -44,7 +44,7 @@ SkillSwap is a peer-to-peer skill exchange platform where professionals connect,
 | Technology | Purpose |
 |---|---|
 | React 19 | UI library |
-| Vite 8 | Build tool & dev server |
+| Vite 6 | Build tool & dev server |
 | React Router 7 | Routing |
 | Axios | HTTP client |
 | Socket.IO Client | Real-time messaging |
@@ -113,13 +113,6 @@ npm run dev
 
 The client runs on `http://localhost:5173` and proxies `/api` requests to `http://localhost:5000`.
 
-### Seeding an Admin
-
-```bash
-cd server
-node seedAdmin.js
-```
-
 ---
 
 ## Project Structure
@@ -134,39 +127,64 @@ skillswap/
 │   │   │   └── axios.js         # Axios instance with auth interceptor
 │   │   ├── assets/              # Static assets
 │   │   ├── components/
-│   │   │   ├── Navbar.jsx       # Top navigation
-│   │   │   ├── MobileBottomNav.jsx  # Mobile bottom tab bar
-│   │   │   ├── Footer.jsx       # Site footer
-│   │   │   ├── Logo.jsx         # SVG logo component
-│   │   │   ├── SwapRequestModal.jsx
-│   │   │   ├── OnboardingModal.jsx
+│   │   │   ├── AnimatedCounter.jsx
+│   │   │   ├── Calendar.jsx
+│   │   │   ├── CommandPalette.jsx
+│   │   │   ├── ConfirmModal.jsx
 │   │   │   ├── Confetti.jsx
+│   │   │   ├── DateTimePicker.jsx
+│   │   │   ├── DatePicker.jsx
 │   │   │   ├── ErrorBoundary.jsx
-│   │   │   ├── Skeleton.jsx     # Loading skeleton components
-│   │   │   └── Reveal.jsx       # Scroll-reveal wrapper
+│   │   │   ├── FAQAccordion.jsx
+│   │   │   ├── FollowsListModal.jsx
+│   │   │   ├── Footer.jsx
+│   │   │   ├── Icons.jsx
+│   │   │   ├── KeyboardShortcutsModal.jsx
+│   │   │   ├── LineSidebar.jsx
+│   │   │   ├── LoadingOverlay.jsx
+│   │   │   ├── Logo.jsx
+│   │   │   ├── MobileBottomNav.jsx
+│   │   │   ├── Navbar.jsx
+│   │   │   ├── OnboardingModal.jsx
+│   │   │   ├── Reveal.jsx
+│   │   │   ├── Skeleton.jsx
+│   │   │   ├── SkillConstellationDiagram.jsx
+│   │   │   ├── SkillJourneyTimeline.jsx
+│   │   │   ├── SkillOrbitDiagram.jsx
+│   │   │   ├── Spinner.jsx
+│   │   │   ├── SplashScreen.jsx
+│   │   │   ├── SwapRequestModal.jsx
+│   │   │   ├── TextRoll.jsx
+│   │   │   └── TypingIndicator.jsx
 │   │   ├── context/
 │   │   │   ├── AuthContext.jsx
 │   │   │   ├── SocketContext.jsx
 │   │   │   ├── ThemeContext.jsx
 │   │   │   └── ToastContext.jsx
 │   │   ├── pages/
-│   │   │   ├── Landing.jsx      # Marketing hero
+│   │   │   ├── Badges.jsx
+│   │   │   ├── Browse.jsx
+│   │   │   ├── CalendarPage.jsx
+│   │   │   ├── Dashboard.jsx
+│   │   │   ├── ForgotPassword.jsx
+│   │   │   ├── Landing.jsx
+│   │   │   ├── Leaderboard.jsx
 │   │   │   ├── Login.jsx
+│   │   │   ├── NotFound.jsx
+│   │   │   ├── Profile.jsx
 │   │   │   ├── Register.jsx
-│   │   │   ├── Browse.jsx       # User discovery + matching
-│   │   │   ├── Swaps.jsx        # Swap request management
-│   │   │   ├── Workspaces.jsx   # Real-time collaboration
-│   │   │   ├── Teams.jsx        # Team management
+│   │   │   ├── ResetPassword.jsx
+│   │   │   ├── Swaps.jsx
 │   │   │   ├── TeamDetail.jsx
-│   │   │   ├── Profile.jsx      # Own profile editor
-│   │   │   ├── UserProfile.jsx  # Other user's profile
-│   │   │   ├── Leaderboard.jsx  # Rankings + leagues
-│   │   │   ├── AdminDashboard.jsx
-│   │   │   └── NotFound.jsx     # 404 page
-│   │   ├── utils.js             # Shared constants & helpers
-│   │   ├── index.css            # Global styles
-│   │   ├── App.jsx              # App shell + routes
-│   │   └── main.jsx             # Entry point
+│   │   │   ├── Teams.jsx
+│   │   │   ├── UserProfile.jsx
+│   │   │   └── Workspaces.jsx
+│   │   ├── utils/
+│   │   │   └── badges.jsx      # Badge definitions + BadgeIcon component
+│   │   ├── utils.js            # Shared constants & helpers
+│   │   ├── index.css           # Global styles
+│   │   ├── App.jsx             # App shell + routes
+│   │   └── main.jsx            # Entry point
 │   ├── vite.config.js
 │   └── vercel.json
 │
@@ -179,24 +197,38 @@ skillswap/
 │   │   ├── Swap.js
 │   │   ├── Team.js
 │   │   ├── Message.js
+│   │   ├── Notification.js
 │   │   └── Review.js
 │   ├── routes/
+│   │   ├── admin.js
+│   │   ├── ai.js
 │   │   ├── auth.js
-│   │   ├── users.js
+│   │   ├── gamification.js
+│   │   ├── leaderboard.js
+│   │   ├── messages.js
+│   │   ├── notifications.js
+│   │   ├── reviews.js
 │   │   ├── swaps.js
 │   │   ├── teams.js
-│   │   ├── reviews.js
-│   │   ├── leaderboard.js
-│   │   ├── notifications.js
-│   │   ├── messages.js
-│   │   └── admin.js
+│   │   └── users.js
+│   ├── services/
+│   │   ├── emailService.js
+│   │   ├── gamificationService.js
+│   │   ├── geminiService.js
+│   │   ├── matchService.js
+│   │   └── notificationService.js
+│   ├── scripts/
+│   │   └── migrateBadges.js
 │   ├── utils/
-│   │   ├── cloudinary.js        # Image upload config
-│   │   └── updateLeagues.js     # League computation
-│   ├── socket.js                # WebSocket events
-│   ├── server.js                # Entry point
-│   ├── seedAdmin.js             # Admin seeding script
-│   └── .env                     # Environment variables
+│   │   ├── cache.js
+│   │   ├── cloudinary.js
+│   │   ├── respond.js
+│   │   ├── updateLeagues.js
+│   │   └── validation.js
+│   ├── constants.js            # Enums, badge definitions
+│   ├── socket.js               # WebSocket events
+│   ├── server.js               # Entry point
+│   └── .env                    # Environment variables
 │
 ├── .gitignore
 └── README.md

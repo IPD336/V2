@@ -5,33 +5,15 @@ import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
 import { useSocket } from '../context/SocketContext';
 import SwapRequestModal from '../components/SwapRequestModal';
-import Spinner from '../components/Spinner';
 import TypingIndicator from '../components/TypingIndicator';
-import { PinIcon, ClockIcon, StarIcon, DiamondIcon, TrophyIcon, MedalIcon, HandshakeIcon, LinkIcon, SparklesIcon, RocketIcon, SwapIcon, TargetIcon, CheckIcon, SendIcon, SearchIcon, WorkspaceIcon, PaletteIcon } from '../components/Icons';
-
-function initials(name = '') {
-  return name.split(' ').map((w) => w[0]).join('').toUpperCase().slice(0, 2);
-}
-
-function stars(n) {
-  return '★'.repeat(Math.round(n)) + '☆'.repeat(5 - Math.round(n));
-}
-
-const badgeIconMap = {
-  RocketIcon, HandshakeIcon, StarIcon, SwapIcon, TargetIcon,
-  DiamondIcon, SparklesIcon, CheckIcon, TrophyIcon, MedalIcon,
-  PinIcon, SendIcon, SearchIcon, WorkspaceIcon,
-};
-
-function BadgeIcon({ name, size = 20 }) {
-  const Icon = badgeIconMap[name];
-  if (!Icon) return <span style={{ fontSize: size }}>•</span>;
-  return <Icon size={size} />;
-}
+import { PinIcon, ClockIcon, StarIcon, DiamondIcon, TrophyIcon, MedalIcon, HandshakeIcon, LinkIcon, SparklesIcon, SendIcon, UserPlusIcon, UserCheckIcon } from '../components/Icons';
+import { BadgeIcon } from '../utils/badges';
+import FollowsListModal from '../components/FollowsListModal';
+import { initials, stars } from '../utils';
 
 export default function UserProfile() {
   const { id } = useParams();
-  const { user: me } = useAuth();
+  const { user: me, refreshUser } = useAuth();
   const { showToast } = useToast();
   const { isUserOnline } = useSocket();
   const navigate = useNavigate();
@@ -40,13 +22,16 @@ export default function UserProfile() {
   const [swapHistory, setSwapHistory] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showSwap, setShowSwap] = useState(false);
-  const [saved, setSaved] = useState(false);
+  const [isFollowing, setIsFollowing] = useState(false);
+  const [isFollowedByUser, setIsFollowedByUser] = useState(false);
+  const [followersCount, setFollowersCount] = useState(0);
   const [aiSummary, setAiSummary] = useState('');
   const [aiSummaryLoading, setAiSummaryLoading] = useState(false);
   const [aiSummarySlow, setAiSummarySlow] = useState(false);
   const [flipped, setFlipped] = useState(false);
   const [gamification, setGamification] = useState(null);
   const [flipHeight, setFlipHeight] = useState(null);
+  const [modalType, setModalType] = useState(null); // 'followers' | 'following' | null
   const frontRef = useRef(null);
   const backRef = useRef(null);
   const innerRef = useRef(null);
@@ -63,7 +48,19 @@ export default function UserProfile() {
         setUser(uRes.data);
         setReviews(rRes.data.reviews);
         setSwapHistory(sRes.data.swaps);
-        setSaved(me?.savedProfiles?.includes(id));
+        setFollowersCount(uRes.data.followersCount || 0);
+
+        // Check if I'm following this user
+        if (me && me._id !== id) {
+          const fRes = await api.get('/users/me/following-ids').catch(() => ({ data: { followingIds: [] } }));
+          setIsFollowing(fRes.data.followingIds.includes(id));
+        }
+
+        // Check if this user follows me (for DM button)
+        if (me && me._id !== id) {
+          const myFollowers = await api.get(`/users/${me._id}/followers`).catch(() => ({ data: { followers: [] } }));
+          setIsFollowedByUser(myFollowers.data.followers?.some(u => u._id === id) || false);
+        }
         if (gRes) setGamification(gRes.data);
 
         if (rRes.data.reviews?.length > 0) {
@@ -71,10 +68,11 @@ export default function UserProfile() {
           const slowTimer = setTimeout(() => setAiSummarySlow(true), 5000);
           api.get(`/ai/reviews-summary/${id}`)
             .then(res => setAiSummary(res.data.summary))
-            .catch(() => {})
+            .catch((err) => { if (import.meta.env.DEV) console.error(err); })
             .finally(() => { setAiSummaryLoading(false); setAiSummarySlow(false); clearTimeout(slowTimer); });
         }
-      } catch {
+      } catch (err) {
+        if (import.meta.env.DEV) console.error(err);
         showToast('User not found', 'error');
         navigate('/browse');
       } finally {
@@ -84,13 +82,15 @@ export default function UserProfile() {
     load();
   }, [id, me, navigate, showToast]);
 
-  const handleSave = async () => {
+  const handleFollow = async () => {
     try {
-      const res = await api.post(`/users/${id}/save`);
-      setSaved(res.data.saved);
-      showToast(res.data.saved ? 'Saved to favourites ★' : 'Removed from favourites');
+      const res = await api.post(`/users/${id}/follow`);
+      setIsFollowing(res.data.following);
+      setFollowersCount(res.data.followersCount);
+      showToast(res.data.following ? 'Followed! ★' : 'Unfollowed');
+      await refreshUser();
     } catch {
-      showToast('Could not save', 'error');
+      showToast('Could not follow', 'error');
     }
   };
 
@@ -166,6 +166,8 @@ export default function UserProfile() {
                         )}
                       </div>
                       <div style={{ fontSize: 14, color: 'var(--muted)', display: 'flex', gap: 16, marginBottom: 16, flexWrap: 'wrap' }}>
+                        <span onClick={() => setModalType('followers')} style={{ display: 'flex', alignItems: 'center', gap: 4, cursor: 'pointer', textDecoration: 'underline' }}><strong>{followersCount}</strong> Followers</span>
+                        <span onClick={() => setModalType('following')} style={{ display: 'flex', alignItems: 'center', gap: 4, cursor: 'pointer', textDecoration: 'underline' }}><strong>{user.followingCount || 0}</strong> Following</span>
                         {user.location && <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}><PinIcon size={12} /> {user.location}</span>}
                         <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}><StarIcon size={12} /> {user.rating?.toFixed(1) || '—'} ({user.reviewCount || 0} reviews)</span>
                         <span className="hide-mobile" style={{ display: 'flex', alignItems: 'center', gap: 4 }}><ClockIcon size={12} /> {user.availability}</span>
@@ -182,10 +184,15 @@ export default function UserProfile() {
                       </button>
                       {me?._id !== user._id && (
                         <>
-                          <button className={`btn-icon ${saved ? 'saved' : ''}`} onClick={handleSave} title="Save">
-                            {saved ? '★' : '☆'}
+                          <button className={`btn-icon ${isFollowing ? 'following' : ''}`} style={{ color: isFollowing ? 'var(--accent)' : 'var(--muted)', borderColor: isFollowing ? 'var(--accent)' : 'var(--border)' }} onClick={handleFollow} title={isFollowing ? 'Unfollow' : 'Follow'}>
+                            {isFollowing ? <UserCheckIcon size={16} /> : <UserPlusIcon size={16} />}
                           </button>
                           <button className="btn-cosmos btn-cosmos-primary" onClick={() => setShowSwap(true)} style={{ padding: '10px 20px', fontSize: 11 }}>Request Swap</button>
+                          {isFollowing && isFollowedByUser && (
+                            <button className="btn-cosmos btn-cosmos-ghost" onClick={() => navigate(`/workspaces?dm=${user._id}`)} style={{ padding: '8px 16px', fontSize: 11, display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+                              <SendIcon size={12} style={{ transform: 'rotate(-45deg)', marginTop: -2 }} /> Message
+                            </button>
+                          )}
                         </>
                       )}
                     </div>
@@ -407,7 +414,13 @@ export default function UserProfile() {
         </div>
       </div>
 
-      {showSwap && <SwapRequestModal target={user} onClose={() => setShowSwap(false)} />}
+      {showSwap && (
+        <SwapRequestModal target={user} onClose={() => setShowSwap(false)} />
+      )}
+      
+      {modalType && (
+        <FollowsListModal userId={user._id} type={modalType} onClose={() => setModalType(null)} />
+      )}
     </div>
   );
 }

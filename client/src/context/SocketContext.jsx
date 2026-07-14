@@ -44,7 +44,7 @@ export function SocketProvider({ children }) {
     });
 
     newSocket.on('connect', () => {
-      console.log('Connected to real-time server');
+      if (import.meta.env.DEV) console.log('Connected to real-time server');
     });
 
     // Presence
@@ -101,7 +101,7 @@ export function SocketProvider({ children }) {
     }, 2000);
   }, [socket]);
 
-  const markAsRead = async (id) => {
+  const markAsRead = useCallback(async (id) => {
     try {
       const n = notifications.find(notif => notif._id === id);
       if (n && !n.read) {
@@ -112,23 +112,21 @@ export function SocketProvider({ children }) {
     } catch (err) {
       showToast('Failed to mark notification as read', 'error');
     }
-  };
+  }, [notifications, showToast]);
 
-  const markTypeAsRead = async (type) => {
+  const markTypeAsRead = useCallback(async (type) => {
     try {
       const unreadOfType = notifications.filter(n => n.type === type && !n.read);
       if (unreadOfType.length === 0) return;
-      for (const n of unreadOfType) {
-        await api.put(`/notifications/${n._id}/read`);
-      }
+      await api.put('/notifications/read-all', { type });
       setNotifications(prev => prev.map(n => n.type === type ? { ...n, read: true } : n));
       setUnreadCount(prev => Math.max(0, prev - unreadOfType.length));
     } catch (err) {
       showToast('Failed to update notifications', 'error');
     }
-  };
+  }, [notifications, showToast]);
 
-  const dismissNotification = async (id) => {
+  const dismissNotification = useCallback(async (id) => {
     try {
       await api.put(`/notifications/${id}/read`);
       setNotifications(prev => prev.filter(n => n._id !== id));
@@ -136,9 +134,9 @@ export function SocketProvider({ children }) {
     } catch (err) {
       showToast('Failed to dismiss notification', 'error');
     }
-  };
+  }, [showToast]);
 
-  const markAllAsRead = async () => {
+  const markAllAsRead = useCallback(async () => {
     try {
       await api.put('/notifications/read-all');
       setNotifications(prev => prev.map(n => ({ ...n, read: true })));
@@ -146,7 +144,7 @@ export function SocketProvider({ children }) {
     } catch (err) {
       showToast('Failed to mark all as read', 'error');
     }
-  };
+  }, [showToast]);
 
   const ctx = useMemo(() => ({ socket, notifications, unreadCount, onlineUsers, isUserOnline, markAsRead, markAllAsRead, markTypeAsRead, dismissNotification, emitTyping, emitStopTyping, emitTypingDebounced }), [socket, notifications, unreadCount, onlineUsers, isUserOnline, markAsRead, markAllAsRead, markTypeAsRead, dismissNotification, emitTyping, emitStopTyping, emitTypingDebounced]);
 

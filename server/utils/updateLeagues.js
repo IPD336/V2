@@ -11,29 +11,49 @@ function getLeague(percentile, rank) {
 
 async function updateAllLeagues() {
   try {
-    const allUsers = await User.find({ isPublic: { $ne: false }, role: { $ne: 'admin' }, isBanned: false });
-    
-    // Compute score
-    const scoredUsers = allUsers.map(u => ({
-      _id: u._id,
-      score: (u.rating || 0) * (u.reviewCount || 0)
+    const pipeline = [
+      { $match: { isPublic: { $ne: false }, role: { $ne: 'admin' }, isBanned: false } },
+      { $addFields: { score: { $multiply: [{ $ifNull: ['$rating', 0] }, { $ifNull: ['$reviewCount', 0] }] } } },
+      { $sort: { score: -1 } },
+      {
+        $setWindowFields: {
+          sortBy: { score: -1 },
+          output: { rank: { $rank: {} } },
+        },
+      },
+      {
+        $addFields: {
+          totalUsers: { $count: {} },
+        },
+      },
+    ];
+
+    // Get total count and ranked users in one aggregation
+    const result = await User.aggregate([
+      ...pipeline,
+      {
+        $facet: {
+          ranked: [
+            {
+              $addFields: {
+                percentile: { $multiply: [{ $divide: ['$rank', { $ifNull: ['$totalUsers', 1] }] }, 100] },
+              },
+            },
+          ],
+          count: [{ $group: { _id: null, total: { $sum: 1 } } }],
+        },
+      },
+    ]);
+
+    const totalUsers = result[0]?.count[0]?.total || 1;
+    const rankedUsers = result[0]?.ranked || [];
+
+    const bulkOps = rankedUsers.map(u => ({
+      updateOne: {
+        filter: { _id: u._id },
+        update: { $set: { league: getLeague(u.percentile, u.rank) } },
+      },
     }));
-
-    // Sort descending
-    scoredUsers.sort((a, b) => b.score - a.score);
-
-    const totalUsers = scoredUsers.length || 1;
-
-    // Bulk update operations
-    const bulkOps = scoredUsers.map((u, idx) => {
-      const percentile = ((idx + 1) / totalUsers) * 100;
-      return {
-        updateOne: {
-          filter: { _id: u._id },
-          update: { $set: { league: getLeague(percentile, idx + 1) } }
-        }
-      };
-    });
 
     if (bulkOps.length > 0) {
       await User.bulkWrite(bulkOps);

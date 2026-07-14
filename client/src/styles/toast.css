@@ -1,0 +1,8 @@
+/* ── TOAST STACK ── */
+.toast-stack { position: fixed; bottom: 28px; right: 28px; z-index: 99999; display: flex; flex-direction: column; gap: 10px; }
+/* Toast always uses a fixed dark background — independent of theme so it's always readable */
+.toast-item { background: #1a1612; color: #f0ebe4; padding: 13px 20px; border-radius: 10px; font-size: 13px; font-weight: 600; display: flex; align-items: center; gap: 10px; max-width: 320px; box-shadow: 0 8px 32px rgba(0,0,0,0.4); font-family: 'PT Sans', sans-serif; animation: toastIn .3s cubic-bezier(.2,.8,.2,1); border-left: 3px solid #5fa882; }
+.toast-item span { color: #5fa882; flex-shrink: 0; }
+.toast-error { border-left-color: #d9562e; }
+.toast-error span { color: #d9562e; }
+@keyframes toastIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: none; } }

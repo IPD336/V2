@@ -2,6 +2,7 @@ const express = require('express');
 const auth = require('../middleware/auth');
 const User = require('../models/User');
 const Review = require('../models/Review');
+const { matchScore } = require('../services/matchService');
 const {
   generateProposal,
   summarizeReviews,
@@ -59,7 +60,7 @@ router.post('/draft-proposal', auth, validate(draftProposalSchema), async (req, 
   }
 });
 
-router.get('/reviews-summary/:userId', async (req, res) => {
+router.get('/reviews-summary/:userId', auth, async (req, res) => {
   try {
     const reviews = await Review.find({ reviewee: req.params.userId }).select('rating learned feedback');
     const summary = await summarizeReviews(reviews);
@@ -69,7 +70,7 @@ router.get('/reviews-summary/:userId', async (req, res) => {
   }
 });
 
-router.get('/stream-reviews-summary/:userId', async (req, res) => {
+router.get('/stream-reviews-summary/:userId', auth, async (req, res) => {
   try {
     const reviews = await Review.find({ reviewee: req.params.userId }).select('rating learned feedback');
     sseHeaders(res);
@@ -100,22 +101,26 @@ router.post('/github-verify', auth, validate(githubVerifySchema), async (req, re
       username = username.split('github.com/')[1].split('/')[0].split('?')[0];
     }
 
-    const response = await fetch(`https://api.github.com/users/${username}/repos?per_page=30&sort=updated`, {
-      headers: { 'User-Agent': 'SkillSwap-AI-App', Authorization: `token ${process.env.GITHUB_TOKEN || ''}` }
-    });
-
     let repoList = [];
 
-    if (response.ok) {
-      const repos = await response.json();
-      if (Array.isArray(repos)) {
-        repoList = repos.map(r => ({
-          name: r.name,
-          description: r.description,
-          language: r.language
-        }));
+    if (process.env.GITHUB_TOKEN) {
+      const response = await fetch(`https://api.github.com/users/${username}/repos?per_page=30&sort=updated`, {
+        headers: { 'User-Agent': 'SkillSwap-AI-App', Authorization: `token ${process.env.GITHUB_TOKEN}` }
+      });
+
+      if (response.ok) {
+        const repos = await response.json();
+        if (Array.isArray(repos)) {
+          repoList = repos.map(r => ({
+            name: r.name,
+            description: r.description,
+            language: r.language
+          }));
+        }
       }
-    } else {
+    }
+
+    if (repoList.length === 0) {
       const htmlResponse = await fetch(`https://github.com/${username}?tab=repositories`, {
         headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)' }
       });
@@ -151,13 +156,12 @@ router.get('/smart-recommendations', auth, async (req, res) => {
       return res.respond({ recommendations: [] });
     }
 
-    const { matchScore } = require('../services/matchService');
-
     const candidates = await User.find({
       isPublic: { $ne: false },
       role: { $ne: 'admin' },
       _id: { $ne: req.user.id },
-    }).select('-passwordHash -savedProfiles').lean();
+      skillsOffered: { $exists: true, $ne: [] },
+    }).select('-passwordHash -savedProfiles').limit(200).lean();
 
     const scored = candidates
       .map((u) => ({ ...u, score: matchScore(me, u) }))
@@ -195,13 +199,12 @@ router.get('/stream-recommendations', auth, async (req, res) => {
       return res.end();
     }
 
-    const { matchScore } = require('../services/matchService');
-
     const candidates = await User.find({
       isPublic: { $ne: false },
       role: { $ne: 'admin' },
       _id: { $ne: req.user.id },
-    }).select('-passwordHash -savedProfiles').lean();
+      skillsOffered: { $exists: true, $ne: [] },
+    }).select('-passwordHash -savedProfiles').limit(200).lean();
 
     const scored = candidates
       .map((u) => ({ ...u, score: matchScore(me, u) }))

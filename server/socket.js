@@ -43,8 +43,32 @@ module.exports = {
       socket.emit('online_users', Array.from(userSockets.keys()));
 
       // Room management
-      socket.on('join_room', (roomId) => {
-        socket.join(roomId);
+      socket.on('join_room', async (roomId) => {
+        let allowed = false;
+        try {
+          if (roomId.startsWith('DM_')) {
+            const parts = roomId.split('_');
+            allowed = parts.includes(uid);
+          } else if (roomId.startsWith('swap_')) {
+            const swapId = roomId.replace('swap_', '');
+            const swap = await Swap.findById(swapId).select('sender receiver').lean();
+            if (swap) {
+              const id = swap.sender.toString();
+              allowed = id === uid || swap.receiver.toString() === uid;
+            }
+          } else if (roomId.startsWith('team_')) {
+            const teamId = roomId.replace('team_', '');
+            const team = await Team.findById(teamId).select('members').lean();
+            if (team) {
+              allowed = team.members.some(m => m.user.toString() === uid);
+            }
+          }
+        } catch (err) {
+          console.error('join_room auth error:', err);
+        }
+        if (allowed) {
+          socket.join(roomId);
+        }
       });
 
       // Chat messages
@@ -54,6 +78,18 @@ module.exports = {
           const msg = await Message.create({ room, sender: socket.userId, content, type });
           await msg.populate('sender', 'name avatarUrl avatarColor');
           io.to(room).emit('new_message', msg);
+
+          // If DM, also emit to recipient's individual socket connections
+          if (room.startsWith('DM_')) {
+            const parts = room.split('_'); // ['DM', 'id1', 'id2']
+            const recipientId = parts[1] === socket.userId.toString() ? parts[2] : parts[1];
+            const recipientSockets = userSockets.get(recipientId);
+            if (recipientSockets) {
+              for (const sid of recipientSockets) {
+                io.to(sid).emit('new_message', msg);
+              }
+            }
+          }
         } catch (err) {
           console.error('Error saving message:', err);
         }
@@ -94,11 +130,14 @@ module.exports = {
         const Model = type === 'swap' ? Swap : Team;
         try {
           const item = await Model.findById(room);
-          if (item) {
-            item.goals.push({ text, createdBy: socket.userId });
-            await item.save();
-            io.to(room).emit('goal_updated', item.goals);
-          }
+          if (!item) return;
+          const isParty = type === 'swap'
+            ? [item.sender.toString(), item.receiver.toString()].includes(uid)
+            : item.members.some(m => m.user.toString() === uid);
+          if (!isParty) return;
+          item.goals.push({ text, createdBy: socket.userId });
+          await item.save();
+          io.to(room).emit('goal_updated', item.goals);
         } catch (err) {
           console.error('Error adding goal:', err);
         }
@@ -109,13 +148,16 @@ module.exports = {
         const Model = type === 'swap' ? Swap : Team;
         try {
           const item = await Model.findById(room);
-          if (item) {
-            const goal = item.goals.id(goalId);
-            if (goal) {
-              goal.completed = !goal.completed;
-              await item.save();
-              io.to(room).emit('goal_updated', item.goals);
-            }
+          if (!item) return;
+          const isParty = type === 'swap'
+            ? [item.sender.toString(), item.receiver.toString()].includes(uid)
+            : item.members.some(m => m.user.toString() === uid);
+          if (!isParty) return;
+          const goal = item.goals.id(goalId);
+          if (goal) {
+            goal.completed = !goal.completed;
+            await item.save();
+            io.to(room).emit('goal_updated', item.goals);
           }
         } catch (err) {
           console.error('Error toggling goal:', err);

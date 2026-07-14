@@ -6,7 +6,7 @@ import { useSocket } from '../context/SocketContext';
 import { initials } from '../utils';
 import Logo from './Logo';
 import { BellIcon } from './Logo';
-import { MoonIcon, SunIcon, WorkspaceIcon, TeamsIcon, TrophyIcon, ProfileIcon, LogoutIcon, SwapIcon, HandshakeIcon, CalendarIcon, MedalIcon, SearchIcon, CommandIcon } from './Icons';
+import { MoonIcon, SunIcon, WorkspaceIcon, TeamsIcon, TrophyIcon, ProfileIcon, LogoutIcon, SwapIcon, HandshakeIcon, CalendarIcon, MedalIcon, SearchIcon, CommandIcon, PaletteIcon } from './Icons';
 import TextRoll from './TextRoll';
 
 const moreLinks = [
@@ -14,7 +14,8 @@ const moreLinks = [
   { to: '/workspaces', label: 'Workspaces', icon: 'workspace' },
   { to: '/teams', label: 'Teams', icon: 'teams' },
   { to: '/leaderboard', label: 'Leaderboard', icon: 'trophy' },
-  { to: '/badges', label: 'Badges', icon: 'medal' },
+  { to: '/badges', label: 'Medal', icon: 'medal' },
+  { to: '/card-gallery', label: 'Card Playground', icon: 'palette' },
 ];
 
 export default function Navbar() {
@@ -146,7 +147,7 @@ export default function Navbar() {
                         className="nav-dropdown-item"
                       >
                         <span className="nav-dropdown-icon">
-                          {l.icon === 'calendar' ? <CalendarIcon size={16} /> : l.icon === 'workspace' ? <WorkspaceIcon size={16} /> : l.icon === 'teams' ? <TeamsIcon size={16} /> : l.icon === 'medal' ? <MedalIcon size={16} /> : <TrophyIcon size={16} />}
+                          {l.icon === 'calendar' ? <CalendarIcon size={16} /> : l.icon === 'workspace' ? <WorkspaceIcon size={16} /> : l.icon === 'teams' ? <TeamsIcon size={16} /> : l.icon === 'medal' ? <MedalIcon size={16} /> : l.icon === 'palette' ? <PaletteIcon size={16} /> : <TrophyIcon size={16} />}
                         </span>
                         <TextRoll center>{l.label}</TextRoll>
                       </NavLink>

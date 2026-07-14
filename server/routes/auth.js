@@ -101,7 +101,7 @@ router.post('/forgot-password', validate(emailSchema), async (req, res) => {
     const { email } = req.body;
 
     const user = await User.findOne({ email });
-    if (!user) return res.fail('No account with that email exists', 404);
+    if (!user) return res.respond({ message: 'If an account with that email exists, a reset link has been sent.' });
 
     const rawToken = crypto.randomBytes(32).toString('hex');
     const hashedToken = crypto.createHash('sha256').update(rawToken).digest('hex');
@@ -114,7 +114,7 @@ router.post('/forgot-password', validate(emailSchema), async (req, res) => {
 
     await sendPasswordResetEmail(user.email, user.name, resetUrl);
 
-    res.respond({ message: 'Password reset link has been sent to your email.' });
+    res.respond({ message: 'If an account with that email exists, a reset link has been sent.' });
   } catch (err) {
     res.fail(err.message, 500);
   }
@@ -145,6 +145,31 @@ router.post('/reset-password/:token', validate(resetPasswordSchema), async (req,
     res.fail(err.message, 500);
   }
 });
+
+const changePasswordSchema = z.object({
+  body: z.object({
+    currentPassword: z.string().min(1, 'Current password is required'),
+    newPassword: z.string().min(6, 'New password must be at least 6 characters'),
+  }),
+});
+
+router.post('/change-password', auth, validate(changePasswordSchema), async (req, res) => {
+  try {
+    const { currentPassword, newPassword } = req.body;
+    const user = await User.findById(req.user.id);
+    if (!user) return res.fail('User not found', 404);
+
+    const ok = await bcrypt.compare(currentPassword, user.passwordHash);
+    if (!ok) return res.fail('Incorrect current password', 401);
+
+    user.passwordHash = await bcrypt.hash(newPassword, 10);
+    await user.save();
+    res.respond({ message: 'Password updated successfully' });
+  } catch (err) {
+    res.fail(err.message, 500);
+  }
+});
+
 
 function sanitize(user) {
   const u = user.toObject ? user.toObject() : { ...user };

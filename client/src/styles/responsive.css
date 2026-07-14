@@ -1,0 +1,129 @@
+/* ── RESPONSIVE ── */
+.mobile-only-flex { display: none !important; }
+
+@media (max-width: 900px) {
+  nav { padding: 0 20px; }
+  .nav-links { display: none; }
+  .container { padding: 0 20px; }
+  
+  .mobile-menu-btn { display: flex !important; }
+  .mobile-only-flex { display: flex !important; }
+  
+  .notif-dropdown {
+    position: fixed;
+    top: 68px;
+    right: 20px;
+    left: 20px;
+    width: auto;
+    max-width: none;
+    height: calc(100vh - 100px);
+    display: flex;
+    flex-direction: column;
+  }
+
+  .swaps-layout {
+    grid-template-columns: 1fr !important;
+    gap: 32px !important;
+  }
+  .swaps-sidebar {
+    position: relative !important;
+    top: 0 !important;
+    margin-bottom: 40px;
+  }
+
+  /* Mobile nav backdrop */
+  .nav-backdrop {
+    display: none;
+    position: fixed;
+    inset: 0;
+    top: 68px;
+    background: rgba(0,0,0,0.5);
+    z-index: 98;
+  }
+  .nav-backdrop.active { display: block; }
+  
+  .nav-links.mobile-active {
+    display: flex;
+    position: absolute;
+    top: 68px;
+    left: 0;
+    right: 0;
+    bottom: auto;
+    background: var(--cream);
+    flex-direction: column;
+    padding: 32px 24px;
+    gap: 4px;
+    z-index: 99;
+    border-top: 1px solid var(--border);
+    animation: slideDown .25s ease-out;
+  }
+  
+  .nav-links.mobile-active a {
+    font-size: 16px;
+    font-weight: 600;
+    width: 100%;
+    padding: 14px 0;
+    border-bottom: 1px solid var(--border);
+    color: var(--ink);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  
+  .nav-links.mobile-active a:hover,
+  .nav-links.mobile-active a.active { color: var(--accent); }
+
+  .section-title { font-size: 32px; }
+  .cards-grid { grid-template-columns: 1fr; }
+  .profile-card-3d { height: auto; min-height: 380px; }
+  .card-face { position: relative; }
+  .card-back { display: none; }
+  .profile-card-3d.flipped .card-back { display: block; }
+  .profile-card-3d.flipped .card-front { display: none; }
+
+  /* Browse sidebar hidden on mobile */
+  .browse-sidebar-col { display: none !important; }
+  .browse-pills { display: flex !important; }
+
+  .stats-mini { grid-template-columns: 1fr; }
+  .hide-mobile { display: none !important; }
+  
+  .hero-section {
+    grid-template-columns: 1fr !important;
+    padding: 100px 20px 40px !important;
+    text-align: center;
+  }
+  
+  .hero-text-wrap {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  
+  .hero-cta {
+    justify-content: center;
+  }
+  
+  .hero-visual {
+    display: none !important;
+  }
+  
+  .how-header {
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    gap: 24px !important;
+  }
+  
+  #how {
+    padding: 72px 20px !important;
+  }
+  
+  footer {
+    padding: 40px 20px !important;
+  }
+
+  .workspace-sidebar {
+    width: 100% !important;
+    border-right: none !important;
+  }
+}

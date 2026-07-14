@@ -3,10 +3,8 @@ const Review = require('../models/Review');
 const Swap = require('../models/Swap');
 const User = require('../models/User');
 const auth = require('../middleware/auth');
-const { updateAllLeagues } = require('../utils/updateLeagues');
 const { awardXp, addBadge, checkReviewBadges } = require('../services/gamificationService');
-const { BADGES } = require('../constants');
-const { SWAP_STATUS, AVG_RATING_PRECISION } = require('../constants');
+const { BADGES, SWAP_STATUS, AVG_RATING_PRECISION } = require('../constants');
 const { validate, objectId, z } = require('../utils/validation');
 
 const router = express.Router();
@@ -41,7 +39,7 @@ router.post('/', auth, validate(createReviewSchema), async (req, res) => {
     const revieweeId =
       swap.sender.toString() === req.user.id.toString() ? swap.receiver : swap.sender;
 
-    const exists = await Review.findOne({ swap: swapId, reviewer: req.user.id.toString() }).lean();
+    const exists = await Review.findOne({ swap: swapId, reviewer: req.user.id }).lean();
     if (exists) return res.fail('Already reviewed this swap', 409);
 
     const review = await Review.create({
@@ -73,7 +71,6 @@ router.post('/', auth, validate(createReviewSchema), async (req, res) => {
       awardXp(req.user.id, 25),
       checkReviewBadges(req.user.id),
     ]);
-    await updateAllLeagues();
 
     res.respond(review, 201);
   } catch (err) {

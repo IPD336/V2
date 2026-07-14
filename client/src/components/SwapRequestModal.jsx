@@ -5,8 +5,10 @@ import { useToast } from '../context/ToastContext';
 import TypingIndicator from './TypingIndicator';
 import { SparklesIcon, HandshakeIcon } from './Icons';
 import { DatePicker } from './DatePicker';
+import { useFocusTrap } from '../utils/hooks';
 
 export default function SwapRequestModal({ target, onClose }) {
+  const trapRef = useFocusTrap(true);
   useEffect(() => {
     const handleKey = (e) => { if (e.key === 'Escape') onClose(); };
     document.addEventListener('keydown', handleKey);
@@ -91,7 +93,7 @@ export default function SwapRequestModal({ target, onClose }) {
 
   return (
     <div className="modal-overlay active" onClick={(e) => e.target === e.currentTarget && onClose()}>
-      <div className="modal" style={{ maxWidth: 520 }}>
+      <div className="modal" style={{ maxWidth: 520 }} ref={trapRef}>
         <button className="modal-close" onClick={onClose} aria-label="Close">✕</button>
         <div className="modal-heading" style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
           <HandshakeIcon size={18} /> Request Swap with {target.name}

@@ -1,0 +1,32 @@
+/* ── SWAPS ── */
+.tab-bar { display: flex; gap: 0; margin-bottom: 24px; border-bottom: 1.5px solid var(--border); }
+.tab-btn { padding: 10px 20px 12px; border: none; background: none; font-size: 13px; font-weight: 600; cursor: pointer; font-family: 'PT Sans', sans-serif; color: var(--muted); transition: color .2s; position: relative; }
+.tab-btn.active { color: var(--ink); }
+.tab-btn.active::after { content: ''; position: absolute; bottom: -1.5px; left: 0; right: 0; height: 2px; background: var(--ink); }
+.tab-badge { display: inline-flex; align-items: center; justify-content: center; background: var(--accent); color: white; border-radius: 5px; width: 17px; height: 17px; font-size: 10px; font-weight: 800; margin-left: 6px; }
+.swap-list { display: flex; flex-direction: column; gap: 12px; }
+.swap-card { background: var(--card-bg); border-radius: 12px; padding: 16px 18px; display: flex; align-items: center; gap: 14px; border: 1px solid var(--border); transition: box-shadow .2s; }
+.swap-card:hover { box-shadow: var(--shadow); }
+.swap-ava { width: 42px; height: 42px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 14px; color: white; flex-shrink: 0; }
+.swap-meta { flex: 1; min-width: 0; }
+.swap-name { font-size: 13px; font-weight: 700; margin-bottom: 3px; }
+.swap-skill-row { font-size: 11px; color: var(--muted); display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+.swap-skill-tag { background: var(--accent-light); color: var(--accent); padding: 2px 8px; border-radius: 4px; font-weight: 600; }
+.swap-skill-tag.green { background: var(--sage-light); color: var(--sage); }
+.swap-time { font-family: 'PT Mono', monospace; font-size: 10px; color: var(--muted); flex-shrink: 0; text-align: right; }
+.swap-actions { display: flex; gap: 7px; flex-shrink: 0; }
+
+.status-badge { padding: 4px 10px; border-radius: 5px; font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.8px; }
+
+[data-theme='dark'] .btn-cosmos-ghost {
+  border-color: rgba(255,255,255,0.15);
+  color: rgba(255,255,255,0.8);
+}
+[data-theme='dark'] .btn-cosmos-ghost:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+  background: transparent;
+}
+.status-pending { background: var(--gold-light); color: var(--gold); }
+.status-active { background: var(--sage-light); color: var(--sage); }
+.status-done { background: var(--indigo-light); color: var(--indigo); }

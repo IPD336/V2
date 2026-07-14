@@ -27,7 +27,7 @@ const badgeIconMap = {
   PinIcon, SendIcon, SearchIcon, WorkspaceIcon,
 };
 
-export function BadgeIcon({ name, size = 28 }) {
+export function BadgeIcon({ name, size = 20 }) {
   const Icon = badgeIconMap[name];
   if (!Icon) return <span style={{ fontSize: size }}>•</span>;
   return <Icon size={size} />;

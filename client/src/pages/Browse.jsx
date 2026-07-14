@@ -5,111 +5,41 @@ import api from '../api/axios';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
 import { useSocket } from '../context/SocketContext';
+
 import SwapRequestModal from '../components/SwapRequestModal';
 import TypingIndicator from '../components/TypingIndicator';
 import { SkeletonCard } from '../components/Skeleton';
+import { ProfileCard } from '../components/CardStyles';
+
 import { COLORS, CATEGORIES, initials, stars } from '../utils';
-import { SearchIcon, PinIcon, ClockIcon, DiamondIcon, TrophyIcon, SparklesIcon } from '../components/Icons';
+import { SearchIcon } from '../components/Icons';
 
-const ProfileCard = memo(function ProfileCard({ user, onSwap, onSave, saved, isOnline }) {
-  const navigate = useNavigate();
-  const color = user.avatarColor || COLORS[0];
-  const bannerBg = user.bannerUrl || (user.bannerColor ? `linear-gradient(135deg, ${user.bannerColor}, ${user.bannerColor}aa)` : `linear-gradient(135deg, ${color}, ${color}aa)`);
 
-  return (
-    <div className="profile-card">
-      <div className="card-banner" style={{ background: bannerBg }} />
-      <div className="card-body">
-        <div className="card-avatar-wrap">
-          <div className="card-avatar" style={{ background: user.avatarUrl ? `url(${user.avatarUrl}) center/cover` : color, position: 'relative' }}>
-            {user.avatarUrl ? <img src={user.avatarUrl} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: 12 }} loading="lazy" /> : initials(user.name)}
-            {isOnline && <span className="presence-dot" style={{ position: 'absolute', bottom: 2, right: 2, width: 10, height: 10, border: '2px solid var(--card-bg)' }} />}
-          </div>
-          <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap' }}>
-            {user.mutualMatch && <span className="card-badge badge-mutual">⇄ Mutual</span>}
-            {user.matchScore > 0 ? (
-              <span className="card-badge" style={{
-                background: user.matchScore >= 80 ? 'rgba(200,75,49,0.12)' : user.matchScore >= 60 ? 'rgba(58,99,81,0.12)' : user.matchScore >= 40 ? 'rgba(185,144,42,0.12)' : 'rgba(122,114,104,0.12)',
-                color: user.matchScore >= 80 ? 'var(--accent)' : user.matchScore >= 60 ? 'var(--sage)' : user.matchScore >= 40 ? 'var(--gold)' : 'var(--muted)',
-                fontWeight: 800, fontSize: 10,
-              }}>
-                {user.matchScore}% Match
-              </span>
-            ) : (
-              <span className="card-badge badge-public">● Public</span>
-            )}
-          </div>
-        </div>
-        <div className="card-name" style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          {user.name}
-          {user.league && (
-            <span style={{ 
-              background: user.league.color + '20', color: user.league.name === 'Diamond' ? '#00E5FF' : user.league.name === 'Platinum' ? '#8e9eab' : user.league.color,
-              padding: '2px 8px', borderRadius: 12, fontSize: 10, fontWeight: 800, border: `1px solid ${user.league.color}`, display: 'flex', alignItems: 'center', gap: 4
-            }}>
-              {user.league.name === 'Diamond' ? <DiamondIcon size={12} /> : user.league.name === 'Gold' ? <TrophyIcon size={12} /> : null} {user.league.name}
-            </span>
-          )}
-        </div>
-        {user.location && <div className="card-loc"><PinIcon size={12} /> {user.location}</div>}
-        <div className="card-rating">
-          <span className="card-stars">{stars(user.rating || 0)}</span>
-          <span className="card-score">{user.rating?.toFixed(1) || '—'}</span>
-          <span className="card-reviews">({user.reviewCount || 0} reviews)</span>
-        </div>
-
-        {user.skillsOffered?.length > 0 && (
-          <>
-            <div className="skill-section-label">Offers</div>
-            <div className="tag-row">
-              {user.skillsOffered.slice(0, 3).map((s, i) => (
-                <span key={i} className="tag tag-r">
-                  {s.verified && <span title="Verified">✓</span>} {s.name}
-                </span>
-              ))}
-            </div>
-          </>
-        )}
-        {user.skillsWanted?.length > 0 && (
-          <>
-            <div className="skill-section-label">Wants</div>
-            <div className="tag-row">
-              {user.skillsWanted.slice(0, 3).map((s, i) => (
-                <span key={i} className="tag tag-g">{s}</span>
-              ))}
-            </div>
-          </>
-        )}
-         {user.aiMatchExplanation && (
-           <div style={{ background: 'var(--sage-light)', border: '1px solid var(--sage)', borderRadius: 8, padding: '8px 12px', fontSize: 11, color: 'var(--sage)', marginBottom: 12, display: 'flex', gap: 6, alignItems: 'flex-start' }}>
-             <SparklesIcon size={12} style={{ marginTop: 2, flexShrink: 0 }} />
-             <span style={{ fontStyle: 'italic', lineHeight: 1.4 }}>{user.aiMatchExplanation}</span>
-           </div>
-         )}
-         <div className="avail-row"><ClockIcon size={12} /> <strong>{user.availability}</strong></div>
-        <div className="card-actions">
-          <button className="btn-swap" onClick={() => onSwap(user)}>Request Swap</button>
-          <button className={`btn-icon ${saved ? 'saved' : ''}`} onClick={() => onSave(user._id)} title="Save">
-            {saved ? '★' : '☆'}
-          </button>
-          <button className="btn-icon" title="View Profile" onClick={() => navigate(`/profile/${user._id}`)}>↗</button>
-        </div>
-      </div>
-    </div>
-  );
-});
-
+/* ── Browse Page ─────────────────────────────────── */
 export default function Browse() {
-  const { user: me } = useAuth();
+  const { user: me, refreshUser } = useAuth();
   const { showToast } = useToast();
   const { isUserOnline } = useSocket();
+
   const [search, setSearch] = useState('');
   const [debouncedSearch, setDebouncedSearch] = useState('');
   const searchTimer = useRef(null);
   const [category, setCategory] = useState('All');
   const [page, setPage] = useState(1);
-  const [saved, setSaved] = useState(new Set(me?.savedProfiles || []));
+  const [following, setFollowing] = useState(new Set());
   const [swapTarget, setSwapTarget] = useState(null);
+  const [cardKey, setCardKey] = useState(0);
+
+  const cardStyle = localStorage.getItem('ss_card_style') || 'style-1';
+
+  // Load following IDs from the new endpoint
+  useEffect(() => {
+    if (me) {
+      api.get('/users/me/following-ids')
+        .then(res => setFollowing(new Set(res.data.followingIds || [])))
+        .catch(() => {});
+    }
+  }, [me]); // force stagger re-run on category change
 
   useEffect(() => {
     clearTimeout(searchTimer.current);
@@ -119,6 +49,12 @@ export default function Browse() {
     }, 300);
     return () => clearTimeout(searchTimer.current);
   }, [search]);
+
+  const handleCategoryChange = useCallback((c) => {
+    setCategory(c);
+    setPage(1);
+    setCardKey(k => k + 1);
+  }, []);
 
   const { data: browseData, isLoading } = useQuery({
     queryKey: ['users', debouncedSearch, category, page],
@@ -166,31 +102,41 @@ export default function Browse() {
   const totalPages = browseData.pages;
   const recommendations = recs || [];
 
-  const handleSave = useCallback(async (userId) => {
+  const handleFollow = useCallback(async (userId) => {
     try {
-      const res = await api.post(`/users/${userId}/save`);
-      setSaved((prev) => {
+      const res = await api.post(`/users/${userId}/follow`);
+      setFollowing((prev) => {
         const next = new Set(prev);
-        res.data.saved ? next.add(userId) : next.delete(userId);
+        res.data.following ? next.add(userId) : next.delete(userId);
         return next;
       });
-      showToast(res.data.saved ? 'Saved to favourites ★' : 'Removed from favourites');
-    } catch { showToast('Could not save', 'error'); }
+      showToast(res.data.following ? 'Followed! ★' : 'Unfollowed');
+      await refreshUser();
+    } catch { showToast('Could not follow', 'error'); }
+  }, [refreshUser]);
+
+  const handleTagClick = useCallback((skillName) => {
+    setSearch(skillName);
+    setDebouncedSearch(skillName);
+    setPage(1);
+    setCardKey(k => k + 1);
   }, []);
+
+  const gridStyle = cardStyle === 'style-6' ? { gridTemplateColumns: '1fr' } : undefined;
 
   return (
     <div className="page bg-gradient-subtle page-fade-in">
       <div className="container">
-        <div className="page-header">
+        <div className="page-header" style={{ padding: '0 0 32px 0' }}>
           <div className="section-label">Discover</div>
           <div className="section-title">Browse <em>Skills</em> &amp; Find Your Match</div>
         </div>
 
         {/* Recommendations */}
         {recsLoading ? (
-          <div style={{ marginBottom: 48, background: 'var(--accent-light)', borderRadius: 20, padding: '32px 28px', border: '1px solid rgba(200,75,49,0.10)' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 24 }}>
-              <span style={{ fontFamily: 'PT Mono, monospace', fontSize: 11, letterSpacing: 2, textTransform: 'uppercase', color: 'var(--accent)' }}>✦ For You</span>
+          <div className="rec-section">
+            <div className="rec-header">
+              <span className="rec-label">✦ For You</span>
               <span className="hide-mobile" style={{ fontSize: 13, color: 'var(--muted)' }}>Matched to your skill goals</span>
             </div>
             <TypingIndicator message={recsLoadingSlow ? 'Still finding your matches...' : 'Finding your matches...'} />
@@ -199,58 +145,72 @@ export default function Browse() {
             </div>
           </div>
         ) : recommendations.length > 0 ? (
-          <div style={{ marginBottom: 48, background: 'var(--accent-light)', borderRadius: 20, padding: '32px 28px', border: '1px solid rgba(200,75,49,0.10)' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 24 }}>
-              <span style={{ fontFamily: 'PT Mono, monospace', fontSize: 11, letterSpacing: 2, textTransform: 'uppercase', color: 'var(--accent)' }}>✦ For You</span>
+          <div className="rec-section">
+            <div className="rec-header">
+              <span className="rec-label">✦ For You</span>
               <span className="hide-mobile" style={{ fontSize: 13, color: 'var(--muted)' }}>Matched to your skill goals</span>
             </div>
-            <div className="cards-grid">
-              {recommendations.map((u) => (
-                <ProfileCard key={u._id} user={u} onSwap={setSwapTarget} onSave={handleSave} saved={saved.has(u._id)} isOnline={isUserOnline(u._id)} />
+            <div className="cards-grid" style={gridStyle}>
+              {recommendations.map((u, i) => (
+                <ProfileCard styleId={cardStyle} key={u._id} user={u} onSwap={setSwapTarget} onFollow={handleFollow} isFollowing={following.has(u._id)} isOnline={isUserOnline(u._id)} index={i} onTagClick={handleTagClick} />
               ))}
             </div>
           </div>
         ) : null}
 
-        {/* Search & Filter */}
+        {/* Search */}
         <div style={{ marginBottom: 12 }}>
           <div style={{ position: 'relative', marginBottom: 16 }}>
             <span style={{ position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)', color: 'var(--muted)', display: 'flex', pointerEvents: 'none' }}><SearchIcon size={18} /></span>
             <input
-              className="form-input"
+              className="form-input browse-search"
               style={{ paddingLeft: 44, background: 'var(--card-bg)' }}
               placeholder="Search by skill — e.g. React, Python, Docker…"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
             />
+            {search && (
+              <button
+                onClick={() => { setSearch(''); setDebouncedSearch(''); setPage(1); }}
+                style={{ position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: 'var(--muted)', fontSize: 16, lineHeight: 1 }}
+                title="Clear"
+              >✕</button>
+            )}
           </div>
-          <div className="filter-row" style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 32 }}>
+          
+          {/* Filter Pills (All viewports) */}
+          <div className="filter-row browse-pills" style={{ gap: 8, flexWrap: 'wrap', marginBottom: 32, display: 'flex' }}>
             {CATEGORIES.map((c) => (
               <button
                 key={c}
                 className={`filter-pill ${category === c ? 'active' : ''}`}
-                onClick={() => { setCategory(c); setPage(1); }}
+                onClick={() => handleCategoryChange(c)}
               >{c}</button>
             ))}
           </div>
         </div>
 
+        {/* Cards */}
         {isLoading ? (
-          <div className="cards-grid">
-            {[1,2,3,4,5,6].map((n) => <SkeletonCard key={n} />)}
+          <div className="cards-grid" style={gridStyle}>
+            {[1, 2, 3, 4, 5, 6].map((n) => <SkeletonCard key={n} />)}
           </div>
         ) : (
           <>
             {users.length === 0 ? (
-              <div className="empty-state">
-                <div className="empty-state-icon"><SearchIcon size={32} /></div>
-                <h3>No matches found</h3>
-                <p>Try a different search term or category.</p>
+              <div className="empty-state browse-empty">
+                <div className="empty-orbit">
+                  <div className="empty-orbit-ring" />
+                  <div className="empty-orbit-ring" style={{ animationDelay: '-1s', width: 80, height: 80, top: 'calc(50% - 40px)', left: 'calc(50% - 40px)' }} />
+                  <div className="empty-state-icon"><SearchIcon size={28} /></div>
+                </div>
+                <h3 style={{ marginTop: 16 }}>No matches found</h3>
+                <p>Try a different search or <button className="link-btn" onClick={() => { setSearch(''); setCategory('All'); }}>clear filters</button></p>
               </div>
             ) : (
-              <div className="cards-grid">
-                {users.map((u) => (
-                  <ProfileCard key={u._id} user={u} onSwap={setSwapTarget} onSave={handleSave} saved={saved.has(u._id)} isOnline={isUserOnline(u._id)} />
+              <div className="cards-grid" key={cardKey} style={gridStyle}>
+                {users.map((u, i) => (
+                  <ProfileCard styleId={cardStyle} key={u._id} user={u} onSwap={setSwapTarget} onFollow={handleFollow} isFollowing={following.has(u._id)} isOnline={isUserOnline(u._id)} index={i} onTagClick={handleTagClick} />
                 ))}
               </div>
             )}
@@ -264,6 +224,7 @@ export default function Browse() {
             )}
           </>
         )}
+
       </div>
 
       {swapTarget && (

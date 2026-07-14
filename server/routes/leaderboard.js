@@ -1,7 +1,6 @@
 const express = require('express');
 const User = require('../models/User');
 const auth = require('../middleware/auth');
-const { updateAllLeagues } = require('../utils/updateLeagues');
 const cache = require('../utils/cache');
 
 const LEADERBOARD_CACHE_TTL = 60_000;
@@ -10,37 +9,46 @@ const router = express.Router();
 
 router.get('/', auth, async (req, res) => {
   try {
-    await updateAllLeagues();
+    const cacheKey = 'leaderboard';
+    let result = cache.get(cacheKey);
+    
+    if (!result) {
+      const sortedUsers = await User.aggregate([
+        { $match: { isPublic: { $ne: false }, role: { $ne: 'admin' }, isBanned: { $ne: true } } },
+        { $addFields: { score: { $multiply: [{ $ifNull: ['$rating', 0] }, { $ifNull: ['$reviewCount', 0] }] } } },
+        { $sort: { score: -1, reviewCount: -1, rating: -1 } }
+      ]);
 
-    let allUsers = cache.get('leaderboard');
-    if (!allUsers) {
-      allUsers = await User.find({ isPublic: { $ne: false }, role: { $ne: 'admin' }, isBanned: { $ne: true } })
-        .select('name avatarColor avatarUrl rating reviewCount skillsOffered league _id')
-        .lean();
-      cache.set('leaderboard', allUsers, LEADERBOARD_CACHE_TTL);
+      const totalUsers = sortedUsers.length || 1;
+      const rankedUsers = sortedUsers.map((u, idx) => {
+        const rank = idx + 1;
+        return {
+          _id: u._id,
+          name: u.name,
+          avatarUrl: u.avatarUrl,
+          avatarColor: u.avatarColor,
+          league: u.league,
+          rating: u.rating,
+          reviewCount: u.reviewCount,
+          score: u.score,
+          rank,
+          percentile: Math.round((rank / totalUsers) * 100)
+        };
+      });
+
+      const top20 = rankedUsers.slice(0, 20);
+      result = { top20, totalUsers, rankedUsers };
+      cache.set(cacheKey, result, LEADERBOARD_CACHE_TTL);
     }
 
-    const scoredUsers = allUsers.map(u => {
-      const score = (u.rating || 0) * (u.reviewCount || 0);
-      return { ...u, score };
-    });
-
-    scoredUsers.sort((a, b) => b.score - a.score || b.reviewCount - a.reviewCount || b.rating - a.rating);
-
-    const totalUsers = scoredUsers.length || 1;
-
-    scoredUsers.forEach((u, idx) => {
-      u.rank = idx + 1;
-      u.percentile = (u.rank / totalUsers) * 100;
-    });
-
-    const top20 = scoredUsers.slice(0, 20);
-    const me = scoredUsers.find(u => u._id.toString() === req.user.id);
+    // Find the 'me' user from rankedUsers (contains their pre-calculated rank and percentile)
+    const myId = req.user.id;
+    const me = result.rankedUsers.find(u => u._id.toString() === myId) || null;
 
     res.respond({
-      top20,
-      me: me || null,
-      totalUsers
+      top20: result.top20,
+      me,
+      totalUsers: result.totalUsers,
     });
   } catch (err) {
     res.fail(err.message, 500);

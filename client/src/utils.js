@@ -47,3 +47,11 @@ export function isValidUrl(url) {
   if (!url) return true;
   return /^https?:\/\/.+/.test(url);
 }
+
+export function timeAgo(date) {
+  const diff = Date.now() - new Date(date);
+  const h = Math.floor(diff / 36e5);
+  if (h < 1) return 'just now';
+  if (h < 24) return `${h}h ago`;
+  return `${Math.floor(h / 24)}d ago`;
+}

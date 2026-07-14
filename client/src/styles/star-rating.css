@@ -1,0 +1,4 @@
+/* ── STAR RATING ── */
+.star-rating { display: flex; gap: 8px; font-size: 32px; }
+.star-btn { cursor: pointer; color: #d4d0c8; transition: color .15s; background: none; border: none; }
+.star-btn.lit { color: #B8902A; }

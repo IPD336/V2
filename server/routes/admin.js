@@ -32,40 +32,38 @@ const paginatedQuerySchema = z.object({
 
 router.get('/stats', async (req, res) => {
   try {
-    const totalUsers = await User.countDocuments();
-    const bannedUsers = await User.countDocuments({ isBanned: true });
-    const totalSwaps = await Swap.countDocuments();
-    const completedSwaps = await Swap.countDocuments({ status: 'completed' });
+    const [totalUsers, bannedUsers, totalSwaps, completedSwaps] = await Promise.all([
+      User.countDocuments(),
+      User.countDocuments({ isBanned: true }),
+      Swap.countDocuments(),
+      Swap.countDocuments({ status: 'completed' }),
+    ]);
 
-    const users = await User.find({ role: 'user' }).select('skillsOffered league rating reviewCount name').lean();
+    const [skillFreqResult, leagueDistResult, topMentorsResult] = await Promise.all([
+      User.aggregate([
+        { $match: { role: 'user' } },
+        { $unwind: '$skillsOffered' },
+        { $group: { _id: '$skillsOffered.name', count: { $sum: 1 } } },
+        { $sort: { count: -1 } },
+        { $limit: 5 },
+      ]),
+      User.aggregate([
+        { $match: { role: 'user' } },
+        { $group: { _id: { $ifNull: ['$league.name', 'Bronze'] }, count: { $sum: 1 } } },
+      ]),
+      User.aggregate([
+        { $match: { role: 'user' } },
+        { $addFields: { score: { $multiply: [{ $ifNull: ['$rating', 0] }, { $ifNull: ['$reviewCount', 0] }] } } },
+        { $sort: { score: -1 } },
+        { $limit: 5 },
+        { $project: { name: 1, score: 1, reviews: '$reviewCount', rating: 1 } },
+      ]),
+    ]);
 
-    const skillFreq = {};
-    users.forEach(u => {
-      u.skillsOffered.forEach(s => {
-        skillFreq[s.name] = (skillFreq[s.name] || 0) + 1;
-      });
-    });
-
-    const popularSkills = Object.entries(skillFreq)
-      .map(([name, count]) => ({ name, count }))
-      .sort((a, b) => b.count - a.count)
-      .slice(0, 5);
-
-    const leagueDist = {
-      Diamond: 0, Platinum: 0, Gold: 0, Silver: 0, Bronze: 0
-    };
-    users.forEach(u => {
-      if (u.league && u.league.name) {
-        leagueDist[u.league.name] = (leagueDist[u.league.name] || 0) + 1;
-      } else {
-        leagueDist['Bronze']++;
-      }
-    });
-
-    const topMentors = users
-      .map(u => ({ name: u.name, score: (u.rating || 0) * (u.reviewCount || 0), reviews: u.reviewCount, rating: u.rating }))
-      .sort((a, b) => b.score - a.score)
-      .slice(0, 5);
+    const popularSkills = skillFreqResult.map(s => ({ name: s._id, count: s.count }));
+    const leagueDist = { Diamond: 0, Platinum: 0, Gold: 0, Silver: 0, Bronze: 0 };
+    leagueDistResult.forEach(l => { leagueDist[l._id] = l.count; });
+    const topMentors = topMentorsResult;
 
     res.respond({
       totalUsers, bannedUsers, totalSwaps, completedSwaps,
@@ -155,6 +153,10 @@ router.delete('/teams/:id', validate(idParamSchema), async (req, res) => {
 
 router.delete('/reset', async (req, res) => {
   try {
+    if (req.body.confirm !== 'RESET_ALL_DATA') {
+      return res.fail('Send { "confirm": "RESET_ALL_DATA" } to proceed', 400);
+    }
+
     const userResult = await User.deleteMany({ role: { $ne: 'admin' } });
     await Swap.deleteMany({});
     await Team.deleteMany({});

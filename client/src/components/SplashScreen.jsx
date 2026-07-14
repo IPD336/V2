@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
 
-const GIF_URL =
-  'https://cdn.dribbble.com/userupload/21255756/file/original-57db72510c8c81b3009f328d5c93c4c7.gif';
+const GIF_URL = '/splash.gif';
 
 const DISPLAY_MS  = 3000;   // how long the splash stays fully visible
 const FADE_OUT_MS = 600;    // CSS transition duration
@@ -46,7 +45,7 @@ export default function SplashScreen({ onDone }) {
         flexDirection: 'column',
         alignItems: 'center',
         justifyContent: 'center',
-        background: '#0f0c08',   // warm near-black matching dark theme --cream
+        background: 'var(--ink)',
         cursor: 'pointer',
         opacity: phase === 'fading' ? 0 : 1,
         transition: `opacity ${FADE_OUT_MS}ms cubic-bezier(0.4,0,0.2,1)`,
@@ -93,15 +92,15 @@ export default function SplashScreen({ onDone }) {
           fontFamily: 'PT Serif, serif',
           fontSize: 28,
           fontWeight: 700,
-          color: '#F8F4EE',
+          color: 'var(--card-bg)',
           letterSpacing: -0.5,
         }}>
-          Skill<span style={{ color: '#C84B31' }}>Swap</span>
+          Skill<span style={{ color: 'var(--accent)' }}>Swap</span>
         </div>
         <div style={{
           fontFamily: 'PT Sans, sans-serif',
           fontSize: 12,
-          color: 'rgba(248,244,238,0.45)',
+          color: 'var(--muted)',
           letterSpacing: 3,
           textTransform: 'uppercase',
           fontWeight: 600,
@@ -116,7 +115,7 @@ export default function SplashScreen({ onDone }) {
         bottom: 32,
         fontFamily: 'PT Sans, sans-serif',
         fontSize: 11,
-        color: 'rgba(248,244,238,0.28)',
+        color: 'var(--muted)',
         letterSpacing: 1.5,
         textTransform: 'uppercase',
         animation: 'splash-fade-up 0.6s 0.8s ease both',

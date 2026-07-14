@@ -1,0 +1,46 @@
+/* ---- Presence Dot ---- */
+.presence-dot {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #22c55e;
+  box-shadow: 0 0 4px rgba(34,197,94,0.5);
+  flex-shrink: 0;
+}
+
+
+
+.nav-search-btn {
+  background: var(--warm);
+  border: 1px solid var(--border);
+  cursor: pointer;
+  color: var(--muted);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 12px;
+  border-radius: 8px;
+  transition: all 0.2s;
+  font-family: inherit;
+  width: 160px;
+}
+.nav-search-btn:hover {
+  border-color: var(--accent);
+  color: var(--ink);
+  background: var(--card-bg);
+}
+.nav-search-text {
+  flex: 1;
+  text-align: left;
+  font-size: 12px;
+}
+.nav-search-hint {
+  font-size: 10px;
+  color: var(--muted);
+  background: var(--card-bg);
+  padding: 1px 6px;
+  border-radius: 4px;
+  font-family: PT Mono, monospace;
+  border: 1px solid var(--border);
+}

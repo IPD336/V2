@@ -1,0 +1,8 @@
+/* ── PAGE LAYOUT ── */
+.page { padding-top: 68px; min-height: 100vh; animation: pageIn .4s cubic-bezier(.2,.8,.2,1); }
+.container { max-width: 1200px; margin: 0 auto; padding: 0 56px; }
+.page-header { padding: 48px 0 32px; }
+.section-label { font-family: 'PT Mono', monospace; font-size: 11px; letter-spacing: 2px; text-transform: uppercase; color: var(--muted); margin-bottom: 14px; display: flex; align-items: center; gap: 10px; }
+.section-label::before { content: ''; display: inline-block; width: 20px; height: 1px; background: var(--muted); }
+.section-title { font-family: 'PT Serif', serif; font-size: clamp(32px, 4vw, 52px); font-weight: 600; line-height: 1.05; letter-spacing: -1.5px; margin-bottom: 16px; }
+.section-title em { font-style: italic; color: var(--accent); }

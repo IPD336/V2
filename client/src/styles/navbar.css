@@ -1,0 +1,30 @@
+/* ── NAVBAR ── */
+nav { position: fixed; top: 0; left: 0; right: 0; z-index: 100; display: flex; align-items: center; justify-content: space-between; padding: 0 56px; height: 68px; background: var(--nav-bg); backdrop-filter: blur(12px); border-bottom: 1px solid var(--border); transition: all 0.3s; }
+.logo { font-family: 'PT Serif', serif; font-size: 24px; font-weight: 700; letter-spacing: -0.5px; display: flex; align-items: center; gap: 8px; color: var(--ink); text-decoration: none; }
+.nav-links { display: flex; gap: 36px; align-items: center; }
+.nav-links a { text-decoration: none; color: var(--ink); font-size: 11px; font-weight: 700; letter-spacing: 1.2px; text-transform: uppercase; transition: color .2s; position: relative; }
+.nav-links a::after { content: ''; position: absolute; bottom: -2px; left: 0; right: 0; height: 1.5px; background: var(--accent); transform: scaleX(0); transition: transform .25s; transform-origin: left; }
+.nav-links a:hover, .nav-links a.active { color: var(--accent); }
+.nav-links a:hover::after, .nav-links a.active::after { transform: scaleX(1); }
+.nav-actions { display: flex; gap: 10px; align-items: center; }
+.nav-avatar { width: 34px; height: 34px; border-radius: 9px; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 11px; color: white; cursor: pointer; border: none; }
+
+.notif-dropdown {
+  position: absolute;
+  top: 50px;
+  right: -10px;
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  width: 320px;
+  z-index: 9999;
+  box-shadow: 0 10px 40px rgba(0,0,0,0.15);
+  overflow: hidden;
+}
+
+.notif-empty {
+  padding: 32px 24px;
+  text-align: center;
+  color: var(--muted);
+  font-size: 13px;
+}

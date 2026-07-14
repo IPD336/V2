@@ -1,8 +1,11 @@
+import { useFocusTrap } from '../utils/hooks';
+
 export default function ConfirmModal({ open, title, message, confirmLabel = 'Delete', onConfirm, onCancel, loading }) {
+  const trapRef = useFocusTrap(open);
   if (!open) return null;
   return (
     <div className="modal-overlay active" onClick={(e) => e.target === e.currentTarget && !loading && onCancel()}>
-      <div className="modal" style={{ maxWidth: 420 }}>
+      <div className="modal" style={{ maxWidth: 420 }} ref={trapRef}>
         <button className="modal-close" onClick={onCancel} disabled={loading} aria-label="Close">✕</button>
         <div className="modal-heading" style={{ fontSize: 24 }}>{title}</div>
         <div className="modal-sub">{message}</div>

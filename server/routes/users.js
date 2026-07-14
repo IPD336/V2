@@ -1,6 +1,7 @@
 const express = require('express');
 const jwt = require('jsonwebtoken');
 const User = require('../models/User');
+const Follow = require('../models/Follow');
 const auth = require('../middleware/auth');
 const { upload } = require('../utils/cloudinary');
 const { matchScore, isMutualMatch } = require('../services/matchService');
@@ -99,7 +100,7 @@ router.get('/', validate(browseQuerySchema), async (req, res) => {
     }
 
     const skip = (page - 1) * limit;
-    const cacheKey = { search, category, page, limit };
+    const cacheKey = `browse:${JSON.stringify({ search, category, page, limit })}`;
 
     let result = cache.get(cacheKey);
     if (!result) {
@@ -132,7 +133,8 @@ router.get('/recommendations', auth, async (req, res) => {
       isPublic: { $ne: false },
       role: { $ne: 'admin' },
       _id: { $ne: req.user.id },
-    }).select('name avatarColor avatarUrl bannerUrl bannerColor skillsOffered skillsWanted location rating league').lean();
+      skillsOffered: { $exists: true, $ne: [] },
+    }).select('name avatarColor avatarUrl bannerUrl bannerColor skillsOffered skillsWanted location rating league').limit(200).lean();
 
     const scored = candidates
       .map((u) => ({ user: u.toObject(), score: matchScore(me, u), mutualMatch: isMutualMatch(me, u) }))
@@ -146,9 +148,74 @@ router.get('/recommendations', auth, async (req, res) => {
   }
 });
 
+router.get('/mutual-follows', auth, async (req, res) => {
+  try {
+    const myId = req.user.id;
+    const myFollowing = await Follow.find({ follower: myId }).select('following').lean();
+    const followingIds = myFollowing.map(f => f.following);
+
+    if (followingIds.length === 0) return res.respond({ mutuals: [] });
+
+    const mutualRecords = await Follow.find({
+      follower: { $in: followingIds },
+      following: myId,
+    }).select('follower').lean();
+
+    const mutualIds = mutualRecords.map(f => f.follower);
+    if (mutualIds.length === 0) return res.respond({ mutuals: [] });
+
+    const mutualUsers = await User.find({ _id: { $in: mutualIds } })
+      .select('name avatarColor avatarUrl bio')
+      .lean();
+
+    res.respond({ mutuals: mutualUsers });
+  } catch (err) {
+    res.fail(err.message, 500);
+  }
+});
+
+router.get('/:id/followers', validate(idParamSchema), async (req, res) => {
+  try {
+    const user = await User.findById(req.params.id).select('name').lean();
+    if (!user) return res.fail('User not found', 404);
+
+    const records = await Follow.find({ following: req.params.id })
+      .populate('follower', 'name avatarColor avatarUrl bio')
+      .lean();
+
+    res.respond({ followers: records.map(r => r.follower) });
+  } catch (err) {
+    res.fail(err.message, 500);
+  }
+});
+
+router.get('/:id/following', validate(idParamSchema), async (req, res) => {
+  try {
+    const user = await User.findById(req.params.id).select('name').lean();
+    if (!user) return res.fail('User not found', 404);
+
+    const records = await Follow.find({ follower: req.params.id })
+      .populate('following', 'name avatarColor avatarUrl bio')
+      .lean();
+
+    res.respond({ following: records.map(r => r.following) });
+  } catch (err) {
+    res.fail(err.message, 500);
+  }
+});
+
+router.get('/me/following-ids', auth, async (req, res) => {
+  try {
+    const records = await Follow.find({ follower: req.user.id }).select('following').lean();
+    res.respond({ followingIds: records.map(r => r.following) });
+  } catch (err) {
+    res.fail(err.message, 500);
+  }
+});
+
 router.get('/:id', validate(idParamSchema), async (req, res) => {
   try {
-    const user = await User.findById(req.params.id).select('-passwordHash -resetPasswordToken -resetPasswordExpires -savedProfiles -isBanned -banReason').lean();
+    const user = await User.findById(req.params.id).select('-passwordHash -resetPasswordToken -resetPasswordExpires -isBanned -banReason').lean();
     if (!user) return res.fail('User not found', 404);
     const enriched = await enrichWithMatch([user], req);
     res.respond(enriched[0]);
@@ -240,25 +307,17 @@ router.post('/:id/avatar', auth, upload.single('avatar'), validate(idParamSchema
 
 const BANNER_COLORS = ['#C84B31', '#3A6351', '#3B4F8C', '#B8902A', '#7A5FA8', '#2980b9', '#8B5CF6', '#EC4899', '#14B8A6', '#F97316', '#6B7280', '#1F2937'];
 
-const bannerColorSchema = z.object({
+const bannerSchema = z.object({
   body: z.object({
-    bannerColor: z.string().regex(/^#[0-9a-fA-F]{6}$/),
+    bannerColor: z.string().regex(/^#[0-9a-fA-F]{6}$/).optional(),
+    bannerUrl: z.string().optional(),
   }),
   params: z.object({
     id: objectId,
   }),
 });
 
-const bannerUrlSchema = z.object({
-  body: z.object({
-    bannerUrl: z.string(),
-  }),
-  params: z.object({
-    id: objectId,
-  }),
-});
-
-router.put('/:id/banner', auth, async (req, res) => {
+router.put('/:id/banner', auth, validate(bannerSchema), async (req, res) => {
   try {
     if (req.user.id.toString() !== req.params.id) {
       return res.fail('Not authorised', 403);
@@ -267,7 +326,7 @@ router.put('/:id/banner', auth, async (req, res) => {
     const { bannerColor, bannerUrl } = req.body;
 
     if (bannerColor) {
-      if (!/^#[0-9a-fA-F]{6}$/.test(bannerColor) || !BANNER_COLORS.includes(bannerColor)) {
+      if (!BANNER_COLORS.includes(bannerColor)) {
         return res.fail('Invalid banner color', 400);
       }
       const user = await User.findByIdAndUpdate(
@@ -332,18 +391,43 @@ router.put('/:id', auth, validate(userUpdateSchema), async (req, res) => {
   }
 });
 
-router.post('/:id/save', auth, validate(idParamSchema), async (req, res) => {
+router.post('/:id/follow', auth, validate(idParamSchema), async (req, res) => {
   try {
-    const me = await User.findById(req.user.id);
+    const myId = req.user.id;
     const targetId = req.params.id;
-    const idx = me.savedProfiles.indexOf(targetId);
-    if (idx === -1) {
-      me.savedProfiles.push(targetId);
+
+    if (myId === targetId) return res.fail('Cannot follow yourself', 400);
+
+    const target = await User.findById(targetId).select('name').lean();
+    if (!target) return res.fail('User not found', 404);
+
+    const existing = await Follow.findOne({ follower: myId, following: targetId });
+
+    let isFollowing;
+    if (existing) {
+      await existing.deleteOne();
+      await User.bulkWrite([
+        { updateOne: { filter: { _id: myId }, update: { $inc: { followingCount: -1 } } } },
+        { updateOne: { filter: { _id: targetId }, update: { $inc: { followersCount: -1 } } } },
+      ]);
+      isFollowing = false;
     } else {
-      me.savedProfiles.splice(idx, 1);
+      await Follow.create({ follower: myId, following: targetId });
+      await User.bulkWrite([
+        { updateOne: { filter: { _id: myId }, update: { $inc: { followingCount: 1 } } } },
+        { updateOne: { filter: { _id: targetId }, update: { $inc: { followersCount: 1 } } } },
+      ]);
+      isFollowing = true;
     }
-    await me.save();
-    res.respond({ saved: idx === -1, savedProfiles: me.savedProfiles });
+
+    const [mutualRecord, targetUser] = await Promise.all(
+      isFollowing
+        ? [Follow.findOne({ follower: targetId, following: myId }).lean(), User.findById(targetId).select('followersCount').lean()]
+        : [Promise.resolve(null), User.findById(targetId).select('followersCount').lean()]
+    );
+    const isMutual = isFollowing && !!mutualRecord;
+
+    res.respond({ following: isFollowing, mutual: isMutual, followersCount: targetUser.followersCount });
   } catch (err) {
     res.fail(err.message, 500);
   }
@@ -354,7 +438,38 @@ router.delete('/:id', auth, validate(idParamSchema), async (req, res) => {
     if (req.user.id.toString() !== req.params.id) {
       return res.fail('Not authorised', 403);
     }
-    await User.findByIdAndDelete(req.params.id);
+
+    const userId = req.params.id;
+
+    // Cascade: delete all follow records involving this user and update counts
+    const deletedFollows = await Follow.find({
+      $or: [{ follower: userId }, { following: userId }],
+    }).lean();
+
+    const followerIds = new Set();
+    const followingIds = new Set();
+    for (const f of deletedFollows) {
+      followerIds.add(f.follower.toString());
+      followingIds.add(f.following.toString());
+    }
+
+    await Follow.deleteMany({
+      $or: [{ follower: userId }, { following: userId }],
+    });
+
+    // Decrement counts for affected users
+    for (const id of followerIds) {
+      if (id !== userId) {
+        await User.findByIdAndUpdate(id, { $inc: { followingCount: -1 } });
+      }
+    }
+    for (const id of followingIds) {
+      if (id !== userId) {
+        await User.findByIdAndUpdate(id, { $inc: { followersCount: -1 } });
+      }
+    }
+
+    await User.findByIdAndDelete(userId);
     res.respond({ message: 'Account deleted successfully' });
   } catch (err) {
     res.fail(err.message, 500);

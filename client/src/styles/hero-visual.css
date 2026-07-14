@@ -1,0 +1,85 @@
+/* ── HERO VISUAL CARDS (hidden on mobile, shown on desktop) ── */
+.hero-visual-cards {
+  display: none !important;
+}
+@media (min-width: 1024px) {
+  .hero-visual-cards {
+    display: block !important;
+  }
+}
+
+/* ─── SKILL CONSTELLATION DIAGRAM ───────────────────────────────────── */
+
+/* Animated arc drawn from source → target node */
+@keyframes draw-arc {
+  from { stroke-dashoffset: 600; opacity: 0; }
+  10%  { opacity: 0.8; }
+  80%  { opacity: 0.8; }
+  to   { stroke-dashoffset: 0; opacity: 0; }
+}
+.swap-arc {
+  stroke-dasharray: 600;
+  stroke-dashoffset: 600;
+  animation: draw-arc 3s ease-in-out forwards;
+}
+
+/* Particle fade-in/out */
+@keyframes particle-fade {
+  0%   { opacity: 0; }
+  10%  { opacity: 1; }
+  85%  { opacity: 1; }
+  100% { opacity: 0; }
+}
+.swap-particle {
+  animation: particle-fade 2.2s ease-in-out infinite;
+}
+
+/* Expanding pulse ring on active nodes */
+@keyframes node-pulse {
+  0%   { r: 20; opacity: 0.55; }
+  100% { r: 38; opacity: 0; }
+}
+.node-pulse-ring {
+  animation: node-pulse 1.8s ease-out infinite;
+}
+.node-pulse-ring--delay {
+  animation-delay: 0.6s;
+}
+
+/* Constellation stat chips */
+.const-chip {
+  position: absolute;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 8px 14px;
+  font-family: 'PT Sans', sans-serif;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--ink);
+  box-shadow: var(--shadow);
+  backdrop-filter: blur(8px);
+  transition: opacity 0.35s ease;
+  z-index: 2;
+  white-space: nowrap;
+  pointer-events: none;
+}
+.const-chip--top    { top: 12px;    left: 8px; }
+.const-chip--bottom { bottom: 28px; right: 4px; }
+
+.const-chip__dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+@keyframes blink-dot {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.25; }
+}
+.const-chip__dot--blink {
+  animation: blink-dot 1.4s ease-in-out infinite;
+}
