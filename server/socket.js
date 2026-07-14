@@ -127,6 +127,8 @@ module.exports = {
       // Goals
       socket.on('add_goal', async (data) => {
         const { room, type, text } = data;
+        // DM rooms have no backing document and don't support goals
+        if (!room || type === 'dm' || room.startsWith('DM_')) return;
         const Model = type === 'swap' ? Swap : Team;
         const docId = room.replace(/^(swap_|team_)/, '');
         try {
@@ -146,6 +148,8 @@ module.exports = {
 
       socket.on('toggle_goal', async (data) => {
         const { room, type, goalId } = data;
+        // DM rooms have no backing document and don't support goals
+        if (!room || type === 'dm' || room.startsWith('DM_')) return;
         const Model = type === 'swap' ? Swap : Team;
         const docId = room.replace(/^(swap_|team_)/, '');
         try {

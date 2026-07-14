@@ -26,6 +26,10 @@ const app = express();
 const server = http.createServer(app);
 socket.init(server);
 
+// Trust the first proxy (Render, Heroku, etc.) so X-Forwarded-For is handled correctly
+// This is required for express-rate-limit to work properly behind a reverse proxy
+app.set('trust proxy', 1);
+
 const CORS_ORIGIN = process.env.CORS_ORIGIN || 'http://localhost:5173,https://skillswapv2.vercel.app';
 
 app.use(helmet());

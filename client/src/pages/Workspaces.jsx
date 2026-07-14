@@ -280,7 +280,7 @@ export default function Workspaces() {
           handleComplete={handleComplete} handleConfirmComplete={handleConfirmComplete}
           handleDeclineComplete={handleDeclineComplete} isUserOnline={isUserOnline}
         />
-        {selected && (
+        {selected && selected.type !== 'dm' && (
           <GoalsPanel
             currentGoals={currentGoals} handleToggleGoal={handleToggleGoal}
             handleAddGoal={handleAddGoal} mobileTab={mobileTab} setMobileTab={setMobileTab}
