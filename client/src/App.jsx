@@ -20,7 +20,6 @@ const ForgotPassword = lazy(() => import('./pages/ForgotPassword'));
 const ResetPassword = lazy(() => import('./pages/ResetPassword'));
 
 const Browse = lazy(() => import('./pages/Browse'));
-const CardGallery = lazy(() => import('./pages/CardGallery'));
 const Dashboard = lazy(() => import('./pages/Dashboard'));
 const Swaps = lazy(() => import('./pages/Swaps'));
 const CalendarPage = lazy(() => import('./pages/CalendarPage'));
@@ -60,7 +59,6 @@ function AppRoutes() {
         <Route path="/reset-password/:token" element={<Suspense fallback={<Spinner />}><ResetPassword /></Suspense>} />
         <Route path="/dashboard" element={<ProtectedRoute><Suspense fallback={<Spinner />}><Dashboard /></Suspense></ProtectedRoute>} />
         <Route path="/browse" element={<ProtectedRoute><Suspense fallback={<Spinner />}><Browse /></Suspense></ProtectedRoute>} />
-        <Route path="/card-gallery" element={<ProtectedRoute><Suspense fallback={<Spinner />}><CardGallery /></Suspense></ProtectedRoute>} />
         <Route path="/workspaces" element={<ProtectedRoute><Suspense fallback={<Spinner />}><Workspaces /></Suspense></ProtectedRoute>} />
         <Route path="/swaps" element={<ProtectedRoute><Suspense fallback={<Spinner />}><Swaps /></Suspense></ProtectedRoute>} />
         <Route path="/calendar" element={<ProtectedRoute><Suspense fallback={<Spinner />}><CalendarPage /></Suspense></ProtectedRoute>} />

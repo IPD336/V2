@@ -15,7 +15,6 @@ const moreLinks = [
   { to: '/teams', label: 'Teams', icon: 'teams' },
   { to: '/leaderboard', label: 'Leaderboard', icon: 'trophy' },
   { to: '/badges', label: 'Medal', icon: 'medal' },
-  { to: '/card-gallery', label: 'Card Playground', icon: 'palette' },
 ];
 
 export default function Navbar() {

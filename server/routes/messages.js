@@ -16,7 +16,7 @@ const roomParamSchema = z.object({
 router.get('/:room', auth, validate(roomParamSchema), async (req, res) => {
   try {
     const roomId = req.params.room;
-    const uid = req.user.id;
+    const uid = req.user.id.toString();
     let allowed = false;
 
     if (roomId.startsWith('DM_')) {
