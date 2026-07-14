@@ -9,9 +9,9 @@ export default function ChatArea({ messages, user, selected, activeSwaps, newMes
   }, [messages]);
 
   return (
-    <div className={`workspace-chat-area${selected ? ' workspace-chat-area--selected' : ''}`} style={{ flex: 1, flexDirection: 'column', background: 'var(--cream)', minWidth: 0 }}>
+    <div className={`workspace-chat-area${selected ? ' workspace-chat-area--selected' : ''}`} style={{ flex: 1, display: 'flex', flexDirection: 'column', background: 'var(--cream)', minWidth: 0, height: '100%', overflow: 'hidden' }}>
       {selected ? (
-        <>
+        <div style={{ display: 'flex', flexDirection: 'column', flex: 1, minHeight: 0, overflow: 'hidden' }}>
           {/* Header */}
           <div style={{ padding: '12px 16px', borderBottom: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'var(--card-bg)', gap: 8 }}>
             <div style={{ minWidth: 0, display: 'flex', alignItems: 'center', gap: 8 }}>
@@ -59,7 +59,7 @@ export default function ChatArea({ messages, user, selected, activeSwaps, newMes
           </div>
 
           {/* Messages */}
-          <div style={{ flex: 1, overflowY: 'auto', padding: '24px', display: 'flex', flexDirection: 'column', gap: 16, ...(mobileTab === 'goals' ? { display: 'none' } : {}) }} className={mobileTab === 'goals' ? 'hide-desktop' : ''}>
+          <div style={{ flex: 1, minHeight: 0, overflowY: 'auto', padding: '24px', display: 'flex', flexDirection: 'column', gap: 16, ...(mobileTab === 'goals' ? { display: 'none' } : {}) }} className={mobileTab === 'goals' ? 'hide-desktop' : ''}>
             {messages.length === 0 ? (
               <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', color: 'var(--muted)' }}>
                 <div style={{ fontSize: 48, marginBottom: 16 }}>💬</div>
@@ -101,7 +101,7 @@ export default function ChatArea({ messages, user, selected, activeSwaps, newMes
               </button>
             </form>
           </div>
-        </>
+        </div>
       ) : (
         <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', color: 'var(--muted)', background: 'var(--cream)' }}>
           <div style={{ width: 120, height: 120, background: 'var(--card-bg)', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 24, boxShadow: 'var(--shadow)' }}>
