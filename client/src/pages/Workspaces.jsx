@@ -112,9 +112,9 @@ export default function Workspaces() {
     };
     const handleGoalUpdated = (goals) => {
       if (selected.type === 'swap') {
-        setActiveSwaps(prev => prev.map(s => String(s._id) === String(selected.id) ? { ...s, goals } : s));
+        setActiveSwaps(prev => prev.map(s => String(s._id) === String(selected.rawId || selected.id) ? { ...s, goals } : s));
       } else {
-        setActiveTeams(prev => prev.map(t => String(t._id) === String(selected.id) ? { ...t, goals } : t));
+        setActiveTeams(prev => prev.map(t => String(t._id) === String(selected.rawId || selected.id) ? { ...t, goals } : t));
       }
     };
     const handleTyping = ({ userId, room }) => {
@@ -159,7 +159,7 @@ export default function Workspaces() {
   const handleComplete = async () => {
     if (!selected || selected.type !== 'swap') return;
     try {
-      await api.put(`/swaps/${selected.id}/complete`);
+      await api.put(`/swaps/${selected.rawId || selected.id}/complete`);
       showToast('Completion request sent!');
       const res = await api.get('/swaps');
       setActiveSwaps(res.data.active);
@@ -170,11 +170,11 @@ export default function Workspaces() {
 
   const handleConfirmComplete = async () => {
     try {
-      await api.put(`/swaps/${selected.id}/confirm-complete`);
+      await api.put(`/swaps/${selected.rawId || selected.id}/confirm-complete`);
       showToast('Swap confirmed as completed!');
       setShowConfetti(true);
       setTimeout(() => setShowConfetti(false), 3000);
-      const swap = activeSwaps.find(s => String(s._id) === String(selected.id));
+      const swap = activeSwaps.find(s => String(s._id) === String(selected.rawId || selected.id));
       if (!swap) return;
       const learnedSkill = (swap.sender._id || swap.sender) === user._id ? swap.skillWanted : swap.skillOffered;
       setCompletedSkill(learnedSkill);
@@ -188,7 +188,7 @@ export default function Workspaces() {
 
   const handleDeclineComplete = async () => {
     try {
-      await api.put(`/swaps/${selected.id}/decline-complete`);
+      await api.put(`/swaps/${selected.rawId || selected.id}/decline-complete`);
       showToast('Completion request declined');
       const res = await api.get('/swaps');
       setActiveSwaps(res.data.active);
@@ -222,21 +222,25 @@ export default function Workspaces() {
   };
 
   const handleSelect = (item, type) => {
-    setUnreadRooms(prev => { const next = new Set(prev); next.delete(String(item._id)); return next; });
     if (type === 'swap') {
+      const roomId = `swap_${item._id}`;
+      setUnreadRooms(prev => { const next = new Set(prev); next.delete(roomId); next.delete(String(item._id)); return next; });
       const otherUser = item.sender._id === user._id ? item.receiver : item.sender;
-      setSelected({ id: item._id, type: 'swap', name: `Swap with ${otherUser.name}`, detail: `${item.skillOffered} ⇄ ${item.skillWanted}`, otherUser });
+      setSelected({ id: roomId, rawId: item._id, type: 'swap', name: `Swap with ${otherUser.name}`, detail: `${item.skillOffered} ⇄ ${item.skillWanted}`, otherUser });
     } else if (type === 'team') {
-      setSelected({ id: item._id, type: 'team', name: item.name, detail: item.purpose });
+      const roomId = `team_${item._id}`;
+      setUnreadRooms(prev => { const next = new Set(prev); next.delete(roomId); next.delete(String(item._id)); return next; });
+      setSelected({ id: roomId, rawId: item._id, type: 'team', name: item.name, detail: item.purpose });
     } else if (type === 'dm') {
+      setUnreadRooms(prev => { const next = new Set(prev); next.delete(String(item._id)); return next; });
       setSelected({ id: item._id, type: 'dm', name: item.name, detail: 'Direct Message', otherUser: item.otherUser });
     }
   };
 
   const currentGoals = (selected && selected.id)
     ? (selected.type === 'swap'
-      ? activeSwaps.find(s => String(s._id) === String(selected.id))?.goals || []
-      : activeTeams.find(t => String(t._id) === String(selected.id))?.goals || [])
+      ? activeSwaps.find(s => String(s._id) === String(selected.rawId || selected.id))?.goals || []
+      : activeTeams.find(t => String(t._id) === String(selected.rawId || selected.id))?.goals || [])
     : [];
 
   if (loading) return (

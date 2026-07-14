@@ -23,7 +23,7 @@ export default function ChatArea({ messages, user, selected, activeSwaps, newMes
                 </div>
                 <div style={{ fontSize: 11, color: 'var(--muted)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{selected.detail}</div>
                 {selected.type === 'swap' && (() => {
-                  const s = activeSwaps.find(sw => String(sw._id) === String(selected.id));
+                  const s = activeSwaps.find(sw => String(sw._id) === String(selected.rawId || selected.id));
                   if (!s) return null;
                   return (
                     <div style={{ fontSize: 10, color: 'var(--muted)', display: 'flex', gap: 8, marginTop: 2 }}>
@@ -40,7 +40,7 @@ export default function ChatArea({ messages, user, selected, activeSwaps, newMes
                 <button onClick={() => setMobileTab('goals')} style={{ padding: '4px 10px', borderRadius: 6, border: 'none', fontSize: 11, fontWeight: 700, cursor: 'pointer', fontFamily: 'PT Sans, sans-serif', background: mobileTab === 'goals' ? 'var(--accent)' : 'transparent', color: mobileTab === 'goals' ? 'white' : 'var(--muted)' }}>🎯 Goals</button>
               </div>
               {selected.type === 'swap' && (() => {
-                const s = activeSwaps.find(sw => String(sw._id) === String(selected.id));
+                const s = activeSwaps.find(sw => String(sw._id) === String(selected.rawId || selected.id));
                 if (!s) return null;
                 if (s.status === 'pending_completion') {
                   const isRequester = s.completedBy.includes(user._id);

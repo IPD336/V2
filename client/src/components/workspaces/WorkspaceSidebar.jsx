@@ -1,7 +1,7 @@
 export default function WorkspaceSidebar({ sidebarTab, setSidebarTab, activeSwaps, activeTeams, activeDMs, selected, handleSelect, unreadRooms, isUserOnline, user }) {
   const tabs = [
-    { id: 'swaps', label: 'Swaps', hasUnread: activeSwaps.some(s => unreadRooms.has(String(s._id))) },
-    { id: 'teams', label: 'Teams', hasUnread: activeTeams.some(t => unreadRooms.has(String(t._id))) },
+    { id: 'swaps', label: 'Swaps', hasUnread: activeSwaps.some(s => unreadRooms.has(`swap_${s._id}`) || unreadRooms.has(String(s._id))) },
+    { id: 'teams', label: 'Teams', hasUnread: activeTeams.some(t => unreadRooms.has(`team_${t._id}`) || unreadRooms.has(String(t._id))) },
     { id: 'dms', label: 'DMs', hasUnread: Array.from(unreadRooms).some(r => r.startsWith('DM_')) },
   ];
 
@@ -39,16 +39,16 @@ export default function WorkspaceSidebar({ sidebarTab, setSidebarTab, activeSwap
               ) : activeSwaps.map(s => (
                 <div
                   key={s._id}
-                  className={`workspace-item ${selected?.id === s._id ? 'active' : ''}`}
+                  className={`workspace-item ${selected?.id === `swap_${s._id}` ? 'active' : ''}`}
                   onClick={() => handleSelect(s, 'swap')}
-                  style={{ padding: '12px', borderRadius: 12, cursor: 'pointer', transition: 'all 0.2s', marginBottom: 4, background: selected?.id === s._id ? 'var(--accent-light)' : 'transparent', border: selected?.id === s._id ? '1px solid var(--border)' : '1px solid transparent' }}
+                  style={{ padding: '12px', borderRadius: 12, cursor: 'pointer', transition: 'all 0.2s', marginBottom: 4, background: selected?.id === `swap_${s._id}` ? 'var(--accent-light)' : 'transparent', border: selected?.id === `swap_${s._id}` ? '1px solid var(--border)' : '1px solid transparent' }}
                 >
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                     <div style={{ fontWeight: 600, fontSize: 14, color: 'var(--ink)', display: 'flex', alignItems: 'center', gap: 6 }}>
                       {s.sender._id === user._id ? s.receiver.name : s.sender.name}
                       {isUserOnline(s.sender._id === user._id ? s.receiver._id : s.sender._id) && <span className="presence-dot" />}
                     </div>
-                    {unreadRooms.has(String(s._id)) && <div className="workspace-unread-dot" />}
+                    {(unreadRooms.has(`swap_${s._id}`) || unreadRooms.has(String(s._id))) && <div className="workspace-unread-dot" />}
                   </div>
                   <div style={{ fontSize: 12, color: 'var(--muted)', marginTop: 2, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                     {s.skillOffered} ⇄ {s.skillWanted}
@@ -65,13 +65,13 @@ export default function WorkspaceSidebar({ sidebarTab, setSidebarTab, activeSwap
               ) : activeTeams.map(t => (
                 <div
                   key={t._id}
-                  className={`workspace-item ${selected?.id === t._id ? 'active' : ''}`}
+                  className={`workspace-item ${selected?.id === `team_${t._id}` ? 'active' : ''}`}
                   onClick={() => handleSelect(t, 'team')}
-                  style={{ padding: '12px', borderRadius: 12, cursor: 'pointer', transition: 'all 0.2s', marginBottom: 4, background: selected?.id === t._id ? 'var(--accent-light)' : 'transparent', border: selected?.id === t._id ? '1px solid var(--border)' : '1px solid transparent' }}
+                  style={{ padding: '12px', borderRadius: 12, cursor: 'pointer', transition: 'all 0.2s', marginBottom: 4, background: selected?.id === `team_${t._id}` ? 'var(--accent-light)' : 'transparent', border: selected?.id === `team_${t._id}` ? '1px solid var(--border)' : '1px solid transparent' }}
                 >
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                     <div style={{ fontWeight: 600, fontSize: 14, color: 'var(--ink)' }}>{t.name}</div>
-                    {unreadRooms.has(String(t._id)) && <div className="workspace-unread-dot" />}
+                    {(unreadRooms.has(`team_${t._id}`) || unreadRooms.has(String(t._id))) && <div className="workspace-unread-dot" />}
                   </div>
                   <div style={{ fontSize: 12, color: 'var(--muted)', marginTop: 2, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                     {t.members.filter(m => m.status === 'accepted').length} members
