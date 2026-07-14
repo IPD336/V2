@@ -1,4 +1,6 @@
-const { GoogleGenerativeAI } = require('@google/generative-ai');
+const { generateText, generateObject } = require('ai');
+const { z } = require('zod');
+const { aiGateway, MODELS } = require('./aiGateway');
 
 /* ─── Cache ─── */
 class GeminiCache {
@@ -45,72 +47,6 @@ const TTL = {
   MATCH: 3600 * 1000,
 };
 
-/* ─── Timeout helper ─── */
-function withTimeout(promise, ms = 10000) {
-  let timer;
-  const timeout = new Promise((_, reject) => {
-    timer = setTimeout(() => reject(new Error('Gemini request timed out')), ms);
-  });
-  return Promise.race([promise.finally(() => clearTimeout(timer)), timeout]);
-}
-
-/* ─── Gemini model setup ─── */
-let genAI = null;
-
-const MODELS = {
-  simple: 'gemini-2.0-flash',
-  complex: 'gemini-2.5-flash',
-};
-
-const TASK_MODEL = {
-  proposal: 'simple',
-  'github-skills': 'simple',
-  summary: 'complex',
-  match: 'complex',
-};
-
-if (process.env.GEMINI_API_KEY) {
-  genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
-} else {
-  console.warn("WARNING: GEMINI_API_KEY is not defined. AI features will fallback to placeholders.");
-}
-
-function getGeminiModel(task) {
-  const type = TASK_MODEL[task] || 'simple';
-  return genAI ? genAI.getGenerativeModel({ model: MODELS[type] }) : null;
-}
-
-/* ─── Retry helper: try primary model, fallback to complex ─── */
-async function generateWithRetry(task, prompt, parseFn) {
-  const primary = getGeminiModel(task);
-  if (!primary) return null;
-
-  for (let attempt = 0; attempt < 2; attempt++) {
-    const m = attempt === 0 ? primary : genAI.getGenerativeModel({ model: MODELS.complex });
-    if (!m) continue;
-    try {
-      const result = await withTimeout(m.generateContent(prompt));
-      const text = result.response.text().trim();
-      return parseFn ? parseFn(text) : text;
-    } catch (err) {
-      console.error(`Gemini ${task} error (attempt ${attempt}):`, err.message);
-    }
-  }
-  return null;
-}
-
-async function generateStream(task, prompt) {
-  const m = getGeminiModel(task);
-  if (!m) return null;
-  try {
-    const result = await m.generateContentStream(prompt);
-    return result.stream;
-  } catch (err) {
-    console.error(`Gemini stream ${task} error:`, err.message);
-    return null;
-  }
-}
-
 /* ─── generateProposal ─── */
 async function generateProposal(senderName, receiverName, skillOffered, skillWanted) {
   const key = cacheKey('proposal', senderName, receiverName, skillOffered, skillWanted);
@@ -121,11 +57,17 @@ async function generateProposal(senderName, receiverName, skillOffered, skillWan
 Offer: ${skillOffered}. Want: ${skillWanted}.
 Friendly, professional, no quotes.`;
 
-  const result = await generateWithRetry('proposal', prompt);
-  const fallback = `Hi ${receiverName}, I'd love to swap my skills in ${skillOffered} for your expertise in ${skillWanted}. Let me know if you are interested in collaborating!`;
-  const output = result || fallback;
-  cache.set(key, output, TTL.PROPOSAL);
-  return output;
+  try {
+    const { text } = await generateText({
+      model: aiGateway(MODELS.simple),
+      prompt,
+    });
+    cache.set(key, text, TTL.PROPOSAL);
+    return text;
+  } catch (err) {
+    console.error(`Gemini proposal error:`, err.message);
+    return `Hi ${receiverName}, I'd love to swap my skills in ${skillOffered} for your expertise in ${skillWanted}. Let me know if you are interested in collaborating!`;
+  }
 }
 
 /* ─── summarizeReviews ─── */
@@ -144,12 +86,17 @@ async function summarizeReviews(reviews) {
 ${texts}
 Be balanced. No names. No lists.`;
 
-  const result = await generateWithRetry('summary', prompt);
-  if (result) {
-    cache.set(key, result, TTL.SUMMARY);
-    return result;
+  try {
+    const { text } = await generateText({
+      model: aiGateway(MODELS.complex),
+      prompt,
+    });
+    cache.set(key, text, TTL.SUMMARY);
+    return text;
+  } catch (err) {
+    console.error(`Gemini summary error:`, err.message);
+    return "Unable to generate review summary at this time.";
   }
-  return "Unable to generate review summary at this time.";
 }
 
 /* ─── inferGithubSkills ─── */
@@ -166,22 +113,26 @@ async function inferGithubSkills(repos) {
     `- ${r.name}: ${r.description || ''} (${r.language || '?'})`
   ).join('\n');
 
-  const prompt = `Infer technical skills from these GitHub repos. Return JSON array of {name, category}.
-Categories: Development, Design, Marketing, Business, Other.
-No markdown, no explanation.
-
+  const prompt = `Infer technical skills from these GitHub repos.
 Repos:\n${summary}`;
 
-  const parse = (text) => {
-    const clean = text.replace(/^```(json)?/i, '').replace(/```$/, '').trim();
-    return JSON.parse(clean);
-  };
-
-  const result = await generateWithRetry('github-skills', prompt, parse);
-  const fallback = [{ name: "JavaScript", category: "Development" }, { name: "React", category: "Development" }];
-  const output = result || fallback;
-  cache.set(key, output, TTL.GITHUB);
-  return output;
+  try {
+    const { object } = await generateObject({
+      model: aiGateway(MODELS.simple),
+      prompt,
+      schema: z.object({
+        skills: z.array(z.object({
+          name: z.string(),
+          category: z.enum(['Development', 'Design', 'Marketing', 'Business', 'Other'])
+        }))
+      })
+    });
+    cache.set(key, object.skills, TTL.GITHUB);
+    return object.skills;
+  } catch (err) {
+    console.error(`Gemini github-skills error:`, err.message);
+    return [{ name: "JavaScript", category: "Development" }, { name: "React", category: "Development" }];
+  }
 }
 
 /* ─── generateMatchExplanations ─── */
@@ -201,20 +152,25 @@ async function generateMatchExplanations(me, candidates) {
 
   const prompt = `Match explanations for skill swap. For each candidate, one short sentence (max 12 words).
 User offers [${myOffered}], wants [${myWanted}].
-${lines}
-Return JSON array of strings. No markdown.`;
+${lines}`;
 
-  const parse = (text) => {
-    const clean = text.replace(/^```(json)?/i, '').replace(/```$/, '').trim();
-    const arr = JSON.parse(clean);
-    return candidates.map((_, i) => arr[i] || "Good skill match!");
-  };
-
-  const result = await generateWithRetry('match', prompt, parse);
-  const fallback = candidates.map(() => "You have matching skill categories that could make for a great swap.");
-  const output = result || fallback;
-  cache.set(key, output, TTL.MATCH);
-  return output;
+  try {
+    const { object } = await generateObject({
+      model: aiGateway(MODELS.complex),
+      prompt,
+      schema: z.object({
+        explanations: z.array(z.string().describe("The explanation string for the match, max 12 words"))
+      })
+    });
+    
+    // Ensure we map back properly to candidates
+    const result = candidates.map((_, i) => object.explanations[i] || "Good skill match!");
+    cache.set(key, result, TTL.MATCH);
+    return result;
+  } catch (err) {
+    console.error(`Gemini match error:`, err.message);
+    return candidates.map(() => "You have matching skill categories that could make for a great swap.");
+  }
 }
 
 module.exports = {

@@ -12,7 +12,9 @@
   "license": "ISC",
   "type": "commonjs",
   "dependencies": {
+    "@ai-sdk/google": "^4.0.14",
     "@google/generative-ai": "^0.24.1",
+    "ai": "^7.0.26",
     "bcryptjs": "^3.0.3",
     "cloudinary": "^1.41.3",
     "compression": "^1.8.1",

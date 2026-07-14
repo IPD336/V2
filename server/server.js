@@ -20,6 +20,7 @@ const leaderboardRoutes = require('./routes/leaderboard');
 const notificationRoutes = require('./routes/notifications');
 const messageRoutes = require('./routes/messages');
 const aiRoutes = require('./routes/ai');
+const agentRoutes = require('./routes/agent');
 const gamificationRoutes = require('./routes/gamification');
 
 const app = express();
@@ -81,6 +82,7 @@ app.use('/api/leaderboard', leaderboardRoutes);
 app.use('/api/notifications', notificationRoutes);
 app.use('/api/messages', messageRoutes);
 app.use('/api/ai', aiRoutes);
+app.use('/api/agent', agentRoutes);
 app.use('/api/gamification', gamificationRoutes);
 
 app.get('/', (_, res) => res.respond({ service: 'SkillSwap API', status: 'ok', version: '2.0', docs: '/api/ping' }));
