@@ -6,8 +6,8 @@ import { useSocket } from '../context/SocketContext';
 import { initials } from '../utils';
 import Logo from './Logo';
 import { BellIcon } from './Logo';
-import { MoonIcon, SunIcon, WorkspaceIcon, TeamsIcon, TrophyIcon, ProfileIcon, LogoutIcon, SwapIcon, HandshakeIcon, CalendarIcon, MedalIcon, SearchIcon, CommandIcon, PaletteIcon } from './Icons';
-import TextRoll from './TextRoll';
+import { WorkspaceIcon, TeamsIcon, TrophyIcon, ProfileIcon, LogoutIcon, SwapIcon, HandshakeIcon, CalendarIcon, MedalIcon, SearchIcon, CommandIcon, PaletteIcon } from './Icons';
+import ThemeToggleButton from './ThemeToggleButton';
 
 const moreLinks = [
   { to: '/calendar', label: 'Calendar', icon: 'calendar' },
@@ -70,14 +70,7 @@ export default function Navbar() {
         </NavLink>
 
         <div className="nav-actions">
-          <button
-            onClick={toggleTheme}
-            title={`Switch to ${theme === 'light' ? 'dark' : 'light'} mode`}
-            aria-label={`Switch to ${theme === 'light' ? 'dark' : 'light'} mode`}
-            className="nav-icon-btn"
-          >
-            {theme === 'light' ? <MoonIcon size={16} /> : <SunIcon size={16} />}
-          </button>
+          <ThemeToggleButton />
 
           {user ? (
             <>
@@ -88,7 +81,7 @@ export default function Navbar() {
                 title="Search pages & commands"
               >
                 <SearchIcon size={14} />
-                <span className="nav-search-text"><TextRoll>Search…</TextRoll></span>
+                <span className="nav-search-text">Search…</span>
               </button>
 
               <button
@@ -107,21 +100,21 @@ export default function Navbar() {
 
               <div className={`nav-links ${mobileMenuOpen ? 'mobile-active' : ''}`}>
                 {user?.role === 'admin' ? (
-                  <NavLink to="/admin" className={({ isActive }) => isActive ? 'active' : ''} onClick={closeMobileMenu} style={{ color: 'var(--accent)' }}><TextRoll center>Admin Dashboard</TextRoll></NavLink>
+                  <NavLink to="/admin" className={({ isActive }) => isActive ? 'active' : ''} onClick={closeMobileMenu} style={{ color: 'var(--accent)' }}>Admin Dashboard</NavLink>
                 ) : (
                   <>
-                    <NavLink to="/dashboard" className={({ isActive }) => isActive ? 'active' : ''} onClick={closeMobileMenu}><TextRoll center>Dashboard</TextRoll></NavLink>
-                    <NavLink to="/browse" className={({ isActive }) => isActive ? 'active' : ''} onClick={closeMobileMenu}><TextRoll center>Browse</TextRoll></NavLink>
-                    <NavLink to="/swaps" className={({ isActive }) => isActive ? 'active' : ''} onClick={closeMobileMenu}><TextRoll center>Swaps</TextRoll></NavLink>
+                    <NavLink to="/dashboard" className={({ isActive }) => isActive ? 'active' : ''} onClick={closeMobileMenu}>Dashboard</NavLink>
+                    <NavLink to="/browse" className={({ isActive }) => isActive ? 'active' : ''} onClick={closeMobileMenu}>Browse</NavLink>
+                    <NavLink to="/swaps" className={({ isActive }) => isActive ? 'active' : ''} onClick={closeMobileMenu}>Swaps</NavLink>
                     {moreLinks.map((l) => (
-                      <NavLink key={l.to} to={l.to} className={({ isActive }) => `hide-desktop ${isActive ? 'active' : ''}`} onClick={closeMobileMenu}><TextRoll center>{l.label}</TextRoll></NavLink>
+                      <NavLink key={l.to} to={l.to} className={({ isActive }) => `hide-desktop ${isActive ? 'active' : ''}`} onClick={closeMobileMenu}>{l.label}</NavLink>
                     ))}
-                    <NavLink to="/profile" className={({ isActive }) => `hide-desktop ${isActive ? 'active' : ''}`} onClick={closeMobileMenu}><TextRoll center>Profile</TextRoll></NavLink>
+                    <NavLink to="/profile" className={({ isActive }) => `hide-desktop ${isActive ? 'active' : ''}`} onClick={closeMobileMenu}>Profile</NavLink>
                     <button className="mobile-only-flex nav-mobile-notif-btn" onClick={() => setNotifOpen(!notifOpen)}>
-                      <TextRoll center>Notifications</TextRoll> {unreadCount > 0 && <span className="nav-notif-badge-sm">{unreadCount} new</span>}
+                      Notifications {unreadCount > 0 && <span className="nav-notif-badge-sm">{unreadCount} new</span>}
                     </button>
                     <button className="mobile-only-flex nav-mobile-logout-btn" onClick={handleLogout}>
-                      <TextRoll center>Logout</TextRoll>
+                      Logout
                     </button>
                   </>
                 )}
@@ -134,7 +127,7 @@ export default function Navbar() {
                   aria-label="More navigation"
                   aria-expanded={moreOpen}
                 >
-                  <TextRoll center>More</TextRoll> <span className="nav-chevron">▾</span>
+                  More <span className="nav-chevron">▾</span>
                 </button>
                 {moreOpen && (
                   <div className="nav-dropdown">
@@ -148,7 +141,7 @@ export default function Navbar() {
                         <span className="nav-dropdown-icon">
                           {l.icon === 'calendar' ? <CalendarIcon size={16} /> : l.icon === 'workspace' ? <WorkspaceIcon size={16} /> : l.icon === 'teams' ? <TeamsIcon size={16} /> : l.icon === 'medal' ? <MedalIcon size={16} /> : l.icon === 'palette' ? <PaletteIcon size={16} /> : <TrophyIcon size={16} />}
                         </span>
-                        <TextRoll center>{l.label}</TextRoll>
+                        {l.label}
                       </NavLink>
                     ))}
                   </div>
@@ -169,9 +162,9 @@ export default function Navbar() {
                 {notifOpen && (
                   <div className="notif-dropdown">
                     <div className="notif-header">
-                      <span className="notif-header-title"><TextRoll center>Notifications</TextRoll></span>
+                      <span className="notif-header-title">Notifications</span>
                       {unreadCount > 0 && (
-                        <button onClick={(e) => { e.stopPropagation(); markAllAsRead(); }} className="notif-mark-read-btn" aria-label="Mark all notifications as read"><TextRoll>Mark Read</TextRoll></button>
+                        <button onClick={(e) => { e.stopPropagation(); markAllAsRead(); }} className="notif-mark-read-btn" aria-label="Mark all notifications as read">Mark Read</button>
                       )}
                     </div>
                     <div className="notif-list">
@@ -214,27 +207,27 @@ export default function Navbar() {
                     </div>
                     <NavLink to="/profile" onClick={() => setAvatarOpen(false)} className="nav-dropdown-item nav-dropdown-item-border">
                       <span className="nav-dropdown-icon"><ProfileIcon size={16} /></span>
-                      <TextRoll center>Profile</TextRoll>
+                      Profile
                     </NavLink>
                     <NavLink to="/workspaces" onClick={() => setAvatarOpen(false)} className="nav-dropdown-item hide-desktop">
                       <span className="nav-dropdown-icon"><WorkspaceIcon size={16} /></span>
-                      <TextRoll center>Workspaces</TextRoll>
+                      Workspaces
                     </NavLink>
                     <NavLink to="/teams" onClick={() => setAvatarOpen(false)} className="nav-dropdown-item hide-desktop">
                       <span className="nav-dropdown-icon"><TeamsIcon size={16} /></span>
-                      <TextRoll center>Teams</TextRoll>
+                      Teams
                     </NavLink>
                     <NavLink to="/leaderboard" onClick={() => setAvatarOpen(false)} className="nav-dropdown-item hide-desktop">
                       <span className="nav-dropdown-icon"><TrophyIcon size={16} /></span>
-                      <TextRoll center>Leaderboard</TextRoll>
+                      Leaderboard
                     </NavLink>
                     <NavLink to="/badges" onClick={() => setAvatarOpen(false)} className="nav-dropdown-item hide-desktop">
                       <span className="nav-dropdown-icon"><MedalIcon size={16} /></span>
-                      <TextRoll center>Badges</TextRoll>
+                      Badges
                     </NavLink>
                     <button onClick={handleLogout} className="nav-dropdown-item nav-dropdown-logout">
                       <span className="nav-dropdown-icon"><LogoutIcon size={16} /></span>
-                      <TextRoll center>Logout</TextRoll>
+                      Logout
                     </button>
                   </div>
                 )}
@@ -243,16 +236,16 @@ export default function Navbar() {
           ) : (
             <>
               <div className={`nav-links ${mobileMenuOpen ? 'mobile-active' : ''}`}>
-                <NavLink to="/" onClick={closeMobileMenu}><TextRoll center>Home</TextRoll></NavLink>
-                <a href="/#how" onClick={closeMobileMenu}><TextRoll center>How It Works</TextRoll></a>
-                <NavLink to="/login" onClick={closeMobileMenu} className="hide-desktop"><TextRoll center>Sign In</TextRoll></NavLink>
-                <NavLink to="/register" onClick={closeMobileMenu} className="hide-desktop"><TextRoll center>Get Started</TextRoll></NavLink>
+                <NavLink to="/" onClick={closeMobileMenu}>Home</NavLink>
+                <a href="/#how" onClick={closeMobileMenu}>How It Works</a>
+                <NavLink to="/login" onClick={closeMobileMenu} className="hide-desktop">Sign In</NavLink>
+                <NavLink to="/register" onClick={closeMobileMenu} className="hide-desktop">Get Started</NavLink>
               </div>
               <NavLink to="/login" onClick={closeMobileMenu} className="hide-mobile">
-                <button className="btn-cosmos btn-cosmos-ghost nav-signin-btn"><TextRoll center>Sign In</TextRoll></button>
+                <button className="btn-cosmos btn-cosmos-ghost nav-signin-btn">Sign In</button>
               </NavLink>
               <NavLink to="/register" onClick={closeMobileMenu} className="hide-mobile">
-                <button className="btn-cosmos btn-cosmos-primary nav-getstarted-btn"><TextRoll center>Get Started</TextRoll></button>
+                <button className="btn-cosmos btn-cosmos-primary nav-getstarted-btn">Get Started</button>
               </NavLink>
             </>
           )}

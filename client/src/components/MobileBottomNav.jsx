@@ -1,7 +1,6 @@
 import { NavLink } from 'react-router-dom';
 import { useSocket } from '../context/SocketContext';
 import { HomeIcon, SearchIcon, SwapIcon, WorkspaceIcon, TeamsIcon, ProfileIcon, TrophyIcon, CalendarIcon } from './Icons';
-import TextRoll from './TextRoll';
 
 const tabs = [
   { to: '/dashboard', label: 'Home', icon: HomeIcon },
@@ -28,7 +27,7 @@ export default function MobileBottomNav() {
                 <span className="mobile-bottom-badge">{unreadCount}</span>
               )}
             </span>
-            <span className="mobile-bottom-label"><TextRoll center>{t.label}</TextRoll></span>
+            <span className="mobile-bottom-label">{t.label}</span>
           </NavLink>
         ))}
       </div>

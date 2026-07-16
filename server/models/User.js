@@ -22,7 +22,8 @@ const userSchema = new mongoose.Schema(
   {
     name: { type: String, required: true, trim: true },
     email: { type: String, required: true, unique: true, lowercase: true },
-    passwordHash: { type: String, required: true },
+    passwordHash: { type: String, required: false, default: '' },
+    googleId: { type: String, default: '' },
     location: { type: String, default: '' },
     bio: { type: String, default: '' },
     avatarColor: { type: String, default: '#C84B31' },
@@ -71,5 +72,6 @@ userSchema.index({ 'skillsOffered.category': 1 });
 userSchema.index({ skillsWanted: 1 });
 userSchema.index({ rating: -1, createdAt: -1 });
 userSchema.index({ role: 1, createdAt: -1 });
+userSchema.index({ googleId: 1 }, { sparse: true });
 
 module.exports = mongoose.model('User', userSchema);

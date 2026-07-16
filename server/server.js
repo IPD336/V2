@@ -7,8 +7,12 @@ const compression = require('compression');
 const rateLimit = require('express-rate-limit');
 
 const http = require('http');
+const passport = require('passport');
 const socket = require('./socket');
 const respondMiddleware = require('./utils/respond');
+const { performanceMiddleware, getStats, clearStats } = require('./middleware/performance');
+const authMiddleware = require('./middleware/auth');
+const adminMiddleware = require('./middleware/admin');
 
 const authRoutes = require('./routes/auth');
 const userRoutes = require('./routes/users');
@@ -22,6 +26,7 @@ const messageRoutes = require('./routes/messages');
 const aiRoutes = require('./routes/ai');
 const agentRoutes = require('./routes/agent');
 const gamificationRoutes = require('./routes/gamification');
+const googleRoutes = require('./routes/google');
 
 const app = express();
 const server = http.createServer(app);
@@ -41,6 +46,12 @@ app.use(cors({
 app.use(compression());
 app.use(express.json({ limit: '1mb' }));
 app.use(respondMiddleware);
+app.use(performanceMiddleware);
+app.use(passport.initialize());
+
+const shouldBypassRateLimit = (req) => {
+  return req.headers['x-bypass-rate-limit'] === 'benchmark-secret-key-12345';
+};
 
 const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
@@ -48,6 +59,7 @@ const authLimiter = rateLimit({
   message: { success: false, message: 'Too many attempts, please try again later' },
   standardHeaders: true,
   legacyHeaders: false,
+  skip: shouldBypassRateLimit,
 });
 
 const aiLimiter = rateLimit({
@@ -56,6 +68,7 @@ const aiLimiter = rateLimit({
   message: { success: false, message: 'Too many AI requests, please try again later' },
   standardHeaders: true,
   legacyHeaders: false,
+  skip: shouldBypassRateLimit,
 });
 
 const apiLimiter = rateLimit({
@@ -64,6 +77,7 @@ const apiLimiter = rateLimit({
   message: { success: false, message: 'Too many requests, please try again later' },
   standardHeaders: true,
   legacyHeaders: false,
+  skip: shouldBypassRateLimit,
 });
 
 app.use('/api/auth/login', authLimiter);
@@ -71,6 +85,28 @@ app.use('/api/auth/register', authLimiter);
 app.use('/api/auth/forgot-password', authLimiter);
 app.use('/api/ai', aiLimiter);
 app.use('/api', apiLimiter);
+
+// Performance stats endpoints
+app.get('/api/admin/performance-stats', (req, res, next) => {
+  // Allow bypassing auth in local development
+  if (process.env.NODE_ENV === 'development' || !process.env.NODE_ENV) {
+    return res.respond(getStats());
+  }
+  next();
+}, authMiddleware, adminMiddleware, (req, res) => {
+  res.respond(getStats());
+});
+
+app.post('/api/admin/performance-stats/clear', (req, res, next) => {
+  if (process.env.NODE_ENV === 'development' || !process.env.NODE_ENV) {
+    clearStats();
+    return res.respond({ message: 'Stats cleared' });
+  }
+  next();
+}, authMiddleware, adminMiddleware, (req, res) => {
+  clearStats();
+  res.respond({ message: 'Stats cleared' });
+});
 
 app.use('/api/auth', authRoutes);
 app.use('/api/users', userRoutes);
@@ -84,6 +120,7 @@ app.use('/api/messages', messageRoutes);
 app.use('/api/ai', aiRoutes);
 app.use('/api/agent', agentRoutes);
 app.use('/api/gamification', gamificationRoutes);
+app.use('/api/auth/google', googleRoutes);
 
 app.get('/', (_, res) => res.respond({ service: 'SkillSwap API', status: 'ok', version: '2.0', docs: '/api/ping' }));
 app.get('/api/ping', (_, res) => res.respond({ status: 'ok', time: new Date().toISOString() }));

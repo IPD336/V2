@@ -1,0 +1,320 @@
+/* ═══════════════════════════════════════════════════════
+   NAVBAR PREVIEW — SkillSwap Design System
+   All styles are horizontal floating navs (except Bottom Tabs)
+   ═══════════════════════════════════════════════════════ */
+
+/* ── SCOPED VARIABLES ── */
+.np-page {
+  --np-cream: #F8F4EE;
+  --np-warm: #EDE8DF;
+  --np-ink: #0f0f0f;
+  --np-accent: #C84B31;
+  --np-accent-rgb: 200,75,49;
+  --np-sage: #3A6351;
+  --np-gold: #B8902A;
+  --np-indigo: #3B4F8C;
+  --np-muted: #7A7268;
+  --np-border: rgba(15,15,15,0.10);
+  --np-card: #FFFFFF;
+  --np-nav-bg: rgba(248,244,238,0.92);
+  --np-shadow: 0 4px 32px rgba(15,15,15,0.08);
+  --np-shadow-lg: 0 16px 64px rgba(15,15,15,0.12);
+
+  min-height: 100vh;
+  padding: 0 24px 80px;
+  background: var(--np-cream);
+  font-family: 'PT Sans', Arial, sans-serif;
+  color: var(--np-ink);
+  transition: background 0.3s, color 0.3s;
+}
+.np-page.np-dark {
+  --np-cream: #1c1814;
+  --np-warm: #231e1a;
+  --np-ink: #f0ebe4;
+  --np-accent: #d9562e;
+  --np-accent-rgb: 217,86,46;
+  --np-sage: #5fa882;
+  --np-gold: #c9a040;
+  --np-indigo: #8097d4;
+  --np-muted: #9a9088;
+  --np-border: rgba(240,235,228,0.10);
+  --np-card: #26211c;
+  --np-nav-bg: rgba(28,24,20,0.96);
+  --np-shadow: 0 4px 32px rgba(0,0,0,0.4);
+  --np-shadow-lg: 0 16px 64px rgba(0,0,0,0.6);
+  background: var(--np-cream);
+  color: var(--np-ink);
+}
+
+/* ── HEADER ── */
+.np-header { text-align: center; margin-bottom: 40px; padding-top: 32px; }
+.np-title { font-family: 'PT Serif', Georgia, serif; font-size: clamp(28px, 4vw, 42px); font-weight: 600; color: var(--np-ink); margin: 0 0 8px; }
+.np-subtitle { color: var(--np-muted); font-size: 15px; margin: 0 0 16px; }
+.np-selected-badge { display: inline-flex; align-items: center; gap: 10px; padding: 8px 16px; border-radius: 8px; background: rgba(var(--np-accent-rgb),0.08); color: var(--np-accent); font-size: 13px; font-weight: 600; }
+.np-mode-badge { padding: 3px 10px; border-radius: 20px; background: rgba(var(--np-accent-rgb),0.15); font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; }
+
+/* ── CARD GRID ── */
+.np-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 12px; max-width: 1200px; margin: 0 auto; }
+.np-card { background: var(--np-card); border: 2px solid var(--np-border); border-radius: 10px; padding: 16px; cursor: pointer; text-align: left; transition: border-color 0.2s, box-shadow 0.2s, transform 0.15s, background 0.3s; }
+.np-card:hover { border-color: rgba(var(--np-accent-rgb),0.25); transform: translateY(-1px); box-shadow: var(--np-shadow); }
+.np-card.np-selected { border-color: var(--np-accent); box-shadow: 0 0 0 3px rgba(var(--np-accent-rgb),0.12); }
+.np-card-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 4px; }
+.np-card-name { font-weight: 700; font-size: 13px; color: var(--np-ink); }
+.np-card-check { color: var(--np-accent); font-weight: 800; font-size: 16px; }
+.np-card-desc { color: var(--np-muted); font-size: 11px; margin: 0; line-height: 1.4; }
+
+/* ── CONTENT ── */
+.np-content { transition: margin 0.3s; }
+.np-content-bottom { padding-bottom: 120px; }
+
+/* ═══════════════════════════════════════════════════════
+   SHARED HORIZONTAL NAV
+   ═══════════════════════════════════════════════════════ */
+.np-live-bar {
+  position: sticky; top: 0; z-index: 200; width: 100vw;
+  margin-left: calc(-50vw + 50%); margin-right: calc(-50vw + 50%);
+}
+.np-nav {
+  height: 68px; display: flex; align-items: center;
+  background: var(--np-nav-bg); backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--np-border);
+  transition: background 0.3s, border-color 0.3s, box-shadow 0.3s, height 0.3s;
+}
+.np-nav-inner { display: flex; align-items: center; justify-content: space-between; width: 100%; padding: 0 56px; height: 100%; }
+.np-logo { display: flex; align-items: center; text-decoration: none; flex-shrink: 0; color: var(--np-ink); }
+.np-nav-center { display: flex; align-items: center; gap: 6px; }
+.np-hero-links { display: flex; align-items: center; gap: 6px; justify-content: center; }
+.np-link { text-decoration: none; font-size: 11px; font-weight: 700; letter-spacing: 1.2px; text-transform: uppercase; color: var(--np-ink); padding: 6px 12px; border-radius: 6px; transition: color 0.2s, background 0.2s; position: relative; white-space: nowrap; }
+.np-link.active { color: var(--np-accent); }
+.np-link:hover { color: var(--np-accent); }
+.np-link-more { display: none; }
+.np-more-label { font-size: 11px; font-weight: 700; letter-spacing: 1.2px; text-transform: uppercase; color: var(--np-muted); padding: 6px 12px; cursor: default; }
+.np-nav-right { display: flex; align-items: center; gap: 10px; flex-shrink: 0; }
+.np-icon-btn { background: none; border: none; cursor: pointer; color: var(--np-muted); display: flex; align-items: center; justify-content: center; padding: 6px; border-radius: 8px; transition: color 0.2s; }
+.np-icon-btn:hover { color: var(--np-accent); }
+.np-bell { position: relative; }
+.np-notif-dot { position: absolute; top: -2px; right: -2px; background: #e53e3e; color: white; border-radius: 8px; font-size: 8px; font-weight: 800; min-width: 14px; height: 14px; display: flex; align-items: center; justify-content: center; padding: 0 3px; pointer-events: none; }
+.np-avatar { width: 34px; height: 34px; border-radius: 9px; background: var(--np-accent); color: white; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 800; flex-shrink: 0; }
+
+/* ═══════════════════════════════════════════════════════
+   BOTTOM TABS
+   ═══════════════════════════════════════════════════════ */
+.np-bottom-bar { position: fixed; bottom: 0; left: 0; right: 0; z-index: 200; display: flex; background: var(--np-card); border-top: 1px solid var(--np-border); }
+.np-bottom-tab { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; padding: 10px 0; text-decoration: none; color: var(--np-muted); font-size: 10px; font-weight: 600; letter-spacing: 0.3px; transition: color 0.2s; }
+.np-bottom-tab.active { color: var(--np-accent); }
+
+/* ═══════════════════════════════════════════════════════
+   1. CLASSIC WARM — default SkillSwap nav
+   ═══════════════════════════════════════════════════════ */
+/* uses shared defaults — nothing extra needed */
+
+/* ═══════════════════════════════════════════════════════
+   2. GLASS FLOAT — frosted capsule
+   ═══════════════════════════════════════════════════════ */
+.np-floating-wrapper { background: transparent; backdrop-filter: none; padding: 14px 24px; }
+.np-glass-float .np-nav-inner {
+  background: rgba(255,255,255,0.45); backdrop-filter: blur(24px) saturate(180%);
+  border: 1px solid rgba(255,255,255,0.35); border-radius: 16px;
+  padding: 0 12px 0 24px; height: 56px;
+  box-shadow: 0 8px 32px rgba(var(--np-accent-rgb),0.06), inset 0 1px 0 rgba(255,255,255,0.5);
+}
+.np-page.np-dark .np-glass-float .np-nav-inner {
+  background: rgba(35,30,26,0.55); border-color: rgba(255,255,255,0.06);
+  box-shadow: 0 8px 32px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.05);
+}
+.np-glass-float .np-link { font-size: 12px; letter-spacing: 0; text-transform: none; font-weight: 600; border-radius: 8px; }
+.np-glass-float .np-link::after { display: none; }
+.np-glass-float .np-link:hover { background: rgba(var(--np-accent-rgb),0.06); }
+.np-glass-float .np-link.active { color: var(--np-accent); }
+.np-glass-float .np-more-label { font-size: 12px; letter-spacing: 0; text-transform: none; font-weight: 600; }
+
+/* ═══════════════════════════════════════════════════════
+   3. INK BAR — dark ink background
+   ═══════════════════════════════════════════════════════ */
+.np-ink-bar { background: var(--np-ink); border-bottom: 1px solid rgba(var(--np-accent-rgb),0.15); }
+.np-ink-bar .np-link { color: rgba(240,235,228,0.55); }
+.np-ink-bar .np-link:hover { color: var(--np-cream); }
+.np-ink-bar .np-link.active { color: var(--np-accent); }
+.np-ink-bar .np-more-label { color: rgba(240,235,228,0.4); }
+.np-ink-bar .np-icon-btn { color: rgba(240,235,228,0.45); }
+.np-ink-bar .np-icon-btn:hover { color: var(--np-cream); }
+.np-page.np-dark .np-ink-bar { background: rgba(240,235,228,0.08); }
+
+/* ═══════════════════════════════════════════════════════
+   4. WARM GLOW — soft shadow halo
+   ═══════════════════════════════════════════════════════ */
+.np-warm-glow { box-shadow: 0 4px 40px rgba(var(--np-accent-rgb),0.12); }
+.np-page.np-dark .np-warm-glow { box-shadow: 0 4px 40px rgba(var(--np-accent-rgb),0.15); }
+
+/* ═══════════════════════════════════════════════════════
+   5. SPLIT TONE — dark logo, cream links
+   ═══════════════════════════════════════════════════════ */
+.np-split-tone { border-bottom: none; }
+.np-split-tone .np-nav-inner { padding: 0; }
+.np-split-tone .np-logo { background: var(--np-ink); color: var(--np-cream) !important; padding: 0 28px; height: 100%; display: flex; align-items: center; }
+.np-page.np-dark .np-split-tone .np-logo { background: rgba(240,235,228,0.12); color: var(--np-ink) !important; }
+.np-split-divider { width: 1px; height: 28px; background: var(--np-border); margin: 0 8px; flex-shrink: 0; }
+.np-split-tone .np-link::after { display: none; }
+.np-split-tone .np-link.active { color: var(--np-accent); font-weight: 800; }
+
+/* ═══════════════════════════════════════════════════════
+   6. PILL NAV — rounded pill buttons
+   ═══════════════════════════════════════════════════════ */
+.np-pill-nav .np-nav-inner { gap: 8px; }
+.np-pill-nav .np-link { border-radius: 999px; padding: 8px 20px; font-size: 12px; letter-spacing: 0; text-transform: none; background: var(--np-warm); }
+.np-pill-nav .np-link::after { display: none; }
+.np-pill-nav .np-link:hover { background: rgba(var(--np-accent-rgb),0.08); color: var(--np-accent); }
+.np-pill-nav .np-link.active { background: var(--np-accent); color: white; }
+.np-pill-nav .np-more-label { display: none; }
+
+/* ═══════════════════════════════════════════════════════
+   7. MINIMAL LINE — hairline accent border
+   ═══════════════════════════════════════════════════════ */
+.np-minimal-line { background: transparent; backdrop-filter: none; border-bottom: 1px solid rgba(var(--np-accent-rgb),0.15); }
+.np-minimal-line .np-link { font-size: 12px; letter-spacing: 0; text-transform: none; font-weight: 500; color: var(--np-muted); }
+.np-minimal-line .np-link::after { display: none; }
+.np-minimal-line .np-link:hover { color: var(--np-ink); }
+.np-minimal-line .np-link.active { color: var(--np-ink); font-weight: 700; }
+.np-page.np-dark .np-minimal-line .np-link { color: rgba(240,235,228,0.35); }
+.np-page.np-dark .np-minimal-line .np-link:hover, .np-page.np-dark .np-minimal-line .np-link.active { color: var(--np-ink); }
+.np-minimal-line .np-more-label { font-size: 12px; letter-spacing: 0; text-transform: none; font-weight: 500; color: var(--np-muted); }
+.np-page.np-dark .np-minimal-line .np-more-label { color: rgba(240,235,228,0.35); }
+
+/* ═══════════════════════════════════════════════════════
+   8. BRUTALIST — raw 2px borders, PT Mono
+   ═══════════════════════════════════════════════════════ */
+.np-brutalist { background: var(--np-card); border-bottom: 3px solid var(--np-ink); }
+.np-page.np-dark .np-brutalist { border-color: rgba(240,235,228,0.2); }
+.np-brutalist .np-link { font-family: 'PT Mono', monospace; font-size: 11px; letter-spacing: 0; text-transform: none; font-weight: 700; border: 2px solid transparent; padding: 6px 10px; }
+.np-brutalist .np-link::after { display: none; }
+.np-brutalist .np-link:hover { border-color: var(--np-accent); }
+.np-brutalist .np-link.active { border-color: var(--np-accent); color: var(--np-accent); }
+.np-brutalist .np-icon-btn { border: 2px solid transparent; border-radius: 0; }
+.np-brutalist .np-icon-btn:hover { border-color: var(--np-accent); }
+.np-brutalist .np-avatar { border-radius: 0; border: 2px solid var(--np-ink); }
+.np-page.np-dark .np-brutalist .np-avatar { border-color: rgba(240,235,228,0.2); }
+.np-brutalist .np-more-label { font-family: 'PT Mono', monospace; font-size: 11px; letter-spacing: 0; text-transform: none; font-weight: 700; }
+
+/* ═══════════════════════════════════════════════════════
+   9. SERIF EDITORIAL — magazine feel
+   ═══════════════════════════════════════════════════════ */
+.np-serif-editorial { border-bottom: 1px solid var(--np-border); }
+.np-serif-editorial .np-link { font-family: 'PT Serif', Georgia, serif; font-size: 16px; font-weight: 400; letter-spacing: -0.3px; text-transform: none; color: var(--np-muted); padding: 8px 16px; }
+.np-serif-editorial .np-link::after { display: none; }
+.np-serif-editorial .np-link:hover { color: var(--np-ink); }
+.np-serif-editorial .np-link.active { color: var(--np-ink); font-weight: 700; }
+.np-page.np-dark .np-serif-editorial .np-link { color: rgba(240,235,228,0.4); }
+.np-page.np-dark .np-serif-editorial .np-link:hover, .np-page.np-dark .np-serif-editorial .np-link.active { color: var(--np-ink); }
+.np-serif-editorial .np-more-label { font-family: 'PT Serif', Georgia, serif; font-size: 16px; font-weight: 400; letter-spacing: -0.3px; text-transform: none; color: var(--np-muted); }
+.np-page.np-dark .np-serif-editorial .np-more-label { color: rgba(240,235,228,0.4); }
+
+/* ═══════════════════════════════════════════════════════
+   10. CARD STRIP — floating warm cards
+   ═══════════════════════════════════════════════════════ */
+.np-card-strip { background: var(--np-warm); border-bottom: none; }
+.np-card-strip .np-nav-inner { gap: 6px; }
+.np-card-strip .np-link { background: var(--np-card); border-radius: 10px; padding: 10px 16px; box-shadow: 0 1px 4px rgba(var(--np-accent-rgb),0.04); font-size: 11px; }
+.np-card-strip .np-link::after { display: none; }
+.np-card-strip .np-link:hover { box-shadow: 0 2px 8px rgba(var(--np-accent-rgb),0.1); transform: translateY(-1px); }
+.np-card-strip .np-link.active { background: var(--np-accent); color: white; box-shadow: 0 2px 8px rgba(var(--np-accent-rgb),0.25); }
+.np-card-strip .np-more-label { font-size: 11px; }
+
+/* ═══════════════════════════════════════════════════════
+   11. DUAL ROW — utility + main
+   ═══════════════════════════════════════════════════════ */
+.np-dual-row { height: auto; flex-direction: column; border-bottom: 2px solid var(--np-accent); }
+.np-dual-row .np-nav-inner { height: 36px; padding: 0 56px; border-bottom: 1px solid var(--np-border); }
+.np-nav-second-row { display: flex; align-items: center; gap: 24px; height: 44px; padding: 0 56px; }
+.np-second-link { font-size: 13px !important; letter-spacing: -0.2px !important; text-transform: none !important; font-weight: 600 !important; }
+.np-dual-row .np-link::after { display: none; }
+.np-dual-row .np-link.active { color: var(--np-accent); border-bottom: 2px solid var(--np-accent); margin-bottom: -2px; }
+.np-dual-row .np-more-label { font-size: 13px; letter-spacing: -0.2px; text-transform: none; font-weight: 600; }
+
+/* ═══════════════════════════════════════════════════════
+   12. DENSE STRIP — 44px compact
+   ═══════════════════════════════════════════════════════ */
+.np-dense-strip { height: 44px; background: var(--np-warm); border-bottom: 1px solid var(--np-border); }
+.np-dense-strip .np-nav-inner { padding: 0 16px; gap: 8px; }
+.np-dense-strip .np-link { font-size: 10px; padding: 3px 6px; letter-spacing: 0.5px; }
+.np-dense-strip .np-link::after { display: none; }
+.np-dense-strip .np-link.active { color: var(--np-accent); }
+.np-dense-strip .np-icon-btn { padding: 3px; }
+.np-dense-strip .np-more-label { font-size: 10px; padding: 3px 6px; letter-spacing: 0.5px; }
+.np-dense-strip .np-avatar { width: 28px; height: 28px; font-size: 9px; }
+
+/* ═══════════════════════════════════════════════════════
+   13. MICRO BAR — 40px terminal density
+   ═══════════════════════════════════════════════════════ */
+.np-micro-bar { height: 40px; background: var(--np-warm); border-bottom: 1px solid var(--np-border); }
+.np-micro-bar .np-nav-inner { padding: 0 20px; }
+.np-micro-bar .np-link { font-size: 10px; padding: 4px 8px; letter-spacing: 0.8px; }
+.np-micro-bar .np-link::after { display: none; }
+.np-micro-bar .np-link.active { color: var(--np-accent); font-weight: 800; }
+.np-micro-bar .np-icon-btn { padding: 4px; }
+.np-micro-bar .np-more-label { font-size: 10px; padding: 4px 8px; letter-spacing: 0.8px; }
+.np-micro-bar .np-avatar { width: 26px; height: 26px; font-size: 9px; border-radius: 7px; }
+
+/* ═══════════════════════════════════════════════════════
+   14. ACCENT TOP — 2px ember line at very top
+   ═══════════════════════════════════════════════════════ */
+.np-accent-top { border-top: 2px solid var(--np-accent); border-bottom: 1px solid var(--np-border); }
+
+/* ═══════════════════════════════════════════════════════
+   15. SWISS GRID — geometric grid-aligned
+   ═══════════════════════════════════════════════════════ */
+.np-swiss-grid { border-bottom: 2px solid var(--np-ink); }
+.np-page.np-dark .np-swiss-grid { border-color: rgba(240,235,228,0.15); }
+.np-swiss-grid .np-link { font-size: 11px; letter-spacing: 2px; text-transform: uppercase; font-weight: 400; padding: 8px 14px; border-left: 1px solid var(--np-border); }
+.np-swiss-grid .np-link:first-child { border-left: none; }
+.np-swiss-grid .np-link::after { display: none; }
+.np-swiss-grid .np-link.active { background: var(--np-ink); color: var(--np-cream); }
+.np-page.np-dark .np-swiss-grid .np-link.active { background: rgba(240,235,228,0.12); color: var(--np-ink); }
+.np-swiss-grid .np-more-label { border-left: 1px solid var(--np-border); padding: 8px 14px; font-size: 11px; letter-spacing: 2px; }
+
+/* ═══════════════════════════════════════════════════════
+   16. HERO CENTER — logo big, links small
+   ═══════════════════════════════════════════════════════ */
+.np-hero-center { height: auto; flex-direction: column; border-bottom: 1px solid var(--np-border); }
+.np-hero-center .np-nav-inner { flex-direction: column; height: auto; padding: 14px 56px 10px; gap: 8px; }
+.np-hero-center .np-logo { justify-content: center; }
+.np-hero-center .np-hero-links { justify-content: center; gap: 20px; }
+.np-hero-center .np-nav-right { position: absolute; right: 56px; top: 14px; }
+.np-hero-center .np-link { font-size: 11px; padding: 4px 8px; }
+.np-hero-center .np-link::after { display: none; }
+.np-hero-center .np-link.active { color: var(--np-accent); font-weight: 800; }
+.np-hero-center .np-more-label { font-size: 11px; }
+
+/* ═══════════════════════════════════════════════════════
+   17. SOFT SHADOW — friendly rounded
+   ═══════════════════════════════════════════════════════ */
+.np-soft-shadow { background: var(--np-warm); border-bottom: none; border-radius: 0 0 16px 16px; box-shadow: 0 8px 32px rgba(var(--np-accent-rgb),0.08); }
+.np-soft-shadow .np-link { border-radius: 20px; font-size: 13px; letter-spacing: 0; text-transform: none; font-weight: 600; padding: 8px 18px; background: var(--np-card); box-shadow: 0 1px 4px rgba(var(--np-accent-rgb),0.04); }
+.np-soft-shadow .np-link::after { display: none; }
+.np-soft-shadow .np-link:hover { box-shadow: 0 2px 8px rgba(var(--np-accent-rgb),0.1); transform: translateY(-1px); }
+.np-soft-shadow .np-link.active { background: var(--np-accent); color: white; box-shadow: 0 2px 8px rgba(var(--np-accent-rgb),0.25); }
+.np-soft-shadow .np-more-label { font-size: 13px; letter-spacing: 0; text-transform: none; font-weight: 600; }
+
+/* ═══════════════════════════════════════════════════════
+   18. BOTTOM TABS (rendered separately)
+   ═══════════════════════════════════════════════════════ */
+
+/* ═══════════════════════════════════════════════════════
+   19. OVERLAY TRIGGER — logo + hamburger
+   ═══════════════════════════════════════════════════════ */
+.np-overlay-trigger .np-nav-inner { justify-content: space-between; }
+.np-overlay-links { display: none; }
+.np-hamburger { padding: 8px !important; border: 1.5px solid var(--np-border); border-radius: 8px; }
+
+/* ═══════════════════════════════════════════════════════
+   20. CENTERED PILLS — logo top, pills center
+   ═══════════════════════════════════════════════════════ */
+.np-centered-pills { border-bottom: 1px solid var(--np-border); }
+.np-centered-pills .np-nav-inner { justify-content: center; gap: 32px; }
+.np-centered-pills .np-logo { position: absolute; left: 56px; }
+.np-centered-pills .np-nav-center { gap: 4px; background: var(--np-warm); border-radius: 999px; padding: 4px; }
+.np-centered-pills .np-nav-right { position: absolute; right: 56px; }
+.np-centered-pills .np-link { border-radius: 999px; font-size: 12px; letter-spacing: 0; text-transform: none; font-weight: 600; padding: 7px 18px; }
+.np-centered-pills .np-link::after { display: none; }
+.np-centered-pills .np-link:hover { background: rgba(var(--np-accent-rgb),0.06); }
+.np-centered-pills .np-link.active { background: var(--np-accent); color: white; }
+.np-centered-pills .np-more-label { display: none; }

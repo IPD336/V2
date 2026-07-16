@@ -8,12 +8,7 @@ import TextRoll from '../components/TextRoll';
 import FeatureSection from '../components/FeatureSection';
 import Footer from '../components/Footer';
 import { SparklesIcon } from '../components/Icons';
-
-const TESTIMONIALS = [
-  { name: 'Rahul Sharma', role: 'Frontend Developer', initials: 'RS', color: 'var(--accent)', text: 'SkillSwap helped me learn Go in two weeks while teaching React to someone building their first app. Best learning experience I\'ve had.' },
-  { name: 'Ananya Patel', role: 'Data Scientist', initials: 'AP', color: 'var(--sage)', text: 'I was stuck on my ML project for months. Found a mentor here who traded 4 sessions for my Python expertise. Unbelievably valuable.' },
-  { name: 'Karan Mehta', role: 'Product Designer', initials: 'KM', color: 'var(--indigo)', text: 'The team mode is incredible. We formed a group of 4 — designer, frontend, backend, DevOps — and built a real product together.' },
-];
+import TestimonialDeck from '../components/TestimonialDeck';
 
 const SOCIAL_AVATARS = [
   { initials: 'AK', color: 'var(--accent)' },
@@ -326,7 +321,7 @@ export default function Landing() {
       {/* ──────────────── HOW IT WORKS ──────────────── */}
       <section id="how" style={{
         background: 'var(--section-dark)', padding: '100px 24px',
-        position: 'relative', overflow: 'hidden',
+        position: 'relative', overflow: 'clip',
       }}>
         <div className="orb-glow" style={{ width: 500, height: 500, bottom: '-20%', right: '-10%', background: 'rgba(var(--accent-rgb),0.08)' }} />
         <div style={{ position: 'absolute', inset: 0, pointerEvents: 'none', background: 'radial-gradient(ellipse 50% 80% at 80% 50%, rgba(var(--accent-rgb),0.12) 0%, transparent 60%)' }} />
@@ -380,43 +375,9 @@ export default function Landing() {
                 <TextRoll center>Loved by the</TextRoll> <em style={{ fontStyle: 'italic', color: 'var(--accent)' }}><TextRoll center>community</TextRoll></em>
               </h2>
             </div>
+          </Reveal>          <Reveal delay={100}>
+            <TestimonialDeck />
           </Reveal>
-
-          <div className="testimonial-grid">
-            <Reveal delay={0} className="testimonial-card" style={{ background: 'var(--card-bg)', border: '1px solid var(--border)', borderRadius: 12, padding: '36px 32px', display: 'flex', flexDirection: 'column', gap: 20 }}>
-              <div style={{ fontSize: 15, lineHeight: 1.8, color: 'var(--ink)', fontStyle: 'italic', flex: 1 }}>
-                "{TESTIMONIALS[0].text}"
-              </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                <div style={{ width: 44, height: 44, borderRadius: 10, background: TESTIMONIALS[0].color, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 15, fontWeight: 800, color: 'white' }}>
-                  {TESTIMONIALS[0].initials}
-                </div>
-                <div>
-                  <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--ink)' }}><TextRoll center>{TESTIMONIALS[0].name}</TextRoll></div>
-                  <div style={{ fontSize: 12, color: 'var(--muted)' }}><TextRoll>{TESTIMONIALS[0].role}</TextRoll></div>
-                </div>
-              </div>
-            </Reveal>
-
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
-              {TESTIMONIALS.slice(1).map((t, i) => (
-                <Reveal key={i} delay={(i + 1) * 100} className="testimonial-card" style={{ background: 'var(--card-bg)', border: '1px solid var(--border)', borderRadius: 12, padding: '28px 24px', display: 'flex', flexDirection: 'column', gap: 16 }}>
-                  <div style={{ fontSize: 13, lineHeight: 1.7, color: 'var(--ink)', fontStyle: 'italic' }}>
-                    "{t.text}"
-                  </div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginTop: 'auto' }}>
-                    <div style={{ width: 36, height: 36, borderRadius: 8, background: t.color, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, fontWeight: 800, color: 'white' }}>
-                      {t.initials}
-                    </div>
-                    <div>
-                      <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--ink)' }}><TextRoll center>{t.name}</TextRoll></div>
-                      <div style={{ fontSize: 11, color: 'var(--muted)' }}><TextRoll>{t.role}</TextRoll></div>
-                    </div>
-                  </div>
-                </Reveal>
-              ))}
-            </div>
-          </div>
         </div>
       </section>
 

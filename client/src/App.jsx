@@ -1,5 +1,5 @@
 import { useState, useEffect, lazy, Suspense } from 'react';
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { ToastProvider } from './context/ToastContext';
@@ -12,7 +12,7 @@ import MobileBottomNav from './components/MobileBottomNav';
 import OnboardingModal from './components/OnboardingModal';
 const CommandPalette = lazy(() => import('./components/CommandPalette'));
 const KeyboardShortcutsModal = lazy(() => import('./components/KeyboardShortcutsModal'));
-import SplashScreen from './components/SplashScreen';
+import StairsPreloader from './components/StairsPreloader';
 const Landing = lazy(() => import('./pages/Landing'));
 const Login = lazy(() => import('./pages/Login'));
 const Register = lazy(() => import('./pages/Register'));
@@ -32,6 +32,8 @@ const AdminDashboard = lazy(() => import('./pages/AdminDashboard'));
 const Workspaces = lazy(() => import('./pages/Workspaces'));
 const Badges = lazy(() => import('./pages/Badges'));
 const NotFound = lazy(() => import('./pages/NotFound'));
+const NavbarPreview = lazy(() => import('./pages/NavbarPreview'));
+const GoogleAuthCallback = lazy(() => import('./pages/GoogleAuthCallback'));
 
 function ProtectedRoute({ children }) {
   const { user, loading } = useAuth();
@@ -41,6 +43,7 @@ function ProtectedRoute({ children }) {
 
 function AppRoutes() {
   const { user } = useAuth();
+  const location = useLocation();
   const [showOnboarding, setShowOnboarding] = useState(false);
 
   useEffect(() => {
@@ -69,9 +72,11 @@ function AppRoutes() {
         <Route path="/profile" element={<ProtectedRoute><Suspense fallback={<Spinner />}><Profile /></Suspense></ProtectedRoute>} />
         <Route path="/profile/:id" element={<ProtectedRoute><Suspense fallback={<Spinner />}><UserProfile /></Suspense></ProtectedRoute>} />
         <Route path="/admin" element={<ProtectedRoute><Suspense fallback={<Spinner />}><AdminDashboard /></Suspense></ProtectedRoute>} />
+        <Route path="/navbar-preview" element={<Suspense fallback={<Spinner />}><NavbarPreview /></Suspense>} />
+        <Route path="/auth/google/callback" element={<Suspense fallback={<Spinner />}><GoogleAuthCallback /></Suspense>} />
         <Route path="*" element={<Suspense fallback={<Spinner />}><NotFound /></Suspense>} />
       </Routes>
-      {user && user.role !== 'admin' && <MobileBottomNav />}
+      {user && user.role !== 'admin' && location.pathname !== '/navbar-preview' && <MobileBottomNav />}
       {showOnboarding && (
         <OnboardingModal onDone={() => setShowOnboarding(false)} />
       )}
@@ -98,7 +103,7 @@ function SplashGate({ children }) {
   return (
     <>
       {ready && showSplash && (
-        <SplashScreen onDone={() => setShowSplash(false)} />
+        <StairsPreloader onDone={() => setShowSplash(false)} />
       )}
       {children}
     </>
@@ -106,6 +111,24 @@ function SplashGate({ children }) {
 }
 
 const queryClient = new QueryClient({ defaultOptions: { queries: { staleTime: 30_000, gcTime: 5 * 60_000, retry: 1, refetchOnWindowFocus: false } } });
+
+function Shell() {
+  const location = useLocation();
+  const isPreview = location.pathname === '/navbar-preview';
+
+  return (
+    <SplashGate>
+      {!isPreview && <Navbar />}
+      <Suspense fallback={null}>
+        <CommandPalette />
+        <KeyboardShortcutsModal />
+      </Suspense>
+      <ErrorBoundary>
+        <AppRoutes />
+      </ErrorBoundary>
+    </SplashGate>
+  );
+}
 
 export default function App() {
   return (
@@ -115,16 +138,7 @@ export default function App() {
         <AuthProvider>
           <ToastProvider>
             <SocketProvider>
-              <SplashGate>
-        <Navbar />
-        <Suspense fallback={null}>
-          <CommandPalette />
-          <KeyboardShortcutsModal />
-        </Suspense>
-        <ErrorBoundary>
-                  <AppRoutes />
-                </ErrorBoundary>
-              </SplashGate>
+              <Shell />
             </SocketProvider>
           </ToastProvider>
         </AuthProvider>
