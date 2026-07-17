@@ -1,10 +1,10 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { useTheme } from '../context/ThemeContext';
 
-const ALL_PEOPLE = [
+const TESTIMONIALS = [
   {
-    id: 1,
+    id: 0,
     name: 'Rahul Sharma',
     role: 'Frontend Developer',
     initials: 'RS',
@@ -13,7 +13,7 @@ const ALL_PEOPLE = [
     text: "SkillSwap helped me learn Go in two weeks while teaching React to someone building their first app. The absolute best learning experience I've had.",
   },
   {
-    id: 2,
+    id: 1,
     name: 'Ananya Patel',
     role: 'Data Scientist',
     initials: 'AP',
@@ -22,7 +22,7 @@ const ALL_PEOPLE = [
     text: 'I was stuck on my ML project for months. Found a mentor here who traded Python coaching for ML tips. Unbelievably valuable.',
   },
   {
-    id: 3,
+    id: 2,
     name: 'Karan Mehta',
     role: 'Product Designer',
     initials: 'KM',
@@ -31,7 +31,7 @@ const ALL_PEOPLE = [
     text: 'The team mode is incredible. We formed a group of 4 — designer, frontend, backend, DevOps — and built a real product together in 3 weeks.',
   },
   {
-    id: 4,
+    id: 3,
     name: 'Sara Chen',
     role: 'Full Stack Engineer',
     initials: 'SC',
@@ -40,7 +40,7 @@ const ALL_PEOPLE = [
     text: 'I needed to deploy my app to AWS. Traded my TypeScript knowledge with a DevOps engineer who set up Docker containers for me in a weekend.',
   },
   {
-    id: 5,
+    id: 4,
     name: 'Aarav Goel',
     role: 'DevOps Specialist',
     initials: 'AG',
@@ -49,403 +49,95 @@ const ALL_PEOPLE = [
     text: 'Met a Node.js wizard who helped me clean up my microservices API. In return, I taught him how to set up Kubernetes clusters.',
   },
   {
-    id: 6,
+    id: 5,
     name: 'Priya Sen',
     role: 'UI Copywriter',
     initials: 'PS',
     color: 'var(--accent)',
     skills: ['Copywriting', 'SEO'],
     text: 'Traded my copy editing skills for some SEO tutoring. My blog traffic grew by 80% after putting what I learned into practice.',
-  },
-  {
-    id: 7,
-    name: 'Vikram Malhotra',
-    role: 'Backend Architect',
-    initials: 'VM',
-    color: 'var(--sage)',
-    skills: ['Java', 'Rust'],
-    text: 'Taught Rust systems programming to a senior Java developer. In return, he helped me re-architect our spring boot database connectors.',
-  },
-  {
-    id: 8,
-    name: 'Neha Gupta',
-    role: 'Product PM',
-    initials: 'NG',
-    color: 'var(--indigo)',
-    skills: ['Agile', 'Analytics'],
-    text: 'I wanted to level up on user analytics and PM tools. Traded my PM coaching roadmaps for 5 PM analytics sessions. Truly awesome PM trade.',
   }
 ];
 
-// Design lanes: 4 horizontal corridors, 2 vertical corridors
-const LANES = [
-  { type: 'h', dir: 1,  y: 22, startX: -15, endX: 115, vx: 0.08, vy: 0 },   // Lane 0: Left to Right
-  { type: 'h', dir: -1, y: 42, startX: 115, endX: -15, vx: -0.08, vy: 0 },  // Lane 1: Right to Left
-  { type: 'h', dir: 1,  y: 62, startX: -15, endX: 115, vx: 0.08, vy: 0 },   // Lane 2: Left to Right
-  { type: 'h', dir: -1, y: 82, startX: 115, endX: -15, vx: -0.08, vy: 0 },  // Lane 3: Right to Left
-  { type: 'v', dir: 1,  x: 30, startY: -15, endY: 115, vx: 0, vy: 0.06 },   // Lane 4: Top to Bottom
-  { type: 'v', dir: -1, x: 70, startY: 115, endY: -15, vx: 0, vy: -0.06 },  // Lane 5: Bottom to Top
-];
-
-// Spread them across lanes initially
-const INITIAL_PEOPLE = ALL_PEOPLE.slice(0, 6).map((person, index) => {
-  const lane = LANES[index];
-  const initialOffset = [0.2, 0.8, 0.4, 0.6, 0.3, 0.7][index]; // starting offset inside lane
-  
-  const x = lane.type === 'h' ? lane.startX + (lane.endX - lane.startX) * initialOffset : lane.x;
-  const y = lane.type === 'v' ? lane.startY + (lane.endY - lane.startY) * initialOffset : lane.y;
-
-  return {
-    ...person,
-    slotId: index,
-    poolId: person.id,
-    x,
-    y,
-    vx: lane.vx,
-    vy: lane.vy,
-  };
-});
-
 export default function TestimonialDeck() {
-  const [people, setPeople] = useState(INITIAL_PEOPLE);
-  const [hoveredId, setHoveredId] = useState(null);
-  const [hoveredCoords, setHoveredCoords] = useState(null); // Captures coordinates at exact millisecond of hover
+  const [activeIndex, setActiveIndex] = useState(0);
+  const [isAutoPlaying, setIsAutoPlaying] = useState(true);
   const { theme } = useTheme();
   const isDark = theme === 'dark';
 
-  // Refs for direct DOM animation updates (Bypasses React rendering cycles entirely)
-  const avatarRefs = useRef([]);
-  const hoveredIdRef = useRef(hoveredId);
-  const physicsData = useRef(
-    INITIAL_PEOPLE.map((p) => ({
-      x: p.x,
-      y: p.y,
-      vx: p.vx,
-      vy: p.vy,
-    }))
-  );
+  const N = TESTIMONIALS.length;
+  // Calculate parent wheel rotation so the selected item rotates to the focus point (left, 180 degrees)
+  const wheelRotation = 180 - activeIndex * (360 / N);
 
-  // Sync hovered ID to ref so that requestAnimationFrame always gets the latest hovered slot
+  // Auto-rotation timer: switches active testimonial every 5 seconds
   useEffect(() => {
-    hoveredIdRef.current = hoveredId;
-  }, [hoveredId]);
+    if (!isAutoPlaying) return;
+    const timer = setInterval(() => {
+      setActiveIndex((prev) => (prev + 1) % N);
+    }, 5000);
+    return () => clearInterval(timer);
+  }, [isAutoPlaying, N]);
 
-  // One-shot animation loop (has no dependencies, so it never tears down or restarts)
-  useEffect(() => {
-    let animationFrameId;
+  const activePerson = TESTIMONIALS[activeIndex];
 
-    const updatePhysics = () => {
-      let stateUpdateSlotIdx = -1;
-      let nextPoolPerson = null;
-      let resetCoords = {};
-
-      physicsData.current.forEach((physics, idx) => {
-        // Freeze this avatar if it is currently hovered
-        if (hoveredIdRef.current === idx) return;
-
-        let nextX = physics.x + physics.vx;
-        let nextY = physics.y + physics.vy;
-
-        // Check if avatar went out of bounds
-        const lane = LANES[idx];
-        let isOffScreen = false;
-        if (lane.type === 'h') {
-          isOffScreen = lane.dir === 1 ? nextX > 115 : nextX < -15;
-        } else {
-          isOffScreen = lane.dir === 1 ? nextY > 115 : nextY < -15;
-        }
-
-        if (isOffScreen && stateUpdateSlotIdx === -1) {
-          // Identify currently active pool IDs to avoid duplicate characters
-          let currentPoolIds = [];
-          setPeople((prev) => {
-            currentPoolIds = prev.filter((_, pIdx) => pIdx !== idx).map((p) => p.poolId);
-            return prev;
-          });
-
-          // Fetch new unused person
-          const unusedPool = ALL_PEOPLE.filter((p) => !currentPoolIds.includes(p.id));
-          nextPoolPerson = unusedPool.length > 0
-            ? unusedPool[Math.floor(Math.random() * unusedPool.length)]
-            : ALL_PEOPLE[Math.floor(Math.random() * ALL_PEOPLE.length)];
-
-          // Reset positioning in the lane, adding a slight offset to keep the paths natural
-          if (lane.type === 'h') {
-            resetCoords = {
-              x: lane.startX,
-              y: lane.y - 4 + Math.random() * 8, // slight offset range
-              vx: lane.vx,
-              vy: lane.vy
-            };
-          } else {
-            resetCoords = {
-              x: lane.x - 4 + Math.random() * 8, // slight offset range
-              y: lane.startY,
-              vx: lane.vx,
-              vy: lane.vy
-            };
-          }
-
-          stateUpdateSlotIdx = idx;
-        } else {
-          // Update physics values directly
-          physics.x = nextX;
-          physics.y = nextY;
-
-          // Push position changes directly to the DOM for hardware-accelerated 120fps motion
-          const el = avatarRefs.current[idx];
-          if (el) {
-            el.style.transform = `translate3d(${nextX}cqw, ${nextY}cqh, 0) translate(-50%, -50%)`;
-          }
-        }
-      });
-
-      // If an avatar walked off-screen, perform a state update for character content details
-      if (stateUpdateSlotIdx !== -1 && nextPoolPerson) {
-        const idx = stateUpdateSlotIdx;
-        
-        // Reset coordinate values directly in physicsData to prevent delay offsets
-        physicsData.current[idx].x = resetCoords.x;
-        physicsData.current[idx].y = resetCoords.y;
-        physicsData.current[idx].vx = resetCoords.vx;
-        physicsData.current[idx].vy = resetCoords.vy;
-
-        // Instantly force style positions for the spawning avatar
-        const el = avatarRefs.current[idx];
-        if (el) {
-          el.style.transform = `translate3d(${resetCoords.x}cqw, ${resetCoords.y}cqh, 0) translate(-50%, -50%)`;
-        }
-
-        setPeople((prev) => {
-          const next = [...prev];
-          next[idx] = {
-            ...next[idx],
-            poolId: nextPoolPerson.id,
-            name: nextPoolPerson.name,
-            role: nextPoolPerson.role,
-            initials: nextPoolPerson.initials,
-            color: nextPoolPerson.color,
-            skills: nextPoolPerson.skills,
-            text: nextPoolPerson.text,
-            x: resetCoords.x,
-            y: resetCoords.y,
-            vx: resetCoords.vx,
-            vy: resetCoords.vy,
-          };
-          return next;
-        });
-      }
-
-      animationFrameId = requestAnimationFrame(updatePhysics);
-    };
-
-    animationFrameId = requestAnimationFrame(updatePhysics);
-    return () => cancelAnimationFrame(animationFrameId);
-  }, []);
-
-  const handleMouseEnter = (slotId) => {
-    // Capture the exact real-time coordinates of this avatar from physicsData
-    const coords = physicsData.current[slotId];
-    if (coords) {
-      setHoveredCoords({ x: coords.x, y: coords.y });
-    }
-    setHoveredId(slotId);
-  };
-
-  const handleMouseLeave = () => {
-    setHoveredId(null);
-    setHoveredCoords(null);
-  };
-
-  const hoveredPerson = people.find((p) => p.slotId === hoveredId);
-
-  // Position calculation for tooltip card to prevent clipping near container edges
-  const getTooltipStyles = (person, coords) => {
-    if (!person || !coords) return {};
-
-    const styles = {
-      position: 'absolute',
-      zIndex: 99,
-      width: '90%',
-      maxWidth: 360,
-      background: 'var(--card-bg)',
-      border: '1.5px solid var(--border)',
-      borderRadius: 20,
-      padding: '24px 28px',
-      boxShadow: 'var(--shadow-lg)',
-      pointerEvents: 'none',
-    };
-
-    // Calculate vertical containment based on physical position in container
-    if (coords.y > 55) {
-      styles.bottom = `${105 - coords.y}%`;
-      styles.top = 'auto';
-    } else {
-      styles.top = `${coords.y + 8}%`;
-      styles.bottom = 'auto';
-    }
-
-    // Calculate horizontal containment relative to container edges
-    if (coords.x < 30) {
-      styles.left = '16px';
-      styles.right = 'auto';
-      styles.transform = 'none';
-    } else if (coords.x > 70) {
-      styles.right = '16px';
-      styles.left = 'auto';
-      styles.transform = 'none';
-    } else {
-      styles.left = `${coords.x}%`;
-      styles.right = 'auto';
-      styles.transform = 'translateX(-50%)';
-    }
-
-    return styles;
+  const handleSelect = (idx) => {
+    setIsAutoPlaying(false); // Stop autoplay when clicked
+    setActiveIndex(idx);
   };
 
   return (
     <div
+      className="testimonial-wheel-container"
       style={{
-        position: 'relative',
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        gap: 40,
         width: '100%',
-        maxWidth: 960,
-        height: 500,
+        maxWidth: 1100,
         margin: '0 auto',
-        background: isDark ? 'rgba(38, 33, 28, 0.4)' : 'rgba(248, 244, 238, 0.4)',
-        border: '1px solid var(--border)',
-        borderRadius: 24,
-        overflow: 'hidden',
-        boxShadow: 'var(--shadow)',
-        containerType: 'size',
+        padding: '0 20px',
       }}
     >
-      {/* Subtle ambient grid pattern in background */}
+      {/* LEFT: Testimonial review panel */}
       <div
+        className="testimonial-left-panel"
         style={{
-          position: 'absolute',
-          inset: 0,
-          background: `
-            radial-gradient(circle at 20% 30%, rgba(var(--accent-rgb), 0.04) 0%, transparent 50%),
-            radial-gradient(circle at 80% 70%, rgba(var(--sage-rgb), 0.03) 0%, transparent 50%)
-          `,
-          opacity: 0.8,
-          pointerEvents: 'none',
+          width: '100%',
+          maxWidth: 560,
+          display: 'flex',
+          flexDirection: 'column',
+          justifyContent: 'center',
+          textAlign: 'center',
         }}
-      />
-
-      {/* Floating testominial avatars */}
-      <div style={{ position: 'absolute', inset: 0 }}>
-        {people.map((person, idx) => {
-          const isHovered = person.slotId === hoveredId;
-
-          return (
-            <div
-              key={person.slotId} // Fixed key per slot ID allows reusing DOM nodes seamlessly
-              ref={(el) => (avatarRefs.current[idx] = el)}
-              onMouseEnter={() => handleMouseEnter(person.slotId)}
-              onMouseLeave={handleMouseLeave}
-              style={{
-                position: 'absolute',
-                left: 0,
-                top: 0,
-                transform: `translate3d(${person.x}cqw, ${person.y}cqh, 0) translate(-50%, -50%)`,
-                zIndex: isHovered ? 100 : 10,
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'center',
-                cursor: 'pointer',
-                transition: 'transform 0.2s cubic-bezier(0.2, 0.8, 0.2, 1)',
-                willChange: 'transform', // Hardware acceleration optimization
-              }}
-            >
-              {/* Interactive circular avatar */}
-              <div
-                style={{
-                  position: 'relative',
-                  width: 52,
-                  height: 52,
-                  borderRadius: '50%',
-                  background: person.color,
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  fontSize: 15,
-                  fontWeight: 800,
-                  color: 'white',
-                  border: isDark ? '3px solid #26211c' : '3px solid #ffffff',
-                  boxShadow: isHovered 
-                    ? `0 10px 25px ${person.color}40`
-                    : '0 4px 12px rgba(0,0,0,0.12)',
-                  transform: isHovered ? 'scale(1.15)' : 'scale(1)',
-                  transition: 'transform 0.2s ease, box-shadow 0.2s ease',
-                  animation: isHovered ? 'none' : 'float-bob 3s infinite ease-in-out',
-                  animationDelay: `${person.slotId * 0.4}s`,
-                }}
-              >
-                {person.initials}
-
-                {/* Pulsing ring on idle avatars */}
-                {!isHovered && (
-                  <span
-                    style={{
-                      position: 'absolute',
-                      inset: -3,
-                      borderRadius: '50%',
-                      border: `1.5px solid ${person.color}`,
-                      opacity: 0.4,
-                      animation: 'avatar-pulse 2s infinite ease-out',
-                      animationDelay: `${person.slotId * 0.5}s`,
-                    }}
-                  />
-                )}
-              </div>
-
-              {/* Name Tag */}
-              <div
-                style={{
-                  marginTop: 8,
-                  background: isDark ? 'rgba(38, 33, 28, 0.95)' : 'rgba(255, 255, 255, 0.95)',
-                  border: '1px solid var(--border)',
-                  padding: '3px 8px',
-                  borderRadius: 12,
-                  fontSize: 10,
-                  fontWeight: 700,
-                  color: 'var(--ink)',
-                  boxShadow: '0 2px 8px rgba(0,0,0,0.06)',
-                  whiteSpace: 'nowrap',
-                  pointerEvents: 'none',
-                  opacity: 0.9,
-                }}
-              >
-                {person.name.split(' ')[0]}
-              </div>
-            </div>
-          );
-        })}
-      </div>
-
-      {/* Floating Tooltip Card overlay on hover - Contained inside bounds */}
-      <AnimatePresence>
-        {hoveredId !== null && hoveredPerson && hoveredCoords && (
+      >
+        <AnimatePresence mode="wait">
           <motion.div
-            initial={{ opacity: 0, scale: 0.9, y: 15 }}
-            animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.9, y: 10 }}
-            transition={{ duration: 0.25, ease: [0.2, 0.8, 0.2, 1] }}
-            style={getTooltipStyles(hoveredPerson, hoveredCoords)}
+            key={activeIndex}
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            transition={{ duration: 0.5, ease: [0.215, 0.61, 0.355, 1] }}
+            style={{
+              display: 'flex',
+              flexDirection: 'column',
+              gap: 20,
+              minHeight: 280,
+              justifyContent: 'center',
+            }}
           >
-            {/* SVG Quote Mark */}
+            {/* SVG Quote Mark decoration */}
             <svg
-              width="28"
-              height="28"
+              width="44"
+              height="44"
               viewBox="0 0 24 24"
               fill="none"
               style={{
-                color: hoveredPerson.color,
-                opacity: 0.15,
-                position: 'absolute',
-                top: 16,
-                right: 20,
+                color: activePerson.color,
+                opacity: 0.2,
+                alignSelf: 'center',
+                marginBottom: -10,
               }}
             >
               <path
@@ -458,88 +150,282 @@ export default function TestimonialDeck() {
             <p
               style={{
                 fontFamily: 'PT Serif, serif',
-                fontSize: 14,
+                fontSize: 'clamp(18px, 3.5vw, 22px)',
                 lineHeight: 1.6,
                 color: 'var(--ink)',
                 fontStyle: 'italic',
-                margin: '0 0 16px 0',
+                margin: 0,
+                fontWeight: 400,
               }}
             >
-              "{hoveredPerson.text}"
+              "{activePerson.text}"
             </p>
 
-            {/* Member Profile Footer & Skill swap tag */}
-            <div
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                borderTop: '1px solid var(--border)',
-                paddingTop: 14,
-                gap: 12,
-              }}
-            >
-              <div>
-                <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--ink)', fontFamily: 'PT Sans, sans-serif' }}>
-                  {hoveredPerson.name}
-                </div>
-                <div style={{ fontSize: 11, color: 'var(--muted)', fontFamily: 'PT Sans, sans-serif' }}>
-                  {hoveredPerson.role}
-                </div>
-              </div>
-
-              {/* Skills Pill badge */}
+            {/* Swapped Skills tag */}
+            <div style={{ display: 'flex', justifyContent: 'center', margin: '8px 0' }}>
               <div
                 style={{
-                  display: 'flex',
+                  display: 'inline-flex',
                   alignItems: 'center',
-                  gap: 4,
+                  gap: 8,
                   background: 'var(--cream)',
-                  border: '1px solid var(--border)',
-                  borderRadius: 12,
-                  padding: '4px 10px',
-                  fontSize: 10,
+                  border: '1.5px solid var(--border)',
+                  borderRadius: 30,
+                  padding: '8px 20px',
+                  fontSize: 12,
                   fontWeight: 700,
                   color: 'var(--ink)',
                   fontFamily: 'PT Mono, monospace',
-                  whiteSpace: 'nowrap',
+                  boxShadow: '0 4px 12px rgba(0,0,0,0.02)',
                 }}
               >
-                <span>{hoveredPerson.skills[0]}</span>
-                <span style={{ color: 'var(--accent)' }}>↔</span>
-                <span>{hoveredPerson.skills[1]}</span>
+                <span>{activePerson.skills[0]}</span>
+                <span style={{ color: 'var(--accent)', fontWeight: 800 }}>↔</span>
+                <span>{activePerson.skills[1]}</span>
+              </div>
+            </div>
+
+            {/* User Profile */}
+            <div>
+              <div style={{ fontSize: 16, fontWeight: 700, color: 'var(--ink)', fontFamily: 'PT Sans, sans-serif' }}>
+                {activePerson.name}
+              </div>
+              <div style={{ fontSize: 12, color: 'var(--muted)', fontFamily: 'PT Sans, sans-serif', marginTop: 2 }}>
+                {activePerson.role}
               </div>
             </div>
           </motion.div>
-        )}
-      </AnimatePresence>
-
-      {/* Tiny instructions tag at bottom-right */}
-      <div
-        style={{
-          position: 'absolute',
-          bottom: 12,
-          right: 16,
-          fontFamily: 'PT Sans, sans-serif',
-          fontSize: 10,
-          fontWeight: 700,
-          letterSpacing: 0.5,
-          color: 'var(--muted)',
-          zIndex: 5,
-        }}
-      >
-        Hover over any member to read their swap review
+        </AnimatePresence>
       </div>
 
-      {/* Embedded CSS for animations */}
+      {/* RIGHT: Spinning Wheel Dial */}
+      <div
+        className="testimonial-right-panel"
+        style={{
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
+          position: 'relative',
+        }}
+      >
+        <div className="spinning-wheel-outer" style={{ position: 'relative' }}>
+          
+          {/* Static Connectors / Aesthetics background circles */}
+          <div
+            style={{
+              position: 'absolute',
+              inset: 0,
+              borderRadius: '50%',
+              border: '1px dashed var(--border)',
+              opacity: 0.5,
+              pointerEvents: 'none',
+            }}
+          />
+          <div
+            style={{
+              position: 'absolute',
+              inset: 48,
+              borderRadius: '50%',
+              border: '1px solid var(--border)',
+              opacity: 0.3,
+              pointerEvents: 'none',
+            }}
+          />
+
+          {/* Central Active Indicator Core */}
+          <div
+            style={{
+              position: 'absolute',
+              left: '50%',
+              top: '50%',
+              transform: 'translate(-50%, -50%)',
+              width: 110,
+              height: 110,
+              borderRadius: '50%',
+              background: 'var(--card-bg)',
+              border: '1.5px solid var(--border)',
+              boxShadow: 'var(--shadow)',
+              zIndex: 3,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              pointerEvents: 'none',
+            }}
+          >
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={activeIndex}
+                initial={{ opacity: 0, scale: 0.8 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.8 }}
+                transition={{ duration: 0.3 }}
+                style={{
+                  width: 80,
+                  height: 80,
+                  borderRadius: '50%',
+                  background: activePerson.color,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  fontSize: 26,
+                  fontWeight: 800,
+                  color: 'white',
+                  boxShadow: `0 8px 24px ${activePerson.color}35`,
+                }}
+              >
+                {activePerson.initials}
+              </motion.div>
+            </AnimatePresence>
+          </div>
+
+          {/* Active Highlight focal pointer path */}
+          <div
+            style={{
+              position: 'absolute',
+              left: 0,
+              width: '50%',
+              height: 2,
+              borderTop: `2px dashed ${activePerson.color}`,
+              opacity: 0.6,
+              top: '50%',
+              transform: 'translateY(-50%)',
+              pointerEvents: 'none',
+              zIndex: 2,
+              transition: 'border-color 0.4s ease',
+            }}
+          />
+
+          {/* The Spinning Wheel Container */}
+          <motion.div
+            animate={{ rotate: wheelRotation }}
+            transition={{
+              type: 'spring',
+              stiffness: 110,
+              damping: 18,
+            }}
+            style={{
+              position: 'relative',
+              width: '100%',
+              height: '100%',
+              borderRadius: '50%',
+              zIndex: 4,
+            }}
+          >
+            {TESTIMONIALS.map((person, i) => {
+              const angle = (i * 2 * Math.PI) / N;
+              const radiusPercent = 40; // distance from center (percent of container size)
+              const left = 50 + radiusPercent * Math.cos(angle);
+              const top = 50 + radiusPercent * Math.sin(angle);
+              const isActive = i === activeIndex;
+
+              return (
+                <div
+                  key={person.id}
+                  onClick={() => handleSelect(i)}
+                  onMouseEnter={() => setIsAutoPlaying(false)}
+                  onMouseLeave={() => setIsAutoPlaying(true)}
+                  style={{
+                    position: 'absolute',
+                    left: `${left}%`,
+                    top: `${top}%`,
+                    transform: 'translate(-50%, -50%)',
+                    cursor: 'pointer',
+                  }}
+                >
+                  {/* Inverse rotation to keep child avatars perfectly upright */}
+                  <motion.div
+                    animate={{ 
+                      rotate: -wheelRotation,
+                      scale: isActive ? 1.25 : 1,
+                    }}
+                    transition={{
+                      type: 'spring',
+                      stiffness: 110,
+                      damping: 18,
+                    }}
+                    style={{
+                      width: 56,
+                      height: 56,
+                      borderRadius: '50%',
+                      background: person.color,
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      fontSize: 15,
+                      fontWeight: 800,
+                      color: 'white',
+                      border: isDark ? '4px solid #26211c' : '4px solid #ffffff',
+                      boxShadow: isActive 
+                        ? `0 10px 25px ${person.color}50` 
+                        : '0 4px 12px rgba(0,0,0,0.1)',
+                      transition: 'border-color 0.4s ease, box-shadow 0.3s ease',
+                    }}
+                  >
+                    {person.initials}
+
+                    {/* Orbit connector path line relative to the center */}
+                    <div
+                      style={{
+                        position: 'absolute',
+                        width: 16,
+                        height: 16,
+                        borderRadius: '50%',
+                        background: person.color,
+                        opacity: isActive ? 0.3 : 0,
+                        zIndex: -1,
+                        filter: 'blur(3px)',
+                        transform: 'scale(2.5)',
+                        transition: 'opacity 0.3s ease',
+                      }}
+                    />
+                  </motion.div>
+                </div>
+              );
+            })}
+          </motion.div>
+        </div>
+      </div>
+
+      {/* Responsive stylesheet */}
       <style>{`
-        @keyframes float-bob {
-          0%, 100% { transform: translateY(0); }
-          50% { transform: translateY(-5px); }
+        .spinning-wheel-outer {
+          width: 360px;
+          height: 360px;
         }
-        @keyframes avatar-pulse {
-          0% { transform: scale(1); opacity: 0.4; }
-          100% { transform: scale(1.3); opacity: 0; }
+        @media (max-width: 768px) {
+          .spinning-wheel-outer {
+            transform: scale(0.85);
+          }
+        }
+        @media (max-width: 480px) {
+          .spinning-wheel-outer {
+            transform: scale(0.72);
+            margin: -30px 0;
+          }
+        }
+        @media (min-width: 768px) {
+          .testimonial-wheel-container {
+            flex-direction: row !important;
+            align-items: center !important;
+            gap: 60px !important;
+            text-align: left !important;
+          }
+          .testimonial-left-panel {
+            flex: 1.25 !important;
+            text-align: left !important;
+          }
+          .testimonial-left-panel div {
+            justify-content: flex-start !important;
+          }
+          .testimonial-left-panel svg {
+            align-self: flex-start !important;
+          }
+          .testimonial-left-panel div div {
+            justify-content: flex-start !important;
+          }
+          .testimonial-right-panel {
+            flex: 0.75 !important;
+          }
         }
       `}</style>
     </div>
