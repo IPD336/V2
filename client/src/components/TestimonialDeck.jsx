@@ -195,8 +195,7 @@ export default function TestimonialDeck() {
           // Push position changes directly to the DOM for hardware-accelerated 120fps motion
           const el = avatarRefs.current[idx];
           if (el) {
-            el.style.left = `${nextX}%`;
-            el.style.top = `${nextY}%`;
+            el.style.transform = `translate3d(${nextX}cqw, ${nextY}cqh, 0) translate(-50%, -50%)`;
           }
         }
       });
@@ -214,8 +213,7 @@ export default function TestimonialDeck() {
         // Instantly force style positions for the spawning avatar
         const el = avatarRefs.current[idx];
         if (el) {
-          el.style.left = `${resetCoords.x}%`;
-          el.style.top = `${resetCoords.y}%`;
+          el.style.transform = `translate3d(${resetCoords.x}cqw, ${resetCoords.y}cqh, 0) translate(-50%, -50%)`;
         }
 
         setPeople((prev) => {
@@ -318,6 +316,7 @@ export default function TestimonialDeck() {
         borderRadius: 24,
         overflow: 'hidden',
         boxShadow: 'var(--shadow)',
+        containerType: 'size',
       }}
     >
       {/* Subtle ambient grid pattern in background */}
@@ -347,16 +346,16 @@ export default function TestimonialDeck() {
               onMouseLeave={handleMouseLeave}
               style={{
                 position: 'absolute',
-                left: `${person.x}%`,
-                top: `${person.y}%`,
-                transform: 'translate(-50%, -50%)',
+                left: 0,
+                top: 0,
+                transform: `translate3d(${person.x}cqw, ${person.y}cqh, 0) translate(-50%, -50%)`,
                 zIndex: isHovered ? 100 : 10,
                 display: 'flex',
                 flexDirection: 'column',
                 alignItems: 'center',
                 cursor: 'pointer',
                 transition: 'transform 0.2s cubic-bezier(0.2, 0.8, 0.2, 1)',
-                willChange: 'left, top', // Hardware acceleration optimization
+                willChange: 'transform', // Hardware acceleration optimization
               }}
             >
               {/* Interactive circular avatar */}
