@@ -25,6 +25,7 @@ import {
 } from '../components/Icons';
 import { BadgeIcon } from '../utils/badges';
 import { initials, timeAgo } from '../utils';
+import '../styles/dashboard.css';
 
 function getGreeting(name) {
   const h = new Date().getHours();

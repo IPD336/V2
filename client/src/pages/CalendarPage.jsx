@@ -5,6 +5,7 @@ import { useToast } from '../context/ToastContext';
 import { useNavigate } from 'react-router-dom';
 import { CalendarIcon, ChevronLeftIcon, ChevronRightIcon, ClockIcon, VideoIcon, CheckIcon, SwapIcon, StarIcon } from '../components/Icons';
 import { DateRangePicker } from '../components/DatePicker';
+import '../styles/calendar.css';
 
 /* ─── Helpers ─── */
 const MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December'];

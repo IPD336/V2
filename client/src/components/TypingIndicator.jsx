@@ -1,3 +1,5 @@
+import '../styles/typing.css';
+
 export default function TypingIndicator({ message = "AI is thinking..." }) {
   return (
     <div className="typing-indicator">

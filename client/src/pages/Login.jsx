@@ -73,7 +73,7 @@ export default function Login() {
         background: 'rgba(var(--accent-rgb),0.08)',
       }} />
       {/* Logo watermark */}
-      <img src={theme === 'light' ? '/logo_new_-_white-removebg-preview.png' : '/logo_new_-_dark_-removebg-preview.png'} alt="" width={300} height={300} loading="lazy" style={{
+      <img src={theme === 'light' ? '/logo_white.webp' : '/logo_dark.webp'} alt="" width={300} height={300} loading="lazy" style={{
         position: 'absolute', right: '5%', bottom: '10%', zIndex: 0,
         opacity: 0.06, pointerEvents: 'none', objectFit: 'contain', borderRadius: 24,
       }} />

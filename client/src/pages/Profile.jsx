@@ -10,6 +10,10 @@ import FollowsListModal from '../components/FollowsListModal';
 import StructuredSkillInput from '../components/StructuredSkillInput';
 import ChipInput from '../components/ChipInput';
 import SaveBar from '../components/SaveBar';
+import '../styles/settings.css';
+import '../styles/avatar-banner.css';
+import '../styles/star-rating.css';
+import '../styles/stats.css';
 
 const AVATAR_STYLES = [
   { id: 'adventurer', label: 'Adventurer', desc: 'Illustrated characters' },

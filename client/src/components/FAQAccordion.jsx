@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState } from 'react';
 import TextRoll from './TextRoll';
 
 const faqs = [
@@ -30,17 +30,6 @@ const faqs = [
 
 export default function FAQAccordion() {
   const [openIdx, setOpenIdx] = useState(null);
-  const contentRefs = useRef({});
-  const [heights, setHeights] = useState({});
-
-  useEffect(() => {
-    const next = {};
-    faqs.forEach((_, i) => {
-      const el = contentRefs.current[i];
-      if (el) next[i] = el.scrollHeight;
-    });
-    setHeights(next);
-  }, []);
 
   return (
     <div className="faq-list">
@@ -60,10 +49,9 @@ export default function FAQAccordion() {
               <span className={`faq-chevron ${isOpen ? 'faq-chevron-open' : ''}`}>↓</span>
             </button>
             <div
-              className="faq-answer-wrap"
-              style={{ height: isOpen ? heights[i] || 'auto' : 0, opacity: isOpen ? 1 : 0 }}
+              className={`faq-answer-wrap ${isOpen ? 'faq-answer-wrap-open' : ''}`}
             >
-              <div ref={el => { if (el) contentRefs.current[i] = el; }} className="faq-answer">
+              <div className="faq-answer">
                 {faq.a}
               </div>
             </div>

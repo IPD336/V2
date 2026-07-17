@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import '../styles/chips.css';
 
 export default function ChipInput({ chips, onChange, colorClass = '' }) {
   const [val, setVal] = useState('');

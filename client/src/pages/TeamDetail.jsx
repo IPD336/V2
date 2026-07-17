@@ -6,6 +6,7 @@ import { useToast } from '../context/ToastContext';
 import ConfirmModal from '../components/ConfirmModal';
 import { MailIcon, LinkIcon, PinIcon, LockIcon } from '../components/Icons';
 import { initials } from '../utils';
+import '../styles/teams.css';
 
 export default function TeamDetail() {
   const { id } = useParams();

@@ -8,6 +8,7 @@ import { useSocket } from '../context/SocketContext';
 
 import SwapRequestModal from '../components/SwapRequestModal';
 import TypingIndicator from '../components/TypingIndicator';
+import '../styles/browse.css';
 import { SkeletonCard } from '../components/Skeleton';
 import { ProfileCard } from '../components/CardStyles';
 

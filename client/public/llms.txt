@@ -1,0 +1,14 @@
+# SkillSwap
+
+SkillSwap is a peer-to-peer skill and knowledge exchange platform. It allows users to list skills they offer and skills they want to learn, matching compatible partners for collaborative knowledge trade.
+
+## Key Features
+- Complementary matching algorithm
+- Real-time chat & workspaces
+- Integrated scheduling calendar
+- Group study teams
+- Reputation & badge rewards
+
+## Developer & Design Documentation
+- [Design Specifications](/Creative-Cards-DESIGN.md) - Design patterns and visual specifications.
+- [Impact Design Specification](/Three-ways-to-make-an-impact-DESIGN.md) - Additional design implementation specs.

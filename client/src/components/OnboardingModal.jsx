@@ -2,6 +2,7 @@ import { useState, useCallback, useEffect, useRef } from 'react';
 import BrowseMockup from './onboarding/BrowseMockup';
 import SwapMockup from './onboarding/SwapMockup';
 import WorkspaceMockup from './onboarding/WorkspaceMockup';
+import '../styles/onboarding.css';
 
 const STEPS = [
   {

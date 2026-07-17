@@ -9,6 +9,7 @@ import WorkspaceSidebar from '../components/workspaces/WorkspaceSidebar';
 import ChatArea from '../components/workspaces/ChatArea';
 import GoalsPanel from '../components/workspaces/GoalsPanel';
 import CompletionModal from '../components/workspaces/CompletionModal';
+import '../styles/workspace.css';
 
 export default function Workspaces() {
   const { user } = useAuth();

@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
+import '../styles/shortcuts.css';
 
 const isMac = navigator.platform.includes('Mac');
 const mod = isMac ? '⌘' : 'Ctrl';

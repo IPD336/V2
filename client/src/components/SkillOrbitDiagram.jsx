@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import '../styles/skill-orbit.css';
 
 const RINGS = [
   { r: 90, speed: 40, label: 'Offering', color: 'var(--accent)', nodes: ['React', 'Python', 'Go', 'Rust'] },

@@ -9,10 +9,10 @@ import ErrorBoundary from './components/ErrorBoundary';
 import Spinner from './components/Spinner';
 import Navbar from './components/Navbar';
 import MobileBottomNav from './components/MobileBottomNav';
-import OnboardingModal from './components/OnboardingModal';
+const OnboardingModal = lazy(() => import('./components/OnboardingModal'));
 const CommandPalette = lazy(() => import('./components/CommandPalette'));
 const KeyboardShortcutsModal = lazy(() => import('./components/KeyboardShortcutsModal'));
-import StairsPreloader from './components/StairsPreloader';
+const StairsPreloader = lazy(() => import('./components/StairsPreloader'));
 const Landing = lazy(() => import('./pages/Landing'));
 const Login = lazy(() => import('./pages/Login'));
 const Register = lazy(() => import('./pages/Register'));
@@ -78,7 +78,9 @@ function AppRoutes() {
       </Routes>
       {user && user.role !== 'admin' && location.pathname !== '/navbar-preview' && <MobileBottomNav />}
       {showOnboarding && (
-        <OnboardingModal onDone={() => setShowOnboarding(false)} />
+        <Suspense fallback={null}>
+          <OnboardingModal onDone={() => setShowOnboarding(false)} />
+        </Suspense>
       )}
     </>
   );
@@ -103,7 +105,9 @@ function SplashGate({ children }) {
   return (
     <>
       {ready && showSplash && (
-        <StairsPreloader onDone={() => setShowSplash(false)} />
+        <Suspense fallback={null}>
+          <StairsPreloader onDone={() => setShowSplash(false)} />
+        </Suspense>
       )}
       {children}
     </>
@@ -123,9 +127,11 @@ function Shell() {
         <CommandPalette />
         <KeyboardShortcutsModal />
       </Suspense>
-      <ErrorBoundary>
-        <AppRoutes />
-      </ErrorBoundary>
+      <main id="main-content">
+        <ErrorBoundary>
+          <AppRoutes />
+        </ErrorBoundary>
+      </main>
     </SplashGate>
   );
 }

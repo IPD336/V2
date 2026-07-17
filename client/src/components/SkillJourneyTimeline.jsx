@@ -1,6 +1,7 @@
 import { useRef } from 'react';
 import { motion, useScroll, useTransform } from 'motion/react';
 import { ReactLenis } from 'lenis/react';
+import '../styles/splash-timeline.css';
 
 const STEPS = [
   {

@@ -8,6 +8,7 @@ import { useSocket } from '../context/SocketContext';
 import { initials } from '../utils';
 import { SkeletonCard } from '../components/Skeleton';
 import { MailIcon, SearchIcon, RocketIcon } from '../components/Icons';
+import '../styles/teams.css';
 
 function CreateTeamModal({ onClose, onCreated }) {
   const { showToast } = useToast();

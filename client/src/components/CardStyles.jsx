@@ -1,4 +1,5 @@
 import { useState, useCallback, useRef, memo } from 'react';
+import '../styles/cards.css';
 import { useNavigate } from 'react-router-dom';
 import { COLORS, initials, stars } from '../utils';
 import { PinIcon, ClockIcon, DiamondIcon, TrophyIcon, LinkedInIcon, GitHubIcon, LinkIcon } from './Icons';

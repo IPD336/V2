@@ -9,12 +9,15 @@ import FeatureSection from '../components/FeatureSection';
 import Footer from '../components/Footer';
 import { SparklesIcon } from '../components/Icons';
 import TestimonialDeck from '../components/TestimonialDeck';
+import '../styles/landing.css';
+import '../styles/hero-visual.css';
+import '../styles/testimonials-faq.css';
 
 const SOCIAL_AVATARS = [
   { initials: 'AK', color: 'var(--accent)' },
   { initials: 'PR', color: 'var(--sage)' },
   { initials: 'SM', color: 'var(--indigo)' },
-  { initials: 'NJ', color: 'var(--gold)' },
+  { initials: 'NJ', color: 'var(--gold)', textColor: 'var(--ink)' },
   { initials: 'KP', color: '#7A5FA8' },
 ];
 
@@ -232,7 +235,7 @@ export default function Landing() {
               <div className="social-proof-row">
                 <div className="social-proof-avatars">
                   {SOCIAL_AVATARS.map((a, i) => (
-                    <div key={i} className="social-proof-avatar" style={{ background: a.color, zIndex: SOCIAL_AVATARS.length - i }}>
+                    <div key={i} className="social-proof-avatar" style={{ background: a.color, color: a.textColor || 'white', zIndex: SOCIAL_AVATARS.length - i }}>
                       {a.initials}
                     </div>
                   ))}

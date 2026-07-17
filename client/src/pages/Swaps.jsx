@@ -9,6 +9,8 @@ import { SkeletonRow } from '../components/Skeleton';
 import ConfirmModal from '../components/ConfirmModal';
 import { SwapIcon, MailIcon, SendIcon, CheckIcon, CalendarIcon, VideoIcon } from '../components/Icons';
 import { initials, timeAgo } from '../utils';
+import '../styles/swaps.css';
+import '../styles/star-rating.css';
 
 function formatScheduled(date) {
   if (!date) return null;

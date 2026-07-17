@@ -2,6 +2,7 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { SearchIcon, HomeIcon, SwapIcon, WorkspaceIcon, TeamsIcon, TrophyIcon, MedalIcon, ProfileIcon, CalendarIcon, HandshakeIcon, MailIcon, StarIcon, LogoutIcon } from './Icons';
+import '../styles/command-palette.css';
 
 const iconMap = {
   home: HomeIcon, swap: SwapIcon, workspace: WorkspaceIcon, teams: TeamsIcon,

@@ -1,7 +1,5 @@
 import { useState, useEffect } from 'react';
 
-const GIF_URL = '/splash.gif';
-
 const DISPLAY_MS  = 3000;   // how long the splash stays fully visible
 const FADE_OUT_MS = 600;    // CSS transition duration
 
@@ -62,10 +60,14 @@ export default function SplashScreen({ onDone }) {
         pointerEvents: 'none',
       }} />
 
-      {/* The GIF */}
-      <img
-        src={GIF_URL}
-        alt="SkillSwap intro animation"
+      {/* The video animation */}
+      <video
+        autoPlay
+        loop
+        muted
+        playsInline
+        preload="auto"
+        fetchPriority="high"
         style={{
           width: 'min(380px, 80vw)',
           height: 'auto',
@@ -75,7 +77,10 @@ export default function SplashScreen({ onDone }) {
           // Subtle scale-in on mount
           animation: 'splash-scale-in 0.5s cubic-bezier(0.34,1.56,0.64,1) both',
         }}
-      />
+      >
+        <source src="/splash.webm" type="video/webm" />
+        <source src="/splash.mp4" type="video/mp4" />
+      </video>
 
       {/* Branding below the GIF */}
       <div style={{

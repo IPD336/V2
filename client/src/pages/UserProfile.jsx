@@ -10,6 +10,7 @@ import { PinIcon, ClockIcon, StarIcon, DiamondIcon, TrophyIcon, MedalIcon, Hands
 import { BadgeIcon } from '../utils/badges';
 import FollowsListModal from '../components/FollowsListModal';
 import { initials, stars } from '../utils';
+import '../styles/flipcard.css';
 
 export default function UserProfile() {
   const { id } = useParams();

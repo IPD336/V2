@@ -252,10 +252,14 @@ export default function StairsPreloader({ onDone }) {
                 }} />
               </motion.div>
 
-              {/* The GIF - Centered inside the orbits */}
-              <img
-                src="/splash.gif"
-                alt="SkillSwap intro animation"
+              {/* The video animation - Centered inside the orbits */}
+              <video
+                autoPlay
+                loop
+                muted
+                playsInline
+                preload="auto"
+                fetchPriority="high"
                 style={{
                   width: 'min(320px, 70vw)',
                   height: 'auto',
@@ -269,7 +273,10 @@ export default function StairsPreloader({ onDone }) {
                     ? '0 12px 40px rgba(0, 0, 0, 0.6)'
                     : '0 12px 40px rgba(0, 0, 0, 0.1)',
                 }}
-              />
+              >
+                <source src="/splash.webm" type="video/webm" />
+                <source src="/splash.mp4" type="video/mp4" />
+              </video>
             </div>
 
             {/* Brand Typography */}
