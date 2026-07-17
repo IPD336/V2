@@ -94,6 +94,7 @@ const StickyCard = ({ i, step, progress, range, targetScale, isLast }) => {
 
   return (
     <motion.div
+      className="sticky-timeline-card"
       style={{
         scale,
         opacity: 1,
@@ -109,11 +110,9 @@ const StickyCard = ({ i, step, progress, range, targetScale, isLast }) => {
         borderRadius: 24,
         boxShadow: 'var(--shadow-lg)',
         width: '100%',
-        maxWidth: 620,
+        maxWidth: 1100, // Widened to 1100 to fully fill the container
         minHeight: 280,
         overflow: 'hidden',
-        display: 'grid',
-        gridTemplateColumns: '1.2fr 1fr',
       }}
     >
       {/* Left Side: Text Details */}
@@ -167,14 +166,16 @@ const StickyCard = ({ i, step, progress, range, targetScale, isLast }) => {
       </div>
 
       {/* Right Side: Mockup Visualizer */}
-      <div style={{
-        background: 'rgba(255, 255, 255, 0.02)',
-        borderLeft: '1px solid var(--section-card-border)',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        position: 'relative',
-      }}>
+      <div
+        className="sticky-card-mockup"
+        style={{
+          background: 'rgba(255, 255, 255, 0.02)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          position: 'relative',
+        }}
+      >
         <div style={{
           position: 'absolute', inset: 0, pointerEvents: 'none', zIndex: 0,
           background: `radial-gradient(circle at center, ${step.color}15 0%, transparent 70%)`,
@@ -209,6 +210,27 @@ export default function SkillJourneyTimeline() {
           paddingBottom: '160px',
         }}
       >
+        {/* Inline CSS variables for responsive grid columns */}
+        <style>{`
+          .sticky-timeline-card {
+            display: grid !important;
+            grid-template-columns: 1fr !important;
+          }
+          .sticky-card-mockup {
+            border-left: none !important;
+            border-top: 1px solid var(--section-card-border) !important;
+          }
+          @media (min-width: 640px) {
+            .sticky-timeline-card {
+              grid-template-columns: 1.3fr 1fr !important;
+            }
+            .sticky-card-mockup {
+              border-left: 1px solid var(--section-card-border) !important;
+              border-top: none !important;
+            }
+          }
+        `}</style>
+
         {STEPS.map((step, i) => {
           const isLast = i === STEPS.length - 1;
 

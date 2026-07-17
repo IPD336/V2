@@ -52,13 +52,13 @@ export default function Footer() {
           
           {/* Column 1: Brand details */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer' }} onClick={() => navigate('/')}>
-              <LogoMark size={32} style={{ borderRadius: 8 }} />
+            <div style={{ display: 'flex', alignItems: 'center', gap: 12, cursor: 'pointer' }} onClick={() => navigate('/')}>
+              <LogoMark size={42} style={{ borderRadius: 10 }} />
               <span style={{
                 fontFamily: 'PT Serif, serif',
-                fontSize: 20,
+                fontSize: 24,
                 fontWeight: 700,
-                letterSpacing: -0.5,
+                letterSpacing: -0.6,
                 color: 'var(--section-text)',
               }}>
                 SkillSwap

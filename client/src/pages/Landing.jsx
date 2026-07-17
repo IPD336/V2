@@ -181,8 +181,7 @@ export default function Landing() {
                 fontWeight: 700, letterSpacing: 1.5, textTransform: 'uppercase',
                 color: 'var(--muted)', width: 'fit-content',
               }}>
-                <span style={{ width: 6, height: 6, borderRadius: '50%', background: 'var(--sage)' }} />
-                <TextRoll center>Free Skill Exchange Platform</TextRoll>
+                Free Skill Exchange Platform
               </div>
             </Reveal>
 
@@ -213,11 +212,11 @@ export default function Landing() {
             <Reveal delay={360}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 20, flexWrap: 'wrap' }}>
                 <button className="btn-cosmos btn-cosmos-primary" onClick={() => navigate('/register')}>
-                  <TextRoll center>Start Swapping</TextRoll>
+                  Start Swapping
                   <span style={{ fontSize: 14, lineHeight: 1 }}>→</span>
                 </button>
                 <a href="#features" style={{ fontSize: 12, fontWeight: 700, color: 'var(--muted)', textDecoration: 'none', letterSpacing: 0.5, display: 'flex', alignItems: 'center', gap: 6 }}>
-                  <TextRoll center>Explore features ↓</TextRoll>
+                  Explore features ↓
                 </a>
               </div>
             </Reveal>
@@ -261,7 +260,7 @@ export default function Landing() {
             <Reveal key={s.label} delay={i * 100} style={{ width: '100%' }}>
               <div className="metric-item">
                 <div className="metric-value" style={{ color: 'white' }}><AnimatedCounter value={s.num} /></div>
-                <div className="metric-label" style={{ color: 'rgba(255,255,255,0.8)' }}><TextRoll center>{s.label}</TextRoll></div>
+                <div className="metric-label" style={{ color: 'rgba(255,255,255,0.8)' }}>{s.label}</div>
               </div>
             </Reveal>
           ))}
@@ -320,11 +319,10 @@ export default function Landing() {
             <div className="how-header" style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', marginBottom: 64, gap: 40 }}>
               <div>
                 <div style={{ fontFamily: 'PT Mono, monospace', fontSize: 10, letterSpacing: 2.5, textTransform: 'uppercase', color: 'var(--section-text-muted)', marginBottom: 14, display: 'flex', alignItems: 'center', gap: 10 }}>
-                  <span style={{ display: 'inline-block', width: 24, height: 1, background: 'var(--section-text-muted)' }} />
-                  <TextRoll center>Process</TextRoll>
+                  Process
                 </div>
                 <h2 style={{ fontFamily: 'PT Serif, serif', fontSize: 'clamp(32px, 4vw, 52px)', fontWeight: 600, lineHeight: 1.05, letterSpacing: -1.5, margin: 0, color: 'var(--section-text)' }}>
-                  How <em style={{ fontStyle: 'italic', color: 'var(--accent)' }}><TextRoll center>SkillSwap</TextRoll></em><br /><TextRoll center>Actually Works</TextRoll>
+                  How <em style={{ fontStyle: 'italic', color: 'var(--accent)' }}>SkillSwap</em><br />Actually Works
                 </h2>
               </div>
               <div>
@@ -332,7 +330,7 @@ export default function Landing() {
                   No money. No subscriptions. Just genuine knowledge exchange between people who want to grow together.
                 </p>
                 <button className="btn-cosmos btn-cosmos-primary" onClick={() => navigate('/register')}>
-                  <TextRoll center>Create Profile</TextRoll>
+                  Create Profile
                   <span style={{ fontSize: 14, lineHeight: 1 }}>→</span>
                 </button>
               </div>
@@ -351,12 +349,11 @@ export default function Landing() {
           <Reveal>
             <div style={{ textAlign: 'center', marginBottom: 64 }}>
               <div style={{ fontFamily: 'PT Mono, monospace', fontSize: 10, letterSpacing: 2.5, textTransform: 'uppercase', color: 'var(--muted)', marginBottom: 14, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10 }}>
-                <span style={{ display: 'inline-block', width: 24, height: 1, background: 'var(--muted)' }} />
-                <TextRoll center>Testimonials</TextRoll>
+                Testimonials
                 <span style={{ display: 'inline-block', width: 24, height: 1, background: 'var(--muted)' }} />
               </div>
               <h2 style={{ fontFamily: 'PT Serif, serif', fontSize: 'clamp(28px, 3.5vw, 44px)', fontWeight: 600, letterSpacing: -1.2, margin: 0, color: 'var(--ink)' }}>
-                <TextRoll center>Loved by the</TextRoll> <em style={{ fontStyle: 'italic', color: 'var(--accent)' }}><TextRoll center>community</TextRoll></em>
+                Loved by the <em style={{ fontStyle: 'italic', color: 'var(--accent)' }}>community</em>
               </h2>
             </div>
           </Reveal>          <Reveal delay={100}>
@@ -372,15 +369,15 @@ export default function Landing() {
             <div className="metrics-row">
               <div className="metric-item">
                 <div className="metric-value" style={{ color: 'var(--ink)' }}><AnimatedCounter value="4,200+" /></div>
-                <div className="metric-label" style={{ color: 'var(--muted)' }}><TextRoll center>Active Members</TextRoll></div>
+                <div className="metric-label" style={{ color: 'var(--muted)' }}>Active Members</div>
               </div>
               <div className="metric-item">
                 <div className="metric-value" style={{ color: 'var(--ink)' }}><AnimatedCounter value="2,800+" /></div>
-                <div className="metric-label" style={{ color: 'var(--muted)' }}><TextRoll center>Swaps Completed</TextRoll></div>
+                <div className="metric-label" style={{ color: 'var(--muted)' }}>Swaps Completed</div>
               </div>
               <div className="metric-item" style={{ borderRight: 'none' }}>
                 <div className="metric-value" style={{ color: 'var(--ink)' }}><AnimatedCounter value="94%" /></div>
-                <div className="metric-label" style={{ color: 'var(--muted)' }}><TextRoll center>Satisfaction Rate</TextRoll></div>
+                <div className="metric-label" style={{ color: 'var(--muted)' }}>Satisfaction Rate</div>
               </div>
             </div>
           </div>
@@ -394,13 +391,13 @@ export default function Landing() {
         <Reveal>
           <div style={{ position: 'relative', zIndex: 1, maxWidth: 600, margin: '0 auto' }}>
             <h2 style={{ fontFamily: 'PT Serif, serif', fontSize: 'clamp(32px, 4vw, 48px)', fontWeight: 600, lineHeight: 1.05, letterSpacing: -1.5, margin: '0 0 20px', color: 'var(--section-text)' }}>
-              <TextRoll center>Ready to start</TextRoll> <em style={{ fontStyle: 'italic', color: 'var(--accent)' }}><TextRoll center>swapping</TextRoll></em>?
+              Ready to start <em style={{ fontStyle: 'italic', color: 'var(--accent)' }}>swapping</em>?
             </h2>
             <p style={{ fontSize: 14, lineHeight: 1.7, color: 'var(--section-text-muted)', maxWidth: 440, margin: '0 auto 36px' }}>
               Join thousands of professionals trading skills and growing together. Your next learning opportunity is one swap away.
             </p>
             <button className="btn-cosmos btn-cosmos-primary" onClick={() => navigate('/register')} style={{ padding: '16px 44px', fontSize: 12 }}>
-              <TextRoll center>Create Free Account</TextRoll>
+              Create Free Account
               <span style={{ fontSize: 16, lineHeight: 1 }}>→</span>
             </button>
           </div>
@@ -408,22 +405,11 @@ export default function Landing() {
       </section>
 
       {/* ──────────────── FAQ ──────────────── */}
+      {/* ──────────────── FAQ ──────────────── */}
       <section id="faq" style={{ padding: '100px 24px', position: 'relative', overflow: 'hidden', background: 'var(--section-dark)' }}>
-        <div className="orb-glow" style={{ width: 400, height: 400, top: '50%', left: '50%', transform: 'translate(-50%, -50%)', background: 'rgba(var(--accent-rgb),0.08)' }} />
+        <div className="orb-glow" style={{ width: 500, height: 500, top: '50%', left: '50%', transform: 'translate(-50%, -50%)', background: 'rgba(var(--accent-rgb),0.06)' }} />
 
-        <div style={{ maxWidth: 720, margin: '0 auto', position: 'relative', zIndex: 1 }}>
-          <Reveal>
-            <div style={{ textAlign: 'center', marginBottom: 48 }}>
-              <div style={{ fontFamily: 'PT Mono, monospace', fontSize: 10, letterSpacing: 2.5, textTransform: 'uppercase', color: 'var(--section-text-muted)', marginBottom: 14, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10 }}>
-                <span style={{ display: 'inline-block', width: 24, height: 1, background: 'var(--section-text-muted)' }} />
-                <TextRoll center>FAQ</TextRoll>
-                <span style={{ display: 'inline-block', width: 24, height: 1, background: 'var(--section-text-muted)' }} />
-              </div>
-              <h2 style={{ fontFamily: 'PT Serif, serif', fontSize: 'clamp(28px, 3.5vw, 44px)', fontWeight: 600, letterSpacing: -1.2, margin: 0, color: 'var(--section-text)' }}>
-                <TextRoll center>Got</TextRoll> <em style={{ fontStyle: 'italic', color: 'var(--accent)' }}><TextRoll center>questions?</TextRoll></em>
-              </h2>
-            </div>
-          </Reveal>
+        <div style={{ maxWidth: 1100, margin: '0 auto', position: 'relative', zIndex: 1 }}>
           <Reveal>
             <FAQAccordion />
           </Reveal>
