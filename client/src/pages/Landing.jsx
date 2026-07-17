@@ -343,7 +343,7 @@ export default function Landing() {
       </section>
 
       {/* ──────────────── TESTIMONIALS ──────────────── */}
-      <section style={{
+      <section id="testimonials" style={{
         padding: '100px 24px', position: 'relative', overflow: 'hidden',
         background: 'linear-gradient(180deg, var(--cream) 0%, rgba(var(--indigo-rgb),0.02) 50%, var(--cream) 100%)',
       }}>
@@ -408,7 +408,7 @@ export default function Landing() {
       </section>
 
       {/* ──────────────── FAQ ──────────────── */}
-      <section style={{ padding: '100px 24px', position: 'relative', overflow: 'hidden', background: 'var(--section-dark)' }}>
+      <section id="faq" style={{ padding: '100px 24px', position: 'relative', overflow: 'hidden', background: 'var(--section-dark)' }}>
         <div className="orb-glow" style={{ width: 400, height: 400, top: '50%', left: '50%', transform: 'translate(-50%, -50%)', background: 'rgba(var(--accent-rgb),0.08)' }} />
 
         <div style={{ maxWidth: 720, margin: '0 auto', position: 'relative', zIndex: 1 }}>
