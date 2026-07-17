@@ -165,16 +165,7 @@ export default function Landing() {
           width: 400, height: 400, top: '10%', left: '15%',
           background: 'rgba(var(--accent-rgb),0.10)',
         }} />
-        <svg className="dot-grid-svg" viewBox="0 0 100 100" preserveAspectRatio="none">
-          <pattern id="dot-grid-hero" x="0" y="0" width="6" height="6" patternUnits="userSpaceOnUse">
-            <circle cx="1" cy="1" r="0.5" fill="var(--dot-color)" />
-          </pattern>
-          <rect width="100%" height="100%" fill="url(#dot-grid-hero)" mask="url(#dot-grid-mask)" />
-          <mask id="dot-grid-mask">
-            <rect width="100%" height="100%" fill="white" />
-            <ellipse cx="50%" cy="40%" rx="45%" ry="50%" fill="black" />
-          </mask>
-        </svg>
+
 
         <div style={{
           position: 'relative', zIndex: 1, width: '100%',
@@ -259,12 +250,7 @@ export default function Landing() {
         background: 'linear-gradient(135deg, var(--accent) 0%, color-mix(in srgb, var(--accent) 75%, black) 100%)',
         padding: '48px 24px', position: 'relative', overflow: 'hidden',
       }}>
-        <svg className="dot-grid-svg" viewBox="0 0 100 100" preserveAspectRatio="none">
-          <pattern id="dot-grid-stats" x="0" y="0" width="8" height="8" patternUnits="userSpaceOnUse">
-            <circle cx="1" cy="1" r="0.6" fill="white" opacity="0.12" />
-          </pattern>
-          <rect width="100%" height="100%" fill="url(#dot-grid-stats)" />
-        </svg>
+
         <div className="metrics-row" style={{ position: 'relative', zIndex: 1, maxWidth: 900, margin: '0 auto' }}>
           {[
             { num: '4,200+', label: 'Active Members' },
@@ -328,12 +314,7 @@ export default function Landing() {
       }}>
         <div className="orb-glow" style={{ width: 500, height: 500, bottom: '-20%', right: '-10%', background: 'rgba(var(--accent-rgb),0.08)' }} />
         <div style={{ position: 'absolute', inset: 0, pointerEvents: 'none', background: 'radial-gradient(ellipse 50% 80% at 80% 50%, rgba(var(--accent-rgb),0.12) 0%, transparent 60%)' }} />
-        <svg className="dot-grid-svg" viewBox="0 0 100 100" preserveAspectRatio="none">
-          <pattern id="dot-grid-how" x="0" y="0" width="7" height="7" patternUnits="userSpaceOnUse">
-            <circle cx="1" cy="1" r="0.5" fill="white" opacity="0.06" />
-          </pattern>
-          <rect width="100%" height="100%" fill="url(#dot-grid-how)" />
-        </svg>
+
         <div style={{ maxWidth: 1100, margin: '0 auto', position: 'relative', zIndex: 1 }}>
           <Reveal>
             <div className="how-header" style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', marginBottom: 64, gap: 40 }}>
@@ -409,12 +390,7 @@ export default function Landing() {
       {/* ──────────────── FINAL CTA ──────────────── */}
       <section className="cta-section" style={{ background: 'var(--section-dark)' }}>
         <div className="orb-glow" style={{ width: 600, height: 600, top: '50%', left: '50%', transform: 'translate(-50%, -50%)', background: 'rgba(var(--accent-rgb),0.10)' }} />
-        <svg className="dot-grid-svg" viewBox="0 0 100 100" preserveAspectRatio="none">
-          <pattern id="dot-grid-cta" x="0" y="0" width="8" height="8" patternUnits="userSpaceOnUse">
-            <circle cx="1" cy="1" r="0.5" fill="white" opacity="0.05" />
-          </pattern>
-          <rect width="100%" height="100%" fill="url(#dot-grid-cta)" />
-        </svg>
+
         <Reveal>
           <div style={{ position: 'relative', zIndex: 1, maxWidth: 600, margin: '0 auto' }}>
             <h2 style={{ fontFamily: 'PT Serif, serif', fontSize: 'clamp(32px, 4vw, 48px)', fontWeight: 600, lineHeight: 1.05, letterSpacing: -1.5, margin: '0 0 20px', color: 'var(--section-text)' }}>
@@ -434,12 +410,7 @@ export default function Landing() {
       {/* ──────────────── FAQ ──────────────── */}
       <section style={{ padding: '100px 24px', position: 'relative', overflow: 'hidden', background: 'var(--section-dark)' }}>
         <div className="orb-glow" style={{ width: 400, height: 400, top: '50%', left: '50%', transform: 'translate(-50%, -50%)', background: 'rgba(var(--accent-rgb),0.08)' }} />
-        <svg className="dot-grid-svg" viewBox="0 0 100 100" preserveAspectRatio="none">
-          <pattern id="dot-grid-faq" x="0" y="0" width="7" height="7" patternUnits="userSpaceOnUse">
-            <circle cx="1" cy="1" r="0.5" fill="white" opacity="0.06" />
-          </pattern>
-          <rect width="100%" height="100%" fill="url(#dot-grid-faq)" />
-        </svg>
+
         <div style={{ maxWidth: 720, margin: '0 auto', position: 'relative', zIndex: 1 }}>
           <Reveal>
             <div style={{ textAlign: 'center', marginBottom: 48 }}>
