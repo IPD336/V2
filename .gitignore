@@ -31,3 +31,8 @@ Thumbs.db
 AGENTS.md
 agent/
 .agents/
+.codex/
+.impeccable/
+mcp-config.json
+skills-lock.json
+session-*.md
