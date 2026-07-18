@@ -22,37 +22,42 @@ function xpProgress(totalXp) {
 }
 
 async function awardXp(userId, amount) {
-  const newLevel = calcLevel((await User.findById(userId).select('xp').lean())?.xp || 0);
-  const updated = await User.findOneAndUpdate(
-    { _id: userId },
-    [
-      { $set: { xp: { $add: [{ $ifNull: ['$xp', 0] }, amount] } } },
-      { $set: { level: calcLevel('$xp') } },
-    ],
-    { new: true, runValidators: false }
-  );
-  if (!updated) return;
+  try {
+    const user = await User.findById(userId).select('xp level');
+    if (!user) return;
+    
+    const currentXp = user.xp || 0;
+    const newXp = currentXp + amount;
+    const newLevel = calcLevel(newXp);
+    
+    user.xp = newXp;
+    user.level = newLevel;
+    await user.save();
+  } catch (err) {
+    console.error('Error awarding XP:', err);
+  }
 }
 
 async function addBadge(userId, badgeId) {
   const detail = BADGE_DETAILS[badgeId];
   const xpReward = detail?.xpReward || 0;
 
-  const updateOps = [
-    { $addToSet: { badges: { id: badgeId, earnedAt: new Date() } } },
-  ];
+  const updateObj = {
+    $addToSet: { badges: { id: badgeId, earnedAt: new Date() } }
+  };
   if (xpReward > 0) {
-    updateOps.push({ $inc: { xp: xpReward } });
+    updateObj.$inc = { xp: xpReward };
   }
 
-  const updated = await User.findByIdAndUpdate(userId, updateOps, { new: true, runValidators: false });
+  const updated = await User.findByIdAndUpdate(userId, updateObj, { new: true, runValidators: false });
   if (!updated) return false;
 
   const alreadyHad = updated.badges.filter(b => typeof b === 'string' ? b !== badgeId : b.id !== badgeId);
   if (alreadyHad.length === updated.badges.length - 1 && xpReward === 0) return false;
 
   if (xpReward > 0) {
-    await User.findByIdAndUpdate(userId, { $set: { level: calcLevel(updated.xp) } }, { runValidators: false });
+    const newLevel = calcLevel(updated.xp || 0);
+    await User.findByIdAndUpdate(userId, { $set: { level: newLevel } }, { runValidators: false });
   }
 
   await createNotification(
