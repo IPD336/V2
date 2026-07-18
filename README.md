@@ -1,75 +1,121 @@
-# SkillSwap
+<div align="center">
+  <img src="https://raw.githubusercontent.com/IPD336/V2/main/client/public/favicon.svg" alt="SkillSwap Logo" width="120" />
+  <h1>SkillSwap</h1>
+  <p><strong>Trade What You Know. Learn What You Don't.</strong></p>
+  
+  <p>
+    <img src="https://img.shields.io/badge/React-19-blue?style=for-the-badge&logo=react" alt="React" />
+    <img src="https://img.shields.io/badge/Node.js-20-green?style=for-the-badge&logo=node.js" alt="Node" />
+    <img src="https://img.shields.io/badge/MongoDB-9-brightgreen?style=for-the-badge&logo=mongodb" alt="MongoDB" />
+    <img src="https://img.shields.io/badge/Socket.io-4-black?style=for-the-badge&logo=socket.io" alt="Socket.io" />
+  </p>
+</div>
 
-**Trade What You Know. Learn What You Don't.**
+<br/>
 
-SkillSwap is a peer-to-peer skill exchange platform where professionals connect, swap expertise, and grow together. Instead of paying for courses or tutoring, you trade your skills directly with others — you teach what you know and learn what you don't.
+<div align="center">
+  <img src="https://metrics.lecoq.io/IPD336?template=classic&plugin_pagespeed=yes&plugin_pagespeed_detailed=yes&plugin_pagespeed_url=https%3A%2F%2Fskillswapv2.vercel.app%2F" alt="PageSpeed Insights Metrics" width="600" />
+</div>
+
+<br/>
+
+> SkillSwap is a peer-to-peer skill exchange platform where professionals connect, swap expertise, and grow together. Instead of paying for courses or tutoring, you trade your skills directly with others — you teach what you know and learn what you don't.
 
 ---
 
-## Features
+## 📑 Table of Contents
+- [✨ Why SkillSwap?](#-why-skillswap)
+- [🌟 Features](#-features)
+- [🏗 System Architecture](#-system-architecture)
+- [🚀 Getting Started](#-getting-started)
+- [🗂 Project Structure](#-project-structure)
+- [🤝 Contributing](#-contributing)
 
-### Core Flow
+---
+
+## ✨ Why SkillSwap?
+Traditional learning platforms require you to pay for expensive courses or tutors. SkillSwap believes that **everyone has something to teach and something they want to learn**. 
+- **Zero Cost:** Pay with your time and knowledge, not your wallet.
+- **Learn by Doing:** 1-on-1 personalized mentorship is the fastest way to learn.
+- **Build your Network:** Connect with ambitious professionals across the globe.
+
+---
+
+## 🌟 Features
+
+### 🔄 Core Flow
 - **Browse & Match** — Discover users by skill category with smart match scoring and mutual-match detection
 - **Swap Requests** — Propose a skill exchange specifying what you offer and what you want in return
 - **Real-time Workspaces** — Chat, set goals, and track progress together via Socket.IO
 - **Completion & Reviews** — Mark swaps complete, leave ratings and feedback
 
-### Gamification
+### 🎮 Gamification
 - **Leagues** — Bronze → Silver → Gold → Platinum → Diamond based on rating × review count
 - **Badges** — Early Bird, Team Player, Super Mentor, and more
 - **Leaderboard** — Top-ranked users with percentile and league distribution
 
-### Teams
+### 👥 Teams
 - Create teams (2–4 people) with shared goals, invite members, and work together in a dedicated workspace
 
-### Admin Dashboard
+### 🛡 Admin Dashboard
 - Platform analytics (total users, swaps, teams, reviews)
-- User management (ban/unban)
-- Team management (delete)
+- User & Team management
 - Emergency data reset
 
-### UI/UX
-- Dark/light theme with smooth transitions
-- Mobile responsive with bottom navigation
-- Scroll-triggered reveal animations
-- Loading skeletons, error boundaries, empty states
-- Confetti on swap completion
-- Keyboard shortcuts (Escape to close modals)
+---
+
+## 🏗 System Architecture
+
+```mermaid
+graph TD
+    subgraph Frontend
+        React[React 19 App]
+        Vite[Vite Dev Server]
+    end
+
+    subgraph Backend
+        Node[Node.js + Express]
+        SocketIO[Socket.IO Server]
+    end
+
+    subgraph Infrastructure
+        MongoDB[(MongoDB Database)]
+        Cloudinary[Cloudinary Assets]
+    end
+
+    React <-->|HTTP REST| Node
+    React <-->|WebSockets| SocketIO
+    Node <-->|Mongoose ODM| MongoDB
+    Node -->|Image Uploads| Cloudinary
+```
+
+## 🔄 The Swap Lifecycle
+
+```mermaid
+sequenceDiagram
+    participant L as Learner
+    participant T as Teacher
+    participant W as Workspace
+
+    L->>T: 1. Send Swap Request (Offer & Want)
+    T-->>L: 2. Accept Request
+    L->>W: 3. Join Real-time Chat
+    T->>W: 3. Join Real-time Chat
+    L->>T: 4. Collaborate & Share Knowledge
+    L->>T: 5. Mark Swap Complete
+    L-->>T: 6. Leave Review & Rating
+    T-->>L: 6. Leave Review & Rating
+```
 
 ---
 
-## Tech Stack
-
-### Frontend
-| Technology | Purpose |
-|---|---|
-| React 19 | UI library |
-| Vite 6 | Build tool & dev server |
-| React Router 7 | Routing |
-| Axios | HTTP client |
-| Socket.IO Client | Real-time messaging |
-
-### Backend
-| Technology | Purpose |
-|---|---|
-| Node.js | Runtime |
-| Express 5 | HTTP framework |
-| Mongoose 9 | MongoDB ODM |
-| MongoDB | Database |
-| Socket.IO 4 | WebSocket server |
-| JSON Web Token | Authentication |
-| Cloudinary + Multer | Avatar image uploads |
-
----
-
-## Getting Started
+## 🚀 Getting Started
 
 ### Prerequisites
 - Node.js 20+
 - MongoDB running locally on `mongodb://localhost:27017`
 
-### Installation
-
+### 1. Installation
 ```bash
 # Clone the repo
 git clone https://github.com/your-username/skillswap.git
@@ -84,10 +130,8 @@ cd ../client
 npm install
 ```
 
-### Environment Variables
-
+### 2. Environment Variables
 Create `server/.env`:
-
 ```env
 PORT=5000
 MONGO_URI=mongodb://localhost:27017/skillswap
@@ -96,11 +140,9 @@ CLOUDINARY_CLOUD_NAME=your_cloud_name
 CLOUDINARY_API_KEY=your_api_key
 CLOUDINARY_API_SECRET=your_api_secret
 ```
+*(Cloudinary credentials are optional — avatar uploads will fail without them, but the app runs fine otherwise.)*
 
-(Cloudinary credentials are optional — avatar uploads will fail without them, but the app runs fine otherwise.)
-
-### Running Locally
-
+### 3. Running Locally
 ```bash
 # From the server directory — start the backend
 cd server
@@ -110,133 +152,55 @@ npm run dev
 cd client
 npm run dev
 ```
-
 The client runs on `http://localhost:5173` and proxies `/api` requests to `http://localhost:5000`.
 
 ---
 
-## Project Structure
+## 🗂 Project Structure
+
+```mermaid
+mindmap
+  root((SkillSwap))
+    client
+      src
+        components
+        context
+        pages
+        utils
+      public
+    server
+      models
+      routes
+      services
+      middleware
+      utils
+```
+
+<details>
+<summary>Click to see full directory tree</summary>
 
 ```
 skillswap/
 ├── client/                      # React frontend
-│   ├── public/
-│   │   └── favicon.svg          # Custom SVG logo
-│   ├── src/
-│   │   ├── api/
-│   │   │   └── axios.js         # Axios instance with auth interceptor
-│   │   ├── assets/              # Static assets
-│   │   ├── components/
-│   │   │   ├── AnimatedCounter.jsx
-│   │   │   ├── Calendar.jsx
-│   │   │   ├── CommandPalette.jsx
-│   │   │   ├── ConfirmModal.jsx
-│   │   │   ├── Confetti.jsx
-│   │   │   ├── DateTimePicker.jsx
-│   │   │   ├── DatePicker.jsx
-│   │   │   ├── ErrorBoundary.jsx
-│   │   │   ├── FAQAccordion.jsx
-│   │   │   ├── FollowsListModal.jsx
-│   │   │   ├── Footer.jsx
-│   │   │   ├── Icons.jsx
-│   │   │   ├── KeyboardShortcutsModal.jsx
-│   │   │   ├── LineSidebar.jsx
-│   │   │   ├── LoadingOverlay.jsx
-│   │   │   ├── Logo.jsx
-│   │   │   ├── MobileBottomNav.jsx
-│   │   │   ├── Navbar.jsx
-│   │   │   ├── OnboardingModal.jsx
-│   │   │   ├── Reveal.jsx
-│   │   │   ├── Skeleton.jsx
-│   │   │   ├── SkillConstellationDiagram.jsx
-│   │   │   ├── SkillJourneyTimeline.jsx
-│   │   │   ├── SkillOrbitDiagram.jsx
-│   │   │   ├── Spinner.jsx
-│   │   │   ├── SplashScreen.jsx
-│   │   │   ├── SwapRequestModal.jsx
-│   │   │   ├── TextRoll.jsx
-│   │   │   └── TypingIndicator.jsx
-│   │   ├── context/
-│   │   │   ├── AuthContext.jsx
-│   │   │   ├── SocketContext.jsx
-│   │   │   ├── ThemeContext.jsx
-│   │   │   └── ToastContext.jsx
-│   │   ├── pages/
-│   │   │   ├── Badges.jsx
-│   │   │   ├── Browse.jsx
-│   │   │   ├── CalendarPage.jsx
-│   │   │   ├── Dashboard.jsx
-│   │   │   ├── ForgotPassword.jsx
-│   │   │   ├── Landing.jsx
-│   │   │   ├── Leaderboard.jsx
-│   │   │   ├── Login.jsx
-│   │   │   ├── NotFound.jsx
-│   │   │   ├── Profile.jsx
-│   │   │   ├── Register.jsx
-│   │   │   ├── ResetPassword.jsx
-│   │   │   ├── Swaps.jsx
-│   │   │   ├── TeamDetail.jsx
-│   │   │   ├── Teams.jsx
-│   │   │   ├── UserProfile.jsx
-│   │   │   └── Workspaces.jsx
-│   │   ├── utils/
-│   │   │   └── badges.jsx      # Badge definitions + BadgeIcon component
-│   │   ├── utils.js            # Shared constants & helpers
-│   │   ├── index.css           # Global styles
-│   │   ├── App.jsx             # App shell + routes
-│   │   └── main.jsx            # Entry point
-│   ├── vite.config.js
-│   └── vercel.json
-│
+│   ├── public/                  # Static files & Favicon
+│   └── src/                     # React Source
+│       ├── api/                 # Axios configuration
+│       ├── components/          # Reusable UI components
+│       ├── context/             # React Context (Auth, Theme, Socket)
+│       ├── pages/               # Route components (Landing, Profile, etc.)
+│       └── utils/               # Shared constants, helpers, and styles
 ├── server/                      # Express backend
-│   ├── middleware/
-│   │   ├── auth.js              # JWT verification
-│   │   └── admin.js             # Admin role check
-│   ├── models/
-│   │   ├── User.js
-│   │   ├── Swap.js
-│   │   ├── Team.js
-│   │   ├── Message.js
-│   │   ├── Notification.js
-│   │   └── Review.js
-│   ├── routes/
-│   │   ├── admin.js
-│   │   ├── ai.js
-│   │   ├── auth.js
-│   │   ├── gamification.js
-│   │   ├── leaderboard.js
-│   │   ├── messages.js
-│   │   ├── notifications.js
-│   │   ├── reviews.js
-│   │   ├── swaps.js
-│   │   ├── teams.js
-│   │   └── users.js
-│   ├── services/
-│   │   ├── emailService.js
-│   │   ├── gamificationService.js
-│   │   ├── geminiService.js
-│   │   ├── matchService.js
-│   │   └── notificationService.js
-│   ├── scripts/
-│   │   └── migrateBadges.js
-│   ├── utils/
-│   │   ├── cache.js
-│   │   ├── cloudinary.js
-│   │   ├── respond.js
-│   │   ├── updateLeagues.js
-│   │   └── validation.js
-│   ├── constants.js            # Enums, badge definitions
-│   ├── socket.js               # WebSocket events
-│   ├── server.js               # Entry point
-│   └── .env                    # Environment variables
-│
-├── .gitignore
-└── README.md
+│   ├── middleware/              # Auth and Admin role checks
+│   ├── models/                  # Mongoose Schemas (User, Swap, Team, etc.)
+│   ├── routes/                  # Express route controllers
+│   ├── services/                # Business logic (Gemini AI, gamification, matching)
+│   └── utils/                   # Server utilities and constants
 ```
+</details>
 
 ---
 
-## API Overview
+## 🔌 API Overview
 
 | Route | Auth | Description |
 |---|---|---|
@@ -244,22 +208,27 @@ skillswap/
 | `POST /api/auth/login` | No | Sign in |
 | `GET /api/auth/me` | Yes | Current user |
 | `GET /api/users` | Yes | Browse users (paginated, filterable) |
-| `GET /api/users/recommendations` | Yes | Personalized matches |
 | `GET/PUT /api/users/:id` | Yes | Get/update profile |
-| `POST /api/users/:id/save` | Yes | Save/unsave profile |
 | `GET/POST /api/swaps` | Yes | List/create swap requests |
-| `PUT /api/swaps/:id/accept` | Yes | Accept incoming request |
 | `PUT /api/swaps/:id/complete` | Yes | Request completion |
-| `GET /api/teams` | Yes | List teams (browse or mine) |
+| `GET /api/teams` | Yes | List teams |
 | `POST /api/teams` | Yes | Create team |
-| `POST /api/teams/:id/invite` | Yes | Invite member |
-| `POST /api/reviews` | Yes | Submit swap review |
 | `GET /api/leaderboard` | Yes | Top 20 rankings |
-| `GET/PUT /api/notifications` | Yes | Read notifications |
-| `GET /api/admin/stats` | Admin | Platform statistics |
 
 ---
 
-## License
+## 🤝 Contributing
 
-MIT
+Contributions make the open source community such an amazing place to learn, inspire, and create. Any contributions you make are **greatly appreciated**.
+
+1. Fork the Project
+2. Create your Feature Branch (`git checkout -b feature/AmazingFeature`)
+3. Commit your Changes (`git commit -m 'Add some AmazingFeature'`)
+4. Push to the Branch (`git push origin feature/AmazingFeature`)
+5. Open a Pull Request
+
+---
+
+## 📜 License
+
+Distributed under the MIT License. See `LICENSE` for more information.
