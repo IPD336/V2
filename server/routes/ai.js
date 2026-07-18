@@ -175,6 +175,7 @@ router.get('/smart-recommendations', auth, async (req, res) => {
 
     const smartRecommendations = scored.map((candidate, i) => ({
       ...candidate,
+      matchScore: candidate.score,
       aiMatchExplanation: explanations[i] || '',
     }));
 
@@ -223,6 +224,7 @@ router.get('/stream-recommendations', auth, async (req, res) => {
 
     const recommendations = scored.map((candidate, i) => ({
       ...candidate,
+      matchScore: candidate.score,
       aiMatchExplanation: explanations[i] || '',
     }));
 
