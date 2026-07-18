@@ -122,6 +122,7 @@ function ScheduleModal({ swap, me, onClose, onDone }) {
       await api.put(`/swaps/${swap._id}/schedule`, {
         scheduledAt: start.toISOString(),
         scheduledEndAt: end.toISOString(),
+        color,
       });
       showToast('Session scheduled! ✓');
       onDone();
@@ -409,7 +410,7 @@ function MonthGrid({ events, year, month, selectedDay, onSelectDay }) {
                           <div
                             key={i}
                             className={`cal-event-bar ${pos}`}
-                            style={{ background: cfg.color }}
+                            style={{ background: ev.color || cfg.color }}
                             title={`${ev.skillOffered} ↔ ${ev.skillWanted}`}
                           >
                             {label}

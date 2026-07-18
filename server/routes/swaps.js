@@ -31,6 +31,7 @@ const scheduleSchema = z.object({
   body: z.object({
     scheduledAt: z.string().min(1, 'scheduledAt is required'),
     scheduledEndAt: z.string().optional(),
+    color: z.string().optional(),
   }),
   params: z.object({
     id: objectId,
@@ -247,10 +248,13 @@ router.put('/:id/schedule', auth, validate(scheduleSchema), async (req, res) => 
     if (![SWAP_STATUS.PENDING, SWAP_STATUS.ACTIVE].includes(swap.status))
       return res.fail('Can only schedule pending or active swaps', 400);
 
-    const { scheduledAt, scheduledEndAt } = req.body;
+    const { scheduledAt, scheduledEndAt, color } = req.body;
 
     swap.scheduledAt = new Date(scheduledAt);
     swap.scheduledEndAt = scheduledEndAt ? new Date(scheduledEndAt) : new Date(new Date(scheduledAt).getTime() + 60 * 60 * 1000);
+    if (color !== undefined) {
+      swap.color = color;
+    }
     await swap.save();
 
     const otherId = swap.sender.toString() === req.user.id.toString() ? swap.receiver : swap.sender;
@@ -274,14 +278,7 @@ router.get('/calendar', auth, validate(calendarQuerySchema), async (req, res) =>
   try {
     const uid = req.user.id;
     const { year, month } = req.query;
-    let dateFilter = {};
-    if (year && month) {
-      const start = new Date(year, month - 1, 1);
-      const end = new Date(year, month, 0, 23, 59, 59);
-      dateFilter = { scheduledAt: { $gte: start, $lte: end } };
-    } else {
-      dateFilter = { scheduledAt: { $ne: null } };
-    }
+    const dateFilter = { scheduledAt: { $ne: null } };
 
     const swaps = await Swap.find({
       $or: [{ sender: uid }, { receiver: uid }],

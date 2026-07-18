@@ -23,6 +23,7 @@ const swapSchema = new mongoose.Schema(
     completedAt: { type: Date },
     scheduledAt: { type: Date, default: null },
     scheduledEndAt: { type: Date, default: null },
+    color: { type: String, default: null },
     goals: [{
       text: { type: String, required: true },
       completed: { type: Boolean, default: false },
