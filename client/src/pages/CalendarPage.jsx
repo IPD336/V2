@@ -25,6 +25,39 @@ function isSameDay(d1, d2) {
   const a = new Date(d1), b = new Date(d2);
   return a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth() && a.getDate() === b.getDate();
 }
+function isEventOnDay(ev, year, month, day) {
+  if (!ev.scheduledAt) return false;
+  const start = new Date(ev.scheduledAt);
+  const startDate = new Date(start.getFullYear(), start.getMonth(), start.getDate());
+  
+  const checkDate = new Date(year, month, day);
+  
+  if (!ev.scheduledEndAt) {
+    return checkDate.getTime() === startDate.getTime();
+  }
+  
+  const end = new Date(ev.scheduledEndAt);
+  const endDate = new Date(end.getFullYear(), end.getMonth(), end.getDate());
+  
+  return checkDate >= startDate && checkDate <= endDate;
+}
+function getEventBarPosition(ev, year, month, dayNum) {
+  if (!ev.scheduledEndAt) return 'single';
+  
+  const check = new Date(year, month, dayNum);
+  const start = new Date(ev.scheduledAt);
+  const startDate = new Date(start.getFullYear(), start.getMonth(), start.getDate());
+  const end = new Date(ev.scheduledEndAt);
+  const endDate = new Date(end.getFullYear(), end.getMonth(), end.getDate());
+  
+  const isStart = check.getTime() === startDate.getTime();
+  const isEnd = check.getTime() === endDate.getTime();
+  
+  if (isStart && isEnd) return 'single';
+  if (isStart) return 'start';
+  if (isEnd) return 'end';
+  return 'middle';
+}
 function getDurationMins(swap) {
   if (!swap.scheduledAt || !swap.scheduledEndAt) return 60;
   return Math.round((new Date(swap.scheduledEndAt) - new Date(swap.scheduledAt)) / 60000);
@@ -341,18 +374,6 @@ function MonthGrid({ events, year, month, selectedDay, onSelectDay }) {
     cells.push(dayNum >= 1 && dayNum <= daysInMonth ? dayNum : null);
   }
 
-  // Map events by day number
-  const eventsByDay = {};
-  events.forEach(ev => {
-    if (!ev.scheduledAt) return;
-    const d = new Date(ev.scheduledAt);
-    if (d.getFullYear() === year && d.getMonth() === month) {
-      const day = d.getDate();
-      if (!eventsByDay[day]) eventsByDay[day] = [];
-      eventsByDay[day].push(ev);
-    }
-  });
-
   return (
     <div>
       {/* Day headers */}
@@ -366,7 +387,7 @@ function MonthGrid({ events, year, month, selectedDay, onSelectDay }) {
         {cells.map((dayNum, idx) => {
           const isToday = dayNum && today.getDate() === dayNum && today.getMonth() === month && today.getFullYear() === year;
           const isSelected = dayNum && selectedDay === dayNum;
-          const dayEvents = dayNum ? (eventsByDay[dayNum] || []) : [];
+          const dayEvents = dayNum ? events.filter(ev => isEventOnDay(ev, year, month, dayNum)) : [];
           const isPast = dayNum && new Date(year, month, dayNum) < new Date(today.getFullYear(), today.getMonth(), today.getDate());
 
           return (
@@ -379,12 +400,27 @@ function MonthGrid({ events, year, month, selectedDay, onSelectDay }) {
                 <>
                   <span className="cal-day-num">{dayNum}</span>
                   {dayEvents.length > 0 && (
-                    <div className="cal-dots">
-                      {dayEvents.slice(0, 3).map((ev, i) => {
+                    <div className="cal-events-container">
+                      {dayEvents.slice(0, 2).map((ev, i) => {
                         const cfg = statusConfig(ev.status);
-                        return <span key={i} className="cal-dot" style={{ background: cfg.color }} />;
+                        const pos = getEventBarPosition(ev, year, month, dayNum);
+                        const label = (pos === 'single' || pos === 'start') ? (ev.skillOffered || 'Session') : '';
+                        return (
+                          <div
+                            key={i}
+                            className={`cal-event-bar ${pos}`}
+                            style={{ background: cfg.color }}
+                            title={`${ev.skillOffered} ↔ ${ev.skillWanted}`}
+                          >
+                            {label}
+                          </div>
+                        );
                       })}
-                      {dayEvents.length > 3 && <span className="cal-dot-more">+{dayEvents.length - 3}</span>}
+                      {dayEvents.length > 2 && (
+                        <div className="cal-event-more">
+                          +{dayEvents.length - 2} more
+                        </div>
+                      )}
                     </div>
                   )}
                 </>
@@ -443,7 +479,7 @@ export default function CalendarPage() {
   const goToday = () => { setYear(today.getFullYear()); setMonth(today.getMonth()); setSelectedDay(today.getDate()); };
 
   const selectedDayEvents = selectedDay
-    ? calEvents.filter(ev => ev.scheduledAt && isSameDay(ev.scheduledAt, new Date(year, month, selectedDay)))
+    ? calEvents.filter(ev => isEventOnDay(ev, year, month, selectedDay))
     : [];
 
   // Upcoming = scheduled in the future
