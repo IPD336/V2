@@ -1,32 +1,187 @@
-/* ── SWAPS ── */
-.tab-bar { display: flex; gap: 0; margin-bottom: 24px; border-bottom: 1.5px solid var(--border); }
-.tab-btn { padding: 10px 20px 12px; border: none; background: none; font-size: 13px; font-weight: 600; cursor: pointer; font-family: 'PT Sans', sans-serif; color: var(--muted); transition: color .2s; position: relative; }
-.tab-btn.active { color: var(--ink); }
-.tab-btn.active::after { content: ''; position: absolute; bottom: -1.5px; left: 0; right: 0; height: 2px; background: var(--ink); }
-.tab-badge { display: inline-flex; align-items: center; justify-content: center; background: var(--accent); color: white; border-radius: 5px; width: 17px; height: 17px; font-size: 10px; font-weight: 800; margin-left: 6px; }
-.swap-list { display: flex; flex-direction: column; gap: 12px; }
-.swap-card { background: var(--card-bg); border-radius: 12px; padding: 16px 18px; display: flex; align-items: center; gap: 14px; border: 1px solid var(--border); transition: box-shadow .2s; }
-.swap-card:hover { box-shadow: var(--shadow); }
-.swap-ava { width: 42px; height: 42px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 14px; color: white; flex-shrink: 0; }
-.swap-meta { flex: 1; min-width: 0; }
-.swap-name { font-size: 13px; font-weight: 700; margin-bottom: 3px; }
-.swap-skill-row { font-size: 11px; color: var(--muted); display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
-.swap-skill-tag { background: var(--accent-light); color: var(--accent); padding: 2px 8px; border-radius: 4px; font-weight: 600; }
-.swap-skill-tag.green { background: var(--sage-light); color: var(--sage); }
-.swap-time { font-family: 'PT Mono', monospace; font-size: 10px; color: var(--muted); flex-shrink: 0; text-align: right; }
-.swap-actions { display: flex; gap: 7px; flex-shrink: 0; }
-
-.status-badge { padding: 4px 10px; border-radius: 5px; font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.8px; }
-
-[data-theme='dark'] .btn-cosmos-ghost {
-  border-color: rgba(255,255,255,0.15);
-  color: rgba(255,255,255,0.8);
+/* ── SWAPS LAYOUT ── */
+.swaps-layout {
+  display: grid;
+  grid-template-columns: 280px 1fr;
+  gap: 48px;
+  padding-top: 48px;
+  padding-bottom: 80px;
+  align-items: start;
 }
-[data-theme='dark'] .btn-cosmos-ghost:hover {
-  border-color: var(--accent);
-  color: var(--accent);
+
+@media (max-width: 900px) {
+  .swaps-layout {
+    grid-template-columns: 1fr;
+    gap: 32px;
+  }
+}
+
+/* ── TAB BAR ── */
+.tab-bar { 
+  display: flex; 
+  gap: 6px; 
+  margin-bottom: 28px; 
+  background: var(--warm);
+  padding: 4px;
+  border-radius: 10px;
+  width: fit-content;
+  border: 1px solid var(--border);
+  align-items: center;
+}
+.tab-btn { 
   background: transparent;
+  border: none;
+  padding: 8px 18px;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--muted);
+  border-radius: 7px;
+  cursor: pointer;
+  font-family: 'PT Sans', sans-serif;
+  transition: all 0.2s cubic-bezier(0.2, 0.8, 0.2, 1);
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  outline: none;
 }
-.status-pending { background: var(--gold-light); color: var(--gold); }
-.status-active { background: var(--sage-light); color: var(--sage); }
-.status-done { background: var(--indigo-light); color: var(--indigo); }
+.tab-btn:hover { 
+  color: var(--ink); 
+  background: rgba(0, 0, 0, 0.03); 
+}
+[data-theme='dark'] .tab-btn:hover {
+  background: rgba(255, 255, 255, 0.03);
+}
+.tab-btn.active { 
+  background: var(--card-bg);
+  color: var(--accent) !important; 
+  box-shadow: 0 2px 12px rgba(15, 15, 15, 0.04);
+}
+[data-theme='dark'] .tab-btn.active {
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.2);
+}
+.tab-badge { 
+  background: var(--accent); 
+  color: white; 
+  font-size: 10px; 
+  font-weight: 800; 
+  padding: 2px 6px; 
+  border-radius: 12px; 
+}
+
+/* ── SWAP LIST & CARDS ── */
+.swap-list { display: flex; flex-direction: column; gap: 16px; }
+
+.swap-card { 
+  background: var(--card-bg); 
+  border-radius: 16px; 
+  padding: 20px 24px; 
+  display: flex; 
+  align-items: center; 
+  gap: 20px; 
+  border: 1px solid var(--border); 
+  transition: all 0.25s cubic-bezier(0.2, 0.8, 0.2, 1); 
+  position: relative;
+  overflow: hidden;
+}
+.swap-card:hover { 
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-lg); 
+}
+
+.swap-ava { 
+  width: 52px; 
+  height: 52px; 
+  border-radius: 12px; 
+  display: flex; 
+  align-items: center; 
+  justify-content: center; 
+  font-weight: 800; 
+  font-size: 16px; 
+  color: white; 
+  flex-shrink: 0; 
+  border: 2px solid var(--border);
+  box-shadow: var(--shadow);
+}
+
+.swap-meta { 
+  flex: 1; 
+  min-width: 0; 
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.swap-name { 
+  font-size: 15px; 
+  font-weight: 700; 
+  color: var(--ink);
+  margin: 0; 
+}
+
+.swap-skill-row { 
+  font-size: 12px; 
+  color: var(--muted); 
+  display: flex; 
+  align-items: center; 
+  gap: 8px; 
+  flex-wrap: wrap; 
+}
+
+.swap-skill-tag { 
+  background: rgba(200, 75, 49, 0.08); 
+  color: var(--accent); 
+  padding: 4px 10px; 
+  border-radius: 6px; 
+  font-weight: 700; 
+  font-size: 11px;
+}
+.swap-skill-tag.green { 
+  background: rgba(58, 99, 81, 0.08); 
+  color: var(--sage); 
+}
+
+.swap-time { 
+  font-family: 'PT Mono', monospace; 
+  font-size: 11px; 
+  color: var(--muted); 
+  flex-shrink: 0; 
+  text-align: right; 
+  margin-left: 12px;
+}
+
+.swap-actions { 
+  display: flex; 
+  gap: 8px; 
+  flex-shrink: 0; 
+  margin-left: 12px;
+  align-items: center;
+}
+
+.status-badge { 
+  padding: 5px 12px; 
+  border-radius: 6px; 
+  font-size: 10px; 
+  font-weight: 800; 
+  text-transform: uppercase; 
+  letter-spacing: 0.8px; 
+}
+.status-pending { background: var(--gold-light); color: var(--gold); border: 1.5px solid rgba(130, 98, 17, 0.15); }
+.status-active { background: var(--sage-light); color: var(--sage); border: 1.5px solid rgba(58, 99, 81, 0.15); }
+.status-done { background: var(--indigo-light); color: var(--indigo); border: 1.5px solid rgba(59, 79, 140, 0.15); }
+
+@media (max-width: 768px) {
+  .swap-card {
+    flex-direction: column;
+    align-items: flex-start;
+    padding: 16px;
+    gap: 16px;
+  }
+  .swap-actions {
+    width: 100%;
+    margin-left: 0;
+    justify-content: flex-end;
+  }
+  .swap-time {
+    margin-left: 0;
+    text-align: left;
+  }
+}

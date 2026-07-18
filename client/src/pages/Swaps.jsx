@@ -246,7 +246,7 @@ export default function Swaps() {
   return (
     <div className="page bg-gradient-subtle page-fade-in">
       <div className="container">
-        <div className="swaps-layout" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 64, paddingTop: 48, paddingBottom: 80, alignItems: 'start' }}>
+        <div className="swaps-layout">
           {/* Left */}
           <div className="swaps-sidebar" style={{ position: 'sticky', top: 90 }}>
             <div className="section-label">Dashboard</div>
