@@ -12,15 +12,16 @@ const SERVER_URL = process.env.SERVER_URL || 'http://localhost:5000';
 
 // ─── Passport Google Strategy ──────────────────────────────────────────────
 
-passport.use(
-  new GoogleStrategy(
-    {
-      clientID: process.env.GOOGLE_CLIENT_ID,
-      clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-      callbackURL: `${SERVER_URL}/api/auth/google/callback`,
-    },
-    async (accessToken, refreshToken, profile, done) => {
-      try {
+if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET) {
+  passport.use(
+    new GoogleStrategy(
+      {
+        clientID: process.env.GOOGLE_CLIENT_ID,
+        clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+        callbackURL: `${SERVER_URL}/api/auth/google/callback`,
+      },
+      async (accessToken, refreshToken, profile, done) => {
+        try {
         const googleId = profile.id;
         const email = profile.emails?.[0]?.value?.toLowerCase();
         const name = profile.displayName || profile.name?.givenName || 'User';
@@ -60,6 +61,7 @@ passport.use(
     }
   )
 );
+}
 
 // Passport requires serialize/deserialize for session — we use stateless JWT
 // so we just pass through the user id
@@ -73,11 +75,20 @@ passport.deserializeUser(async (id, done) => {
   }
 });
 
+// Helper middleware to check if Google Auth is configured
+const ensureGoogleConfigured = (req, res, next) => {
+  if (!process.env.GOOGLE_CLIENT_ID || !process.env.GOOGLE_CLIENT_SECRET) {
+    return res.status(501).json({ message: "Google authentication is not configured in this environment." });
+  }
+  next();
+};
+
 // ─── Routes ────────────────────────────────────────────────────────────────
 
 // Step 1: Redirect user to Google consent screen
 router.get(
   '/',
+  ensureGoogleConfigured,
   passport.authenticate('google', {
     scope: ['profile', 'email'],
     session: false,
@@ -88,6 +99,7 @@ router.get(
 // Step 2: Google redirects back here with a code
 router.get(
   '/callback',
+  ensureGoogleConfigured,
   passport.authenticate('google', {
     session: false,
     failureRedirect: `${CLIENT_URL}/login?error=google_failed`,
