@@ -1,7 +1,8 @@
 <div align="center">
-  <img src="https://raw.githubusercontent.com/IPD336/V2/main/client/public/favicon.svg" alt="SkillSwap Logo" width="120" />
+  <img src="https://raw.githubusercontent.com/IPD336/V2/main/client/public/logo_dark.webp" alt="SkillSwap Logo" width="120" />
   <h1>SkillSwap</h1>
   <p><strong>Trade What You Know. Learn What You Don't.</strong></p>
+  <p><h3>🌐 <a href="https://skillswapv2.vercel.app/">Live Website: skillswapv2.vercel.app</a></h3></p>
   
   <p>
     <img src="https://img.shields.io/badge/React-19-blue?style=for-the-badge&logo=react" alt="React" />
@@ -9,12 +10,14 @@
     <img src="https://img.shields.io/badge/MongoDB-9-brightgreen?style=for-the-badge&logo=mongodb" alt="MongoDB" />
     <img src="https://img.shields.io/badge/Socket.io-4-black?style=for-the-badge&logo=socket.io" alt="Socket.io" />
   </p>
-</div>
-
-<br/>
-
-<div align="center">
-  <img src="https://metrics.lecoq.io/IPD336?template=classic&plugin_pagespeed=yes&plugin_pagespeed_detailed=yes&plugin_pagespeed_url=https%3A%2F%2Fskillswapv2.vercel.app%2F" alt="PageSpeed Insights Metrics" width="600" />
+  <br/>
+  <br/>
+  <a href="https://pagespeed.web.dev/analysis/https-skillswapv2-vercel-app/y9pdzou3qy?form_factor=desktop" target="_blank">
+    <img src="https://img.shields.io/badge/Performance-99-brightgreen?style=for-the-badge" alt="Performance" />
+    <img src="https://img.shields.io/badge/Accessibility-96-brightgreen?style=for-the-badge" alt="Accessibility" />
+    <img src="https://img.shields.io/badge/Best_Practices-100-brightgreen?style=for-the-badge" alt="Best Practices" />
+    <img src="https://img.shields.io/badge/SEO-100-brightgreen?style=for-the-badge" alt="SEO" />
+  </a>
 </div>
 
 <br/>
@@ -23,17 +26,17 @@
 
 ---
 
-## 📑 Table of Contents
-- [✨ Why SkillSwap?](#-why-skillswap)
-- [🌟 Features](#-features)
-- [🏗 System Architecture](#-system-architecture)
-- [🚀 Getting Started](#-getting-started)
-- [🗂 Project Structure](#-project-structure)
-- [🤝 Contributing](#-contributing)
+## Table of Contents
+- [Why SkillSwap?](#why-skillswap)
+- [Features](#features)
+- [System Architecture](#system-architecture)
+- [Getting Started](#getting-started)
+- [Project Structure](#project-structure)
+- [Contributing](#contributing)
 
 ---
 
-## ✨ Why SkillSwap?
+## Why SkillSwap?
 Traditional learning platforms require you to pay for expensive courses or tutors. SkillSwap believes that **everyone has something to teach and something they want to learn**. 
 - **Zero Cost:** Pay with your time and knowledge, not your wallet.
 - **Learn by Doing:** 1-on-1 personalized mentorship is the fastest way to learn.
@@ -41,30 +44,30 @@ Traditional learning platforms require you to pay for expensive courses or tutor
 
 ---
 
-## 🌟 Features
+## Features
 
-### 🔄 Core Flow
+### Core Flow
 - **Browse & Match** — Discover users by skill category with smart match scoring and mutual-match detection
 - **Swap Requests** — Propose a skill exchange specifying what you offer and what you want in return
 - **Real-time Workspaces** — Chat, set goals, and track progress together via Socket.IO
 - **Completion & Reviews** — Mark swaps complete, leave ratings and feedback
 
-### 🎮 Gamification
+### Gamification
 - **Leagues** — Bronze → Silver → Gold → Platinum → Diamond based on rating × review count
 - **Badges** — Early Bird, Team Player, Super Mentor, and more
 - **Leaderboard** — Top-ranked users with percentile and league distribution
 
-### 👥 Teams
+### Teams
 - Create teams (2–4 people) with shared goals, invite members, and work together in a dedicated workspace
 
-### 🛡 Admin Dashboard
+### Admin Dashboard
 - Platform analytics (total users, swaps, teams, reviews)
 - User & Team management
 - Emergency data reset
 
 ---
 
-## 🏗 System Architecture
+## System Architecture
 
 ```mermaid
 graph TD
@@ -89,7 +92,7 @@ graph TD
     Node -->|Image Uploads| Cloudinary
 ```
 
-## 🔄 The Swap Lifecycle
+## The Swap Lifecycle
 
 ```mermaid
 sequenceDiagram
@@ -109,7 +112,7 @@ sequenceDiagram
 
 ---
 
-## 🚀 Getting Started
+## Getting Started
 
 ### Prerequisites
 - Node.js 20+
@@ -156,25 +159,7 @@ The client runs on `http://localhost:5173` and proxies `/api` requests to `http:
 
 ---
 
-## 🗂 Project Structure
-
-```mermaid
-mindmap
-  root((SkillSwap))
-    client
-      src
-        components
-        context
-        pages
-        utils
-      public
-    server
-      models
-      routes
-      services
-      middleware
-      utils
-```
+## Project Structure
 
 <details>
 <summary>Click to see full directory tree</summary>
@@ -200,7 +185,7 @@ skillswap/
 
 ---
 
-## 🔌 API Overview
+## API Overview
 
 | Route | Auth | Description |
 |---|---|---|
@@ -217,7 +202,7 @@ skillswap/
 
 ---
 
-## 🤝 Contributing
+## Contributing
 
 Contributions make the open source community such an amazing place to learn, inspire, and create. Any contributions you make are **greatly appreciated**.
 
@@ -229,6 +214,6 @@ Contributions make the open source community such an amazing place to learn, ins
 
 ---
 
-## 📜 License
+## License
 
 Distributed under the MIT License. See `LICENSE` for more information.
