@@ -20,6 +20,7 @@
   --muted: #534D46;
   --white: #FFFFFF;
   --border: rgba(15,15,15,0.10);
+  --hover-bg: rgba(15,15,15,0.04);
   --dot-color: rgba(15,15,15,0.08);
   --shadow: 0 4px 32px rgba(15,15,15,0.08);
   --shadow-lg: 0 16px 64px rgba(15,15,15,0.12);
@@ -56,6 +57,7 @@
   --muted: #9a9088;         /* warm muted, not cold grey */
   --white: #231e1a;
   --border: rgba(240,235,228,0.10);
+  --hover-bg: rgba(240,235,228,0.06);
   --dot-color: rgba(240,235,228,0.08);
   --shadow: 0 4px 32px rgba(0,0,0,0.4);
   --shadow-lg: 0 16px 64px rgba(0,0,0,0.6);

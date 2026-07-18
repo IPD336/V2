@@ -1,6 +1,37 @@
 /* ── RESPONSIVE ── */
 .mobile-only-flex { display: none !important; }
 
+/* Hide on desktop (shows only in mobile menu) */
+.hide-desktop { display: none !important; }
+
+/* Navbar search button */
+.nav-search-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 6px 14px;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--muted);
+  cursor: pointer;
+  transition: all 0.2s;
+  font-family: 'PT Sans', sans-serif;
+  white-space: nowrap;
+  min-width: 160px;
+}
+.nav-search-btn:hover {
+  border-color: var(--accent);
+  color: var(--ink);
+}
+.nav-search-text {
+  flex: 1;
+  text-align: left;
+}
+
+
 @media (max-width: 900px) {
   nav { padding: 0 20px; }
   .nav-links { display: none; }
@@ -8,6 +39,7 @@
   
   .mobile-menu-btn { display: flex !important; }
   .mobile-only-flex { display: flex !important; }
+  .hide-desktop { display: flex !important; }
   
   .notif-dropdown {
     position: fixed;
